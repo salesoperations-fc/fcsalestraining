@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard | AM Academy</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 2a10 10 0 0 1 10 10h-7a3 3 0 0 0-3-3z' fill='%23F0605D'/><path d='M22 12a10 10 0 0 1-10 10v-7a3 3 0 0 0 3-3z' fill='%232BB3A8'/><path d='M12 22A10 10 0 0 1 2 12h7a3 3 0 0 0 3 3z' fill='%23F5B83D'/><path d='M2 12A10 10 0 0 1 12 2v7a3 3 0 0 0-3 3z' fill='%238FD3E0'/></svg>">
+<link rel="stylesheet" href="shared/theme.css">
+<script src="shared/lms.js"></script>
+<script src="modules.js"></script>
+<style>
+  /* ---------- Header ---------- */
+  .hello{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:30px}
+  .hello p{margin:8px 0 0;font-size:16px;color:var(--ink-2)}
+  .hello p b{color:var(--ink);font-weight:600}
+  .overall{display:flex;gap:12px;align-items:center;font-size:13px;color:var(--ink-2)}
+  .overall b{display:block;font-size:22px;color:var(--ink);font-weight:600;line-height:1.1}
+
+  /* ---------- The 10-day track (the one bold element) ---------- */
+  .track{display:grid;grid-template-columns:repeat(10,minmax(86px,1fr));gap:6px;margin-bottom:38px;overflow-x:auto;padding-bottom:4px}
+  .day{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:6px;padding:12px 12px 14px;border-radius:var(--r);background:var(--mist);min-height:112px;position:relative;transition:background .15s}
+  .day:hover{background:#E9EFEF}
+  .day .n{font-size:26px;font-weight:700;line-height:1;color:#B7C5C8;letter-spacing:-.02em}
+  .day .t{font-size:12px;line-height:1.35;color:var(--ink-2)}
+  .day .bar{position:absolute;left:12px;right:12px;bottom:8px;height:3px;border-radius:2px;background:#DDE5E6;overflow:hidden}
+  .day .bar i{display:block;height:100%;background:var(--teal)}
+  .day.done{background:var(--teal-soft)}
+  .day.done .n{color:var(--teal-dark)}
+  .day.today{background:var(--deep);color:#fff}
+  .day.today .n{color:var(--marigold)}
+  .day.today .t{color:#D3E2E5}
+  .day.today .bar{background:rgba(255,255,255,.18)}
+  .day.today .bar i{background:var(--marigold)}
+  .day.behind{box-shadow:inset 0 0 0 2px var(--coral)}
+  .day[aria-pressed="true"]:not(.today){box-shadow:inset 0 0 0 2px var(--ink)}
+  .day[aria-pressed="true"].today{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--deep)}
+  .here{font-size:11px;font-weight:600;color:var(--marigold);margin-top:auto}
+
+  /* ---------- Body columns ---------- */
+  .cols{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:40px;align-items:start}
+  .day-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px}
+  .day-head span{font-size:13px;color:var(--ink-2)}
+  .mods{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+  .mod{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:14px;align-items:center;padding:16px 0;border-bottom:1px solid var(--line)}
+  .mod .ic{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--mist);color:var(--deep)}
+  .mod.is-done .ic{background:var(--green-soft);color:var(--green)}
+  .mod b{display:block;font-size:15px;font-weight:600;line-height:1.35}
+  .mod .meta{font-size:13px;color:var(--ink-2);margin-top:3px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .mod .right{display:flex;gap:10px;align-items:center}
+  .score{font-size:13px;font-weight:600;color:var(--green)}
+  .empty{padding:28px 0;color:var(--ink-2)}
+
+  /* ---------- Side panel ---------- */
+  .panel{margin-bottom:34px}
+  .panel h2{font-size:16px;margin-bottom:12px}
+  .next{background:var(--deep);color:#fff;border-radius:var(--r-lg);padding:22px}
+  .next small{color:#9DBCC2;font-size:13px}
+  .next b{display:block;font-size:18px;font-weight:600;line-height:1.35;margin:6px 0 16px}
+  .next .btn.primary{width:100%}
+  .next.all-done{background:var(--teal-soft);color:var(--ink)}
+  .next.all-done small{color:var(--ink-2)}
+  .sess{list-style:none;margin:0;padding:0}
+  .sess li{display:grid;grid-template-columns:48px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .sess li:first-child{padding-top:0}
+  .date{text-align:center;border:1px solid var(--line);border-radius:8px;padding:5px 0 6px;line-height:1.1}
+  .date small{display:block;font-size:11px;color:var(--coral);font-weight:600}
+  .date b{font-size:19px;font-weight:600}
+  .sess .t{font-size:14px;font-weight:600;line-height:1.35}
+  .sess .w{font-size:13px;color:var(--ink-2)}
+  .sess .links{display:flex;gap:14px;margin-top:4px;font-size:13px}
+  .sess a{font-weight:600;text-decoration:none}
+  .sess a:hover{text-decoration:underline}
+  .cal-frame{width:100%;height:360px;border:1px solid var(--line);border-radius:var(--r)}
+  .cal-link{display:inline-block;margin-top:12px;font-size:13px;font-weight:600;text-decoration:none}
+
+  @media (max-width:1060px){ .cols{grid-template-columns:1fr} }
+  @media (max-width:860px){ .track{grid-template-columns:repeat(10,96px)} .mod{grid-template-columns:36px minmax(0,1fr)} .mod .right{grid-column:2} }
+</style>
+</head>
+<body>
+<div id="strip"></div>
+<div class="shell">
+  <aside class="side" id="side"></aside>
+  <main class="main"><div class="wrap" id="app"></div></main>
+</div>
+
+<script>
+/* ---------- Shared sidebar (same on every top-level page) ---------- */
+const LOGO = '<svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 1 10 10h-7a3 3 0 0 0-3-3z" fill="#F0605D"/><path d="M22 12a10 10 0 0 1-10 10v-7a3 3 0 0 0 3-3z" fill="#2BB3A8"/><path d="M12 22A10 10 0 0 1 2 12h7a3 3 0 0 0 3 3z" fill="#F5B83D"/><path d="M2 12A10 10 0 0 1 12 2v7a3 3 0 0 0-3 3z" fill="#8FD3E0"/></svg>';
+const ICON = {
+  home:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  grades:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  admin:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>',
+  lesson:'<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19a2 2 0 0 1 2-2h13"/>',
+  sim:'<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>',
+  exam:'<path d="M9 4h6v3H9z"/><path d="M7 5H5v16h14V5h-2"/><path d="M9 13l2 2 4-4"/>',
+  session:'<circle cx="9" cy="9" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 20a6 6 0 0 1 12 0M14 20a4 4 0 0 1 7 0"/>',
+  check:'<path d="M5 12l5 5 9-10"/>'
+};
+const ico = (k,s=18) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function renderSide(active){
+  const u = LMS.user(), C = LMS.config;
+  const link = (href,icon,label,key,ext) => `<li><a href="${href}" ${active===key?'aria-current="page"':""} ${ext?'target="_blank" rel="noopener"':""}>${ico(icon)}${label}</a></li>`;
+  document.getElementById("side").innerHTML = `
+    <div class="brand">${LOGO}<div><b>${esc(C.appName)}</b><small>${esc(C.company)}</small></div></div>
+    <ul class="nav">
+      ${link("dashboard.html","home","Dashboard","dashboard")}
+      ${link("grades.html","grades","Grades","grades")}
+      ${C.calendar.link ? link(C.calendar.link,"cal","Training calendar","cal",true) : ""}
+      ${LMS.isAdmin() ? `<li class="nav-label">Trainers</li>${link("admin.html","admin","Admin","admin")}` : ""}
+    </ul>
+    <div class="side-foot"><span class="av">${esc(LMS.initials(u.name))}</span><div><b>${esc(u.name)}</b><button id="signOut">Sign out</button></div></div>`;
+  document.getElementById("signOut").onclick = () => LMS.signOut();
+  if (C.demo) document.getElementById("strip").innerHTML = `<div class="strip">Demo mode: you're signed in as ${esc(u.name)} and progress is saved in this browser only. <a href="#" id="resetDemo">Reset demo progress</a></div>`;
+  const r = document.getElementById("resetDemo"); if (r) r.onclick = e => { e.preventDefault(); LMS.resetDemo(); };
+}
+
+/* ---------- Program day from start date (weekdays only) ---------- */
+function programDay(startDate){
+  if (!startDate) return 1;
+  const s = new Date(startDate+"T00:00"), t = new Date(); t.setHours(0,0,0,0);
+  if (t < s) return 0;                                   // hasn't started yet
+  let d = new Date(s), n = 0;
+  while (d <= t){ const w = d.getDay(); if (w!==0 && w!==6) n++; d.setDate(d.getDate()+1); }
+  return Math.min(Math.max(n,1), LMS.config.programDays);
+}
+
+/* ---------- Dashboard ---------- */
+const TYPE = { lesson:["lesson","Lesson"], sim:["sim","Practice sim"], exam:["exam","Exam"], session:["session","Live session"] };
+const ASSESS = { quiz:"Quiz", sim:"Simulation", written:"Written answer", checklist:"Trainer checklist", attendance:"Attendance", none:"" };
+let selectedDay = null;
+
+function render(){
+  const u = LMS.user(), P = LMS.progress(), today = programDay(u.startDate);
+  const days = window.LMS_DAYS, mods = window.LMS_MODULES;
+  const isDone = m => P[m.id] && P[m.id].status === "done";
+  const dayMods = d => mods.filter(m => m.day === d);
+  const doneCount = mods.filter(isDone).length;
+  const pct = mods.length ? Math.round(doneCount / mods.length * 100) : 0;
+  if (selectedDay === null) selectedDay = Math.max(today, 1);
+
+  const hour = new Date().getHours();
+  const greet = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const curDay = days.find(d => d.day === Math.max(today,1));
+  const sub = today === 0
+    ? `Your onboarding starts on <b>${new Date(u.startDate+"T00:00").toLocaleDateString("en-PH",{weekday:"long",month:"long",day:"numeric"})}</b>.`
+    : `You're on <b>day ${today} of ${LMS.config.programDays}</b>: ${esc(curDay ? curDay.title : "")}.`;
+
+  const track = days.map(d => {
+    const ms = dayMods(d.day), dn = ms.filter(isDone).length, all = ms.length && dn === ms.length;
+    const behind = today > d.day && ms.some(m => m.ready && !isDone(m));
+    const cls = [all ? "done" : "", d.day === today ? "today" : "", behind ? "behind" : ""].join(" ");
+    return `<button class="day ${cls}" aria-pressed="${d.day===selectedDay}" data-day="${d.day}" aria-label="Day ${d.day}: ${esc(d.title)}, ${dn} of ${ms.length} done">
+      <span class="n">${all ? ico("check",22) : d.day}</span><span class="t">${esc(d.title)}</span>
+      ${d.day === today ? `<span class="here">You're here</span>` : ""}
+      <span class="bar"><i style="width:${ms.length ? dn/ms.length*100 : 0}%"></i></span></button>`;
+  }).join("");
+
+  const sd = days.find(d => d.day === selectedDay), sm = dayMods(selectedDay);
+  const rows = sm.map(m => {
+    const p = P[m.id], done = isDone(m), [ic, typeLabel] = TYPE[m.type] || TYPE.lesson;
+    const scoreTxt = done && p.max ? `<span class="score">${p.score}/${p.max}${p.attempts>1?` (best of ${p.attempts})`:""}</span>` : "";
+    const action = !m.ready ? `<span class="tag">Coming soon</span>`
+      : done ? `${scoreTxt || `<span class="tag done">${ico("check",12)} Done</span>`}<a class="btn sm" href="${esc(m.url)}" data-open="${m.id}">${m.assessment==="none"||!m.assessment ? "Review" : "Retake"}</a>`
+      : `<a class="btn sm ${p ? "" : "primary"}" href="${esc(m.url)}" data-open="${m.id}">${p ? "Continue" : "Start"}</a>`;
+    const late = !done && m.ready && today > m.day ? `<span class="tag late">Overdue</span>` : "";
+    return `<li class="mod ${done ? "is-done" : ""}"><span class="ic">${done ? ico("check") : ico(ic)}</span>
+      <div><b>${esc(m.title)}</b><div class="meta"><span>${typeLabel}, ${m.minutes} min</span>${ASSESS[m.assessment] ? `<span class="tag">${ASSESS[m.assessment]}</span>` : ""}${late}</div></div>
+      <div class="right">${action}</div></li>`;
+  }).join("");
+
+  // Up next: first ready, not-done module in program order
+  const next = mods.find(m => m.ready && !isDone(m));
+  const nextHtml = next
+    ? `<div class="next"><small>Up next, day ${next.day}</small><b>${esc(next.title)}</b><a class="btn primary" href="${esc(next.url)}" data-open="${next.id}">${P[next.id] ? "Continue" : "Start"}</a></div>`
+    : `<div class="next all-done"><small>Nothing waiting</small><b>You've finished everything that's open right now. New lessons will show up here.</b></div>`;
+
+  // Sessions: embedded calendar if configured, otherwise the list from modules.js
+  const C = LMS.config.calendar;
+  let sessHtml;
+  if (C.embedSrc) {
+    sessHtml = `<iframe class="cal-frame" title="Training calendar" src="${esc(C.embedSrc)}${C.embedSrc.includes("?")?"&":"?"}mode=AGENDA&ctz=Asia%2FManila&showTitle=0&showPrint=0&showTabs=0&showCalendars=0"></iframe>`;
+  } else {
+    const now = new Date();
+    const up = (window.LMS_SESSIONS||[]).map(s => ({...s, d:new Date(s.when)})).filter(s => s.d >= now).sort((a,b)=>a.d-b.d).slice(0,4);
+    sessHtml = up.length ? `<ul class="sess">${up.map(s => {
+      const end = new Date(s.d.getTime() + (s.minutes||60)*60000);
+      const g = x => x.getFullYear()+String(x.getMonth()+1).padStart(2,"0")+String(x.getDate()).padStart(2,"0")+"T"+String(x.getHours()).padStart(2,"0")+String(x.getMinutes()).padStart(2,"0")+"00";
+      const add = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(s.title)}&dates=${g(s.d)}/${g(end)}&ctz=Asia/Manila`;
+      const time = s.d.toLocaleTimeString("en-PH",{hour:"numeric",minute:"2-digit"}) + " to " + end.toLocaleTimeString("en-PH",{hour:"numeric",minute:"2-digit"});
+      return `<li><div class="date"><small>${s.d.toLocaleDateString("en-PH",{weekday:"short"})}</small><b>${s.d.getDate()}</b></div>
+        <div><div class="t">${esc(s.title)}</div><div class="w">${s.d.toLocaleDateString("en-PH",{month:"short",day:"numeric"})}, ${time}</div>
+        <div class="links">${s.link ? `<a href="${esc(s.link)}" target="_blank" rel="noopener">Join</a>` : ""}<a href="${add}" target="_blank" rel="noopener">Add to my calendar</a></div></div></li>`;
+    }).join("")}</ul>` : `<p class="muted small">No sessions scheduled yet. Your trainer will add them here.</p>`;
+  }
+  if (C.link) sessHtml += `<a class="cal-link" href="${esc(C.link)}" target="_blank" rel="noopener">Open the training calendar</a>`;
+
+  document.getElementById("app").innerHTML = `
+    <div class="hello"><div><h1>${greet}, ${esc(LMS.firstName(u.name))}</h1><p>${sub}</p></div>
+      <div class="overall"><div><b>${pct}%</b>${doneCount} of ${mods.length} modules done</div></div></div>
+    <nav class="track" aria-label="Onboarding days">${track}</nav>
+    <div class="cols">
+      <section aria-labelledby="dayTitle">
+        <div class="day-head"><h2 id="dayTitle">Day ${selectedDay}: ${esc(sd ? sd.title : "")}</h2><span>${sm.filter(isDone).length} of ${sm.length} done</span></div>
+        ${sm.length ? `<ul class="mods">${rows}</ul>` : `<p class="empty">Nothing planned for this day yet.</p>`}
+      </section>
+      <aside>
+        <section class="panel" aria-label="Up next">${nextHtml}</section>
+        <section class="panel"><h2>Upcoming sessions</h2>${sessHtml}</section>
+      </aside>
+    </div>`;
+}
+
+document.addEventListener("click", e => {
+  const d = e.target.closest("[data-day]"); if (d) { selectedDay = +d.dataset.day; render(); return; }
+  const o = e.target.closest("[data-open]"); if (o) LMS.start(o.dataset.open);   // then the link opens normally
+});
+
+if (LMS.requireSignIn()) { renderSide("dashboard"); render(); }
+</script>
+</body>
+</html>
