@@ -75,6 +75,13 @@ window.LMS_CONFIG = {
       return Promise.resolve(p[id]);    // later: also sent to the backend
     },
 
+    /** Undo a tick (task unchecked, exam submission undone). */
+    undo(id){
+      const p = LMS.progress();
+      if (p[id] && !p[id].max) { delete p[id]; write(progressKey(), p); }
+      return Promise.resolve(null);
+    },
+
     /** Save a scored attempt (quiz, sim, exam). Keeps every attempt and the best score. */
     saveResult(id, result){
       const p = LMS.progress(), prev = p[id] || { attempts:0, history:[] };
