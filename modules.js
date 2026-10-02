@@ -1,47 +1,117 @@
 /* =========================================================
-   AM Academy — course outline
-   This is the only file to edit when adding or reordering content.
+   AM Academy — 2-Week Learning Path (course outline)
+   This is the only file to edit when changing the program.
 
-   Each module:
-     id          unique, no spaces (used to track progress — don't rename once people start)
-     day         which onboarding day it belongs to (1–10)
-     title       what AMs see
-     type        "lesson" | "sim" | "exam" | "session"
-     minutes     rough time needed
-     url         the page to open (lessons/..., sims/..., or an external link like Google Slides)
-     assessment  "none" | "quiz" | "sim" | "written" | "checklist" | "attendance"
-     ready       false = shows "Coming soon" and can't be opened yet
-
-   SAMPLE CONTENT: replace with your TM's real plan.
+   Each day:
+     day        1–10 (days unlock in order)
+     week       1 or 2
+     title      what AMs see
+     tasks      checklist items. Each needs a short unique id (don't rename once people start).
+     materials  training materials: { label, href }. Leave href:"" until the link is ready.
+     exam       optional. Must be submitted before the next day unlocks.
+                { id, label, href, kind, passing }
+                kind: "form"    = Google Form or other link (trainer records the score)
+                      "sim"     = one of our simulations
+                      "trainer" = scored live by the trainer (role-play, sign-off)
    ========================================================= */
 
-window.LMS_DAYS = [
-  { day:1,  title:"Welcome to First Circle" },
-  { day:2,  title:"Our products" },
-  { day:3,  title:"Getting around Connect" },
-  { day:4,  title:"Onboarding a new client" },
-  { day:5,  title:"Payments and deposits" },
-  { day:6,  title:"Credit and drawdowns" },
-  { day:7,  title:"Client conversations" },
-  { day:8,  title:"Review and Q&A" },
-  { day:9,  title:"Connect simulation exam" },
-  { day:10, title:"Final assessment" }
-];
+window.LMS_WEEKS = {
+  1: "Week 1: Knowledge and simulation",
+  2: "Week 2: Applied practice and certification"
+};
 
-window.LMS_MODULES = [
-  { id:"d1-welcome",      day:1, title:"Welcome and how the program works", type:"lesson",  minutes:20, url:"lessons/day1-intro.html",    assessment:"none",       ready:false },
-  { id:"d1-am-role",      day:1, title:"The Account Manager role",          type:"lesson",  minutes:30, url:"lessons/day1-am-role.html",  assessment:"quiz",       ready:false },
-  { id:"d2-products",     day:2, title:"Business Credit Line and Express Business Loan", type:"lesson", minutes:45, url:"lessons/day2-products.html", assessment:"quiz", ready:false },
-  { id:"d2-banking",      day:2, title:"Business Accounts: Payments and Savings", type:"lesson", minutes:30, url:"lessons/day2-banking.html", assessment:"quiz", ready:false },
-  { id:"d3-connect-tour", day:3, title:"A tour of Connect",                 type:"lesson",  minutes:30, url:"lessons/day3-connect.html",  assessment:"none",       ready:false },
-  { id:"d3-home-sim",     day:3, title:"Practice: find your way around the homepage", type:"sim", minutes:15, url:"sims/connect-home-practice.html", assessment:"sim", ready:false },
-  { id:"d4-onboarding",   day:4, title:"Documents, team access, and roles", type:"lesson",  minutes:40, url:"lessons/day4-onboarding.html", assessment:"written",  ready:false },
-  { id:"d5-payments",     day:5, title:"Transfers, contacts, and deposits", type:"lesson",  minutes:40, url:"lessons/day5-payments.html", assessment:"quiz",       ready:false },
-  { id:"d6-credit",       day:6, title:"Drawdowns, contracts, and post-dated checks", type:"lesson", minutes:45, url:"lessons/day6-credit.html", assessment:"quiz", ready:false },
-  { id:"d7-roleplay",     day:7, title:"Roleplay: a first call with a new client", type:"session", minutes:60, url:"lessons/day7-roleplay.html", assessment:"checklist", ready:false },
-  { id:"d8-qa",           day:8, title:"Live Q&A with your trainer",        type:"session", minutes:60, url:"lessons/day8-qa.html",       assessment:"attendance", ready:false },
-  { id:"d9-connect-exam", day:9, title:"Connect simulation exam",           type:"exam",    minutes:30, url:"sims/connect-exam.html",     assessment:"sim",        ready:true  },
-  { id:"d10-final",       day:10, title:"Final assessment",                  type:"exam",    minutes:45, url:"lessons/day10-final.html",   assessment:"written",    ready:false }
+window.LMS_DAYS = [
+  { day:1, week:1, title:"Tools Set Up & Orientation",
+    tasks:[
+      { id:"d1-devices",   label:"Work devices set up" },
+      { id:"d1-bookmarks", label:"Bookmark tools" },
+      { id:"d1-orient",    label:"Product orientation" },
+      { id:"d1-frs",       label:"Read & sign the Foundations of Responsible Selling form" }
+    ],
+    materials:[ { label:"Foundations of Responsible Selling", href:"" } ] },
+
+  { day:2, week:1, title:"Product Knowledge & Positioning",
+    tasks:[
+      { id:"d2-industry", label:"Review the industry background and First Circle's products" },
+      { id:"d2-reqs",     label:"Review requirements per industry type and the AM Success Playbook guide" }
+    ],
+    materials:[
+      { label:"Financing Industry Knowledge", href:"" },
+      { label:"Business Credit Line (BCL)", href:"" },
+      { label:"Banking Account (BA)", href:"" },
+      { label:"Future Salary Advance (FSA)", href:"" },
+      { label:"First Circle Requirements List", href:"" },
+      { label:"AM Success Playbook", href:"" }
+    ] },
+
+  { day:3, week:1, title:"FC Connect Platform (Account Staging) + Product Exam 1",
+    tasks:[
+      { id:"d3-staging", label:"Learn to navigate FC Connect using your Account Staging" }
+    ],
+    materials:[
+      { label:"Add a new team member", href:"" },
+      { label:"How to utilise the credit line (draw funds)", href:"" },
+      { label:"How to top up the wallet", href:"" },
+      { label:"How to transfer funds", href:"" },
+      { label:"How to add bank accounts (Contacts)", href:"" }
+    ],
+    exam:{ id:"exam-product-1", label:"Product Exam 1", href:"", kind:"form", passing:80 } },
+
+  { day:4, week:1, title:"Connect Exam Simulation + Product Exam 2",
+    tasks:[
+      { id:"d4-sim", label:"Complete the virtual simulation exam", href:"sims/connect-exam.html" }
+    ],
+    materials:[],
+    exam:{ id:"exam-product-2", label:"Product Exam 2", href:"", kind:"form", passing:80 } },
+
+  { day:5, week:1, title:"BVP & Sales Process + Product Exam 3",
+    tasks:[
+      { id:"d5-referrals", label:"Review how to upload referrals and self-generated leads" },
+      { id:"d5-docs",      label:"Review how to request document uploads for review" },
+      { id:"d5-reassign",  label:"Review how to request lead re-assignment for self-gen/referral leads" }
+    ],
+    materials:[
+      { label:"How to Upload Referrals and Self-Generated Leads", href:"" },
+      { label:"How to Submit Onboarding Documents for Review", href:"" },
+      { label:"Lead Assignment Request SOP", href:"" }
+    ],
+    exam:{ id:"exam-product-3", label:"Product Exam 3", href:"https://forms.gle/fxTBiKNvnyXHWT1d8", kind:"form", passing:80 } },
+
+  { day:6, week:2, title:"Live Call Shadowing",
+    tasks:[
+      { id:"d6-shadow",  label:"Shadow 2–3 AM calls with a mentor" },
+      { id:"d6-notes",   label:"Take notes on objection handling and discovery questions" },
+      { id:"d6-reflect", label:"Submit shadowing reflection log" }
+    ],
+    materials:[ { label:"Call Shadowing Reflection Log Template", href:"" } ] },
+
+  { day:7, week:2, title:"Supervised Sandbox Practice",
+    tasks:[
+      { id:"d7-mock",    label:"Handle 3–5 mock client scenarios in FC Connect staging (varied industry types)" },
+      { id:"d7-signoff", label:"Get coach sign-off per scenario" }
+    ],
+    materials:[ { label:"Mock Scenario Bank", href:"" } ] },
+
+  { day:8, week:2, title:"Real Account Exposure (Supervised)",
+    tasks:[
+      { id:"d8-real",  label:"Process 1–2 real accounts under direct supervision" },
+      { id:"d8-check", label:"Complete supervisor checklist with no critical errors" }
+    ],
+    materials:[ { label:"Supervised Account Checklist", href:"" } ] },
+
+  { day:9, week:2, title:"Role-Play Assessment",
+    tasks:[
+      { id:"d9-roleplay", label:"Complete client-facing role-play: discovery, objection, close" }
+    ],
+    materials:[ { label:"Role-Play Scorecard Rubric", href:"" } ],
+    exam:{ id:"exam-roleplay", label:"Role-Play Assessment", href:"", kind:"trainer", passing:80 } },
+
+  { day:10, week:2, title:"Final Certification",
+    tasks:[
+      { id:"d10-review", label:"Manager review & final sign-off" }
+    ],
+    materials:[],
+    exam:{ id:"exam-certification", label:"Certification Exam", href:"", kind:"form", passing:80 } }
 ];
 
 /* Live sessions shown on the dashboard if no Google Calendar is embedded.
@@ -50,6 +120,6 @@ window.LMS_SESSIONS = [
   { title:"Kickoff with your trainer",   when:"2026-09-30T10:00", minutes:60, link:"" },
   { title:"Products Q&A",                when:"2026-10-01T15:00", minutes:45, link:"" },
   { title:"Connect walkthrough (live)",  when:"2026-10-05T14:00", minutes:60, link:"" },
-  { title:"Client roleplay",             when:"2026-10-08T10:00", minutes:90, link:"" },
-  { title:"Review and Q&A",              when:"2026-10-09T15:00", minutes:60, link:"" }
+  { title:"Call shadowing debrief",      when:"2026-10-08T10:00", minutes:60, link:"" },
+  { title:"Role-play prep and Q&A",      when:"2026-10-09T15:00", minutes:60, link:"" }
 ];

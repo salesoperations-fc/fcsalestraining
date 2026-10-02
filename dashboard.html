@@ -9,56 +9,69 @@
 <script src="shared/lms.js"></script>
 <script src="modules.js"></script>
 <style>
-  /* ---------- Header ---------- */
-  .hello{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:30px}
+  .hello{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:18px}
   .hello p{margin:8px 0 0;font-size:16px;color:var(--ink-2)}
   .hello p b{color:var(--ink);font-weight:600}
-  .overall{display:flex;gap:12px;align-items:center;font-size:13px;color:var(--ink-2)}
-  .overall b{display:block;font-size:22px;color:var(--ink);font-weight:600;line-height:1.1}
+  .overall{text-align:right;font-size:13px;color:var(--ink-2)}
+  .overall b{display:block;font-size:24px;color:var(--teal-dark);font-weight:700;line-height:1.15}
 
-  /* ---------- The 10-day track (the one bold element) ---------- */
-  .track{display:grid;grid-template-columns:repeat(10,minmax(86px,1fr));gap:6px;margin-bottom:38px;overflow-x:auto;padding-bottom:4px}
-  .day{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:6px;padding:12px 12px 14px;border-radius:var(--r);background:var(--mist);min-height:112px;position:relative;transition:background .15s}
-  .day:hover{background:#E9EFEF}
-  .day .n{font-size:26px;font-weight:700;line-height:1;color:#B7C5C8;letter-spacing:-.02em}
-  .day .t{font-size:12px;line-height:1.35;color:var(--ink-2)}
-  .day .bar{position:absolute;left:12px;right:12px;bottom:8px;height:3px;border-radius:2px;background:#DDE5E6;overflow:hidden}
-  .day .bar i{display:block;height:100%;background:var(--teal)}
-  .day.done{background:var(--teal-soft)}
-  .day.done .n{color:var(--teal-dark)}
-  .day.today{background:var(--deep);color:#fff}
-  .day.today .n{color:var(--marigold)}
-  .day.today .t{color:#D3E2E5}
-  .day.today .bar{background:rgba(255,255,255,.18)}
-  .day.today .bar i{background:var(--marigold)}
-  .day.behind{box-shadow:inset 0 0 0 2px var(--coral)}
-  .day[aria-pressed="true"]:not(.today){box-shadow:inset 0 0 0 2px var(--ink)}
-  .day[aria-pressed="true"].today{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--deep)}
-  .here{font-size:11px;font-weight:600;color:var(--marigold);margin-top:auto}
+  /* Segmented progress: one segment per day */
+  .segs{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin-bottom:30px}
+  .segs i{height:8px;border-radius:5px;background:#E3E9EA}
+  .segs i.complete{background:var(--teal)}
+  .segs i.current{background:var(--marigold)}
 
-  /* ---------- Body columns ---------- */
-  .cols{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:40px;align-items:start}
-  .day-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px}
-  .day-head span{font-size:13px;color:var(--ink-2)}
-  .mods{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
-  .mod{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:14px;align-items:center;padding:16px 0;border-bottom:1px solid var(--line)}
-  .mod .ic{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--mist);color:var(--deep)}
-  .mod.is-done .ic{background:var(--green-soft);color:var(--green)}
-  .mod b{display:block;font-size:15px;font-weight:600;line-height:1.35}
-  .mod .meta{font-size:13px;color:var(--ink-2);margin-top:3px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  .mod .right{display:flex;gap:10px;align-items:center}
-  .score{font-size:13px;font-weight:600;color:var(--green)}
-  .empty{padding:28px 0;color:var(--ink-2)}
+  /* Week rails */
+  .week{margin-bottom:22px}
+  .week h2{font-size:14px;font-weight:600;color:var(--ink-2);margin-bottom:10px}
+  .rail{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+  .card{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:6px;min-height:150px;padding:16px;border-radius:14px;background:#fff;border:1px solid var(--line);position:relative}
+  .card:hover{border-color:#B9CDD1}
+  .card .st{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600}
+  .card .when{font-size:12px;color:var(--ink-3)}
+  .card .tt{font-size:15px;font-weight:600;line-height:1.3;color:var(--ink)}
+  .card .ft{margin-top:auto;font-size:12px;color:var(--ink-2)}
+  .card.complete .st{color:var(--teal-dark)}
+  .card.current{background:var(--deep);border-color:var(--deep)}
+  .card.current .st{color:var(--marigold)} .card.current .when{color:#9DBCC2} .card.current .tt{color:#fff} .card.current .ft{color:#C7D9DC}
+  .card.locked{background:var(--mist);border:1px dashed #CFD9DB}
+  .card.locked .st{color:var(--ink-3)} .card.locked .tt{color:var(--ink-2)}
+  .card[aria-pressed="true"]{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--teal)}
+  .card .late{position:absolute;top:-9px;right:12px}
 
-  /* ---------- Side panel ---------- */
-  .panel{margin-bottom:34px}
+  /* Day detail + sessions */
+  .lower{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:32px;align-items:start;margin-top:10px}
+  .detail{border:1px solid var(--line);border-radius:var(--r-lg);padding:28px}
+  .detail .kicker{font-size:13px;font-weight:600}
+  .detail .kicker.complete{color:var(--teal-dark)} .detail .kicker.current{color:#9A6400} .detail .kicker.locked{color:var(--ink-3)}
+  .detail h2{font-size:24px;line-height:1.25;margin:6px 0 22px;letter-spacing:-.01em}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+  .two h3{font-size:14px;color:var(--ink-2);font-weight:600;margin-bottom:10px}
+  .tasks{list-style:none;margin:0;padding:0}
+  .tasks li{border-bottom:1px solid var(--line)}
+  .tasks li:last-child{border-bottom:0}
+  .tasks label{display:flex;gap:12px;align-items:flex-start;padding:10px 0;cursor:pointer;font-size:14px;line-height:1.45}
+  .tasks input{appearance:none;width:20px;height:20px;border:1.5px solid #9FB1B5;border-radius:6px;flex:none;margin:1px 0 0;display:grid;place-items:center;cursor:pointer;background:#fff}
+  .tasks input:checked{background:var(--teal);border-color:var(--teal)}
+  .tasks input:checked::after{content:"";width:10px;height:6px;border:2px solid #fff;border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+  .tasks input:disabled{cursor:not-allowed;background:var(--mist)}
+  .tasks label.off{cursor:not-allowed;color:var(--ink-2)}
+  .tasks .open{margin-left:auto;font-size:13px;font-weight:600;white-space:nowrap;text-decoration:none}
+  .mats{list-style:none;margin:0;padding:0}
+  .mats li{padding:9px 0;border-bottom:1px solid var(--line);font-size:14px;display:flex;justify-content:space-between;gap:10px}
+  .mats li:last-child{border-bottom:0}
+  .mats a{font-weight:600;text-decoration:none}
+  .mats a:hover{text-decoration:underline}
+  .mats .soon{font-size:12px;color:var(--ink-3);white-space:nowrap}
+  .exam{margin-top:22px;border-radius:12px;padding:16px 18px;background:var(--marigold-soft);display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  .exam.ok{background:var(--green-soft)}
+  .exam b{display:block;font-size:15px}
+  .exam span{font-size:13px;color:var(--ink-2)}
+  .exam .acts{display:flex;gap:8px;flex-wrap:wrap}
+  .lockmsg{margin-top:22px;font-size:14px;color:var(--ink-2);background:var(--mist);border-radius:12px;padding:14px 16px}
+  .daydone{margin-top:22px;font-size:14px;color:var(--green);font-weight:600}
+
   .panel h2{font-size:16px;margin-bottom:12px}
-  .next{background:var(--deep);color:#fff;border-radius:var(--r-lg);padding:22px}
-  .next small{color:#9DBCC2;font-size:13px}
-  .next b{display:block;font-size:18px;font-weight:600;line-height:1.35;margin:6px 0 16px}
-  .next .btn.primary{width:100%}
-  .next.all-done{background:var(--teal-soft);color:var(--ink)}
-  .next.all-done small{color:var(--ink-2)}
   .sess{list-style:none;margin:0;padding:0}
   .sess li{display:grid;grid-template-columns:48px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
   .sess li:first-child{padding-top:0}
@@ -69,12 +82,11 @@
   .sess .w{font-size:13px;color:var(--ink-2)}
   .sess .links{display:flex;gap:14px;margin-top:4px;font-size:13px}
   .sess a{font-weight:600;text-decoration:none}
-  .sess a:hover{text-decoration:underline}
   .cal-frame{width:100%;height:360px;border:1px solid var(--line);border-radius:var(--r)}
   .cal-link{display:inline-block;margin-top:12px;font-size:13px;font-weight:600;text-decoration:none}
 
-  @media (max-width:1060px){ .cols{grid-template-columns:1fr} }
-  @media (max-width:860px){ .track{grid-template-columns:repeat(10,96px)} .mod{grid-template-columns:36px minmax(0,1fr)} .mod .right{grid-column:2} }
+  @media (max-width:1100px){ .lower{grid-template-columns:1fr} }
+  @media (max-width:860px){ .rail{grid-template-columns:repeat(5,180px);overflow-x:auto;padding:4px 2px 8px} .two{grid-template-columns:1fr;gap:20px} .detail{padding:20px} .detail h2{font-size:20px} }
 </style>
 </head>
 <body>
@@ -118,106 +130,144 @@ function renderSide(active){
   const r = document.getElementById("resetDemo"); if (r) r.onclick = e => { e.preventDefault(); LMS.resetDemo(); };
 }
 
-/* ---------- Program day from start date (weekdays only) ---------- */
-function programDay(startDate){
-  if (!startDate) return 1;
-  const s = new Date(startDate+"T00:00"), t = new Date(); t.setHours(0,0,0,0);
-  if (t < s) return 0;                                   // hasn't started yet
-  let d = new Date(s), n = 0;
-  while (d <= t){ const w = d.getDay(); if (w!==0 && w!==6) n++; d.setDate(d.getDate()+1); }
-  return Math.min(Math.max(n,1), LMS.config.programDays);
+/* ---------- Dates: day N of the program falls on the Nth weekday from the start date ---------- */
+function dayDate(startDate, n){
+  const d = new Date(startDate+"T00:00"); let c = 0;
+  while (true){ const w=d.getDay(); if (w!==0 && w!==6){ c++; if (c===n) return d; } d.setDate(d.getDate()+1); }
+}
+function scheduledDay(startDate){
+  const t = new Date(); t.setHours(0,0,0,0);
+  for (let n=LMS.config.programDays; n>=1; n--) if (dayDate(startDate,n) <= t) return n;
+  return 0;
+}
+const fmtDay = d => d.toLocaleDateString("en-PH",{weekday:"short", month:"short", day:"numeric"});
+const LOCK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+
+/* ---------- Status rules ----------
+   A day is complete when every task is ticked and its exam (if any) is submitted.
+   Day 1 is always open; every other day unlocks when the day before it is complete. */
+let selected = null;
+function compute(){
+  const P = LMS.progress(), done = id => P[id] && P[id].status === "done";
+  let prevComplete = true, current = null;
+  const days = window.LMS_DAYS.map(d => {
+    const tasksDone = d.tasks.filter(t => done(t.id)).length;
+    const examDone = !d.exam || done(d.exam.id);
+    const complete = tasksDone === d.tasks.length && examDone;
+    const status = complete ? "complete" : prevComplete ? "current" : "locked";
+    if (status === "current" && current === null) current = d.day;
+    prevComplete = complete;
+    return { ...d, tasksDone, examDone, status, P };
+  });
+  return { days, current, P };
 }
 
-/* ---------- Dashboard ---------- */
-const TYPE = { lesson:["lesson","Lesson"], sim:["sim","Practice sim"], exam:["exam","Exam"], session:["session","Live session"] };
-const ASSESS = { quiz:"Quiz", sim:"Simulation", written:"Written answer", checklist:"Trainer checklist", attendance:"Attendance", none:"" };
-let selectedDay = null;
-
 function render(){
-  const u = LMS.user(), P = LMS.progress(), today = programDay(u.startDate);
-  const days = window.LMS_DAYS, mods = window.LMS_MODULES;
-  const isDone = m => P[m.id] && P[m.id].status === "done";
-  const dayMods = d => mods.filter(m => m.day === d);
-  const doneCount = mods.filter(isDone).length;
-  const pct = mods.length ? Math.round(doneCount / mods.length * 100) : 0;
-  if (selectedDay === null) selectedDay = Math.max(today, 1);
+  const u = LMS.user(), { days, current, P } = compute();
+  const completeCount = days.filter(d => d.status === "complete").length;
+  const sched = scheduledDay(u.startDate);
+  if (selected === null) selected = current || 10;
+  const sel = days.find(d => d.day === selected);
 
-  const hour = new Date().getHours();
-  const greet = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
-  const curDay = days.find(d => d.day === Math.max(today,1));
-  const sub = today === 0
-    ? `Your onboarding starts on <b>${new Date(u.startDate+"T00:00").toLocaleDateString("en-PH",{weekday:"long",month:"long",day:"numeric"})}</b>.`
-    : `You're on <b>day ${today} of ${LMS.config.programDays}</b>: ${esc(curDay ? curDay.title : "")}.`;
+  const hour = new Date().getHours(), greet = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const cur = days.find(d => d.day === current);
+  const sub = completeCount === 10 ? `You've completed the 2-week learning path. Congratulations!`
+    : sched === 0 ? `Your onboarding starts on <b>${dayDate(u.startDate,1).toLocaleDateString("en-PH",{weekday:"long",month:"long",day:"numeric"})}</b>.`
+    : `You're on <b>day ${current}</b>: ${esc(cur.title)}.`;
 
-  const track = days.map(d => {
-    const ms = dayMods(d.day), dn = ms.filter(isDone).length, all = ms.length && dn === ms.length;
-    const behind = today > d.day && ms.some(m => m.ready && !isDone(m));
-    const cls = [all ? "done" : "", d.day === today ? "today" : "", behind ? "behind" : ""].join(" ");
-    return `<button class="day ${cls}" aria-pressed="${d.day===selectedDay}" data-day="${d.day}" aria-label="Day ${d.day}: ${esc(d.title)}, ${dn} of ${ms.length} done">
-      <span class="n">${all ? ico("check",22) : d.day}</span><span class="t">${esc(d.title)}</span>
-      ${d.day === today ? `<span class="here">You're here</span>` : ""}
-      <span class="bar"><i style="width:${ms.length ? dn/ms.length*100 : 0}%"></i></span></button>`;
+  const card = d => {
+    const behind = d.status !== "complete" && sched > d.day;
+    const label = d.status === "complete" ? `Complete ${ico("check",14)}` : d.status === "current" ? "In progress" : `Locked ${LOCK}`;
+    const ft = `${d.tasks.length} task${d.tasks.length>1?"s":""}${d.exam ? `, ${esc(d.exam.label)}` : ""}`;
+    return `<button class="card ${d.status}" data-day="${d.day}" aria-pressed="${d.day===selected}" aria-label="Day ${d.day}: ${esc(d.title)}, ${d.status}">
+      ${behind ? `<span class="tag late">Behind schedule</span>` : ""}
+      <span class="st">${label}</span><span class="when">Day ${d.day}, ${fmtDay(dayDate(u.startDate,d.day))}</span>
+      <span class="tt">${esc(d.title)}</span><span class="ft">${ft}</span></button>`;
+  };
+  const weeks = Object.entries(window.LMS_WEEKS).map(([w,label]) =>
+    `<section class="week"><h2>${esc(label)}</h2><div class="rail">${days.filter(d => String(d.week)===w).map(card).join("")}</div></section>`).join("");
+
+  // ----- Selected day detail -----
+  const locked = sel.status === "locked";
+  const kicker = sel.status === "complete" ? "Complete" : sel.status === "current" ? "In progress" : "Locked";
+  const tasks = sel.tasks.map(t => {
+    const isDone = P[t.id] && P[t.id].status === "done";
+    return `<li><label class="${locked?"off":""}"><input type="checkbox" data-task="${t.id}" ${isDone?"checked":""} ${locked?"disabled":""}><span>${esc(t.label)}</span>
+      ${t.href && !locked ? `<a class="open" href="${esc(t.href)}" data-open="${t.id}">Open</a>` : ""}</label></li>`;
   }).join("");
+  const mats = sel.materials.length ? `<ul class="mats">${sel.materials.map(m => m.href && !locked
+      ? `<li><a href="${esc(m.href)}" target="${/^https?:/.test(m.href)?"_blank":"_self"}" rel="noopener">${esc(m.label)}</a></li>`
+      : `<li><span>${esc(m.label)}</span>${m.href?"":`<span class="soon">Link coming soon</span>`}</li>`).join("")}</ul>`
+    : `<p class="muted small">No materials for this day.</p>`;
 
-  const sd = days.find(d => d.day === selectedDay), sm = dayMods(selectedDay);
-  const rows = sm.map(m => {
-    const p = P[m.id], done = isDone(m), [ic, typeLabel] = TYPE[m.type] || TYPE.lesson;
-    const scoreTxt = done && p.max ? `<span class="score">${p.score}/${p.max}${p.attempts>1?` (best of ${p.attempts})`:""}</span>` : "";
-    const action = !m.ready ? `<span class="tag">Coming soon</span>`
-      : done ? `${scoreTxt || `<span class="tag done">${ico("check",12)} Done</span>`}<a class="btn sm" href="${esc(m.url)}" data-open="${m.id}">${m.assessment==="none"||!m.assessment ? "Review" : "Retake"}</a>`
-      : `<a class="btn sm ${p ? "" : "primary"}" href="${esc(m.url)}" data-open="${m.id}">${p ? "Continue" : "Start"}</a>`;
-    const late = !done && m.ready && today > m.day ? `<span class="tag late">Overdue</span>` : "";
-    return `<li class="mod ${done ? "is-done" : ""}"><span class="ic">${done ? ico("check") : ico(ic)}</span>
-      <div><b>${esc(m.title)}</b><div class="meta"><span>${typeLabel}, ${m.minutes} min</span>${ASSESS[m.assessment] ? `<span class="tag">${ASSESS[m.assessment]}</span>` : ""}${late}</div></div>
-      <div class="right">${action}</div></li>`;
-  }).join("");
+  let examHtml = "";
+  if (sel.exam && !locked){
+    const e = sel.exam, sub = P[e.id] && P[e.id].status === "done", rec = P[e.id];
+    const unlocks = sel.day < 10 ? ` to unlock day ${sel.day+1}` : "";
+    const scoreTxt = rec && rec.max ? `Score: ${rec.score}/${rec.max}` : "Your trainer will record your score.";
+    if (sub) examHtml = `<div class="exam ok"><div><b>${ico("check",14)} ${esc(e.label)} submitted</b><span>${scoreTxt} Passing score is ${e.passing}%.</span></div>
+        <div class="acts"><button class="btn sm" data-unsubmit="${e.id}">Undo</button></div></div>`;
+    else {
+      const open = e.href ? `<a class="btn sm" href="${esc(e.href)}" target="${/^https?:/.test(e.href)?"_blank":"_self"}" rel="noopener">${e.kind==="sim"?"Start simulation":"Open exam"}</a>`
+        : e.kind==="trainer" ? "" : `<span class="soon small muted">Exam link coming soon</span>`;
+      const how = e.kind==="trainer" ? "Your trainer scores this live." : "";
+      examHtml = `<div class="exam"><div><b>${esc(e.label)}</b><span>Required${unlocks}. Passing score is ${e.passing}%. ${how}</span></div>
+        <div class="acts">${open}<button class="btn sm primary" data-submit="${e.id}">${e.kind==="trainer"?"Mark as completed":"I've submitted it"}</button></div></div>`;
+    }
+  }
+  const foot = locked ? `<div class="lockmsg">${LOCK} This day unlocks after you complete day ${sel.day-1}.</div>`
+    : sel.status === "complete" ? `<div class="daydone">${ico("check",16)} Day ${sel.day} complete</div>` : "";
 
-  // Up next: first ready, not-done module in program order
-  const next = mods.find(m => m.ready && !isDone(m));
-  const nextHtml = next
-    ? `<div class="next"><small>Up next, day ${next.day}</small><b>${esc(next.title)}</b><a class="btn primary" href="${esc(next.url)}" data-open="${next.id}">${P[next.id] ? "Continue" : "Start"}</a></div>`
-    : `<div class="next all-done"><small>Nothing waiting</small><b>You've finished everything that's open right now. New lessons will show up here.</b></div>`;
+  const detail = `<section class="detail" aria-labelledby="dTitle">
+      <div class="kicker ${sel.status}">${kicker}, day ${sel.day} (${dayDate(u.startDate,sel.day).toLocaleDateString("en-PH",{weekday:"long",month:"short",day:"numeric"})})</div>
+      <h2 id="dTitle">${esc(sel.title)}</h2>
+      <div class="two"><div><h3>Tasks (${sel.tasksDone} of ${sel.tasks.length} done)</h3><ul class="tasks">${tasks}</ul></div>
+        <div><h3>Training materials</h3>${mats}</div></div>
+      ${examHtml}${foot}</section>`;
 
-  // Sessions: embedded calendar if configured, otherwise the list from modules.js
-  const C = LMS.config.calendar;
-  let sessHtml;
-  if (C.embedSrc) {
-    sessHtml = `<iframe class="cal-frame" title="Training calendar" src="${esc(C.embedSrc)}${C.embedSrc.includes("?")?"&":"?"}mode=AGENDA&ctz=Asia%2FManila&showTitle=0&showPrint=0&showTabs=0&showCalendars=0"></iframe>`;
-  } else {
+  // ----- Sessions -----
+  const C = LMS.config.calendar; let sessHtml;
+  if (C.embedSrc) sessHtml = `<iframe class="cal-frame" title="Training calendar" src="${esc(C.embedSrc)}${C.embedSrc.includes("?")?"&":"?"}mode=AGENDA&ctz=Asia%2FManila&showTitle=0&showPrint=0&showTabs=0&showCalendars=0"></iframe>`;
+  else {
     const now = new Date();
     const up = (window.LMS_SESSIONS||[]).map(s => ({...s, d:new Date(s.when)})).filter(s => s.d >= now).sort((a,b)=>a.d-b.d).slice(0,4);
+    const g = x => x.getFullYear()+String(x.getMonth()+1).padStart(2,"0")+String(x.getDate()).padStart(2,"0")+"T"+String(x.getHours()).padStart(2,"0")+String(x.getMinutes()).padStart(2,"0")+"00";
     sessHtml = up.length ? `<ul class="sess">${up.map(s => {
-      const end = new Date(s.d.getTime() + (s.minutes||60)*60000);
-      const g = x => x.getFullYear()+String(x.getMonth()+1).padStart(2,"0")+String(x.getDate()).padStart(2,"0")+"T"+String(x.getHours()).padStart(2,"0")+String(x.getMinutes()).padStart(2,"0")+"00";
+      const end = new Date(s.d.getTime()+(s.minutes||60)*60000);
       const add = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(s.title)}&dates=${g(s.d)}/${g(end)}&ctz=Asia/Manila`;
-      const time = s.d.toLocaleTimeString("en-PH",{hour:"numeric",minute:"2-digit"}) + " to " + end.toLocaleTimeString("en-PH",{hour:"numeric",minute:"2-digit"});
+      const time = s.d.toLocaleTimeString("en-PH",{hour:"numeric",minute:"2-digit"})+" to "+end.toLocaleTimeString("en-PH",{hour:"numeric",minute:"2-digit"});
       return `<li><div class="date"><small>${s.d.toLocaleDateString("en-PH",{weekday:"short"})}</small><b>${s.d.getDate()}</b></div>
         <div><div class="t">${esc(s.title)}</div><div class="w">${s.d.toLocaleDateString("en-PH",{month:"short",day:"numeric"})}, ${time}</div>
-        <div class="links">${s.link ? `<a href="${esc(s.link)}" target="_blank" rel="noopener">Join</a>` : ""}<a href="${add}" target="_blank" rel="noopener">Add to my calendar</a></div></div></li>`;
-    }).join("")}</ul>` : `<p class="muted small">No sessions scheduled yet. Your trainer will add them here.</p>`;
+        <div class="links">${s.link?`<a href="${esc(s.link)}" target="_blank" rel="noopener">Join</a>`:""}<a href="${add}" target="_blank" rel="noopener">Add to my calendar</a></div></div></li>`; }).join("")}</ul>`
+      : `<p class="muted small">No sessions scheduled yet. Your trainer will add them here.</p>`;
   }
   if (C.link) sessHtml += `<a class="cal-link" href="${esc(C.link)}" target="_blank" rel="noopener">Open the training calendar</a>`;
 
   document.getElementById("app").innerHTML = `
     <div class="hello"><div><h1>${greet}, ${esc(LMS.firstName(u.name))}</h1><p>${sub}</p></div>
-      <div class="overall"><div><b>${pct}%</b>${doneCount} of ${mods.length} modules done</div></div></div>
-    <nav class="track" aria-label="Onboarding days">${track}</nav>
-    <div class="cols">
-      <section aria-labelledby="dayTitle">
-        <div class="day-head"><h2 id="dayTitle">Day ${selectedDay}: ${esc(sd ? sd.title : "")}</h2><span>${sm.filter(isDone).length} of ${sm.length} done</span></div>
-        ${sm.length ? `<ul class="mods">${rows}</ul>` : `<p class="empty">Nothing planned for this day yet.</p>`}
-      </section>
-      <aside>
-        <section class="panel" aria-label="Up next">${nextHtml}</section>
-        <section class="panel"><h2>Upcoming sessions</h2>${sessHtml}</section>
-      </aside>
-    </div>`;
+      <div class="overall">2-week learning path<b>${completeCount} of 10 days</b></div></div>
+    <div class="segs" aria-hidden="true">${days.map(d=>`<i class="${d.status}"></i>`).join("")}</div>
+    ${weeks}
+    <div class="lower">${detail}<aside class="panel"><h2>Upcoming sessions</h2>${sessHtml}</aside></div>`;
 }
 
 document.addEventListener("click", e => {
-  const d = e.target.closest("[data-day]"); if (d) { selectedDay = +d.dataset.day; render(); return; }
-  const o = e.target.closest("[data-open]"); if (o) LMS.start(o.dataset.open);   // then the link opens normally
+  const d = e.target.closest("[data-day]"); if (d){ selected = +d.dataset.day; render(); return; }
+  const s = e.target.closest("[data-submit]"); if (s){ LMS.complete(s.dataset.submit); advance(); return; }
+  const u = e.target.closest("[data-unsubmit]"); if (u){ LMS.undo(u.dataset.unsubmit); render(); return; }
+  const o = e.target.closest("[data-open]"); if (o) LMS.start(o.dataset.open);
 });
+document.addEventListener("change", e => {
+  const t = e.target.closest("[data-task]"); if (!t) return;
+  if (t.checked) LMS.complete(t.dataset.task); else LMS.undo(t.dataset.task);
+  advance();
+});
+// When a day becomes complete, show it as complete briefly, then move to the newly unlocked day.
+function advance(){
+  const before = selected; render();
+  const { days, current } = compute(), was = days.find(x=>x.day===before);
+  if (was && was.status==="complete" && current && current !== before) setTimeout(()=>{ selected = current; render(); }, 900);
+}
 
 if (LMS.requireSignIn()) { renderSide("dashboard"); render(); }
 </script>
