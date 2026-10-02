@@ -1,0 +1,96 @@
+/* =========================================================
+   First Circle AM Academy — shared theme
+   Every page loads this file. Change colors/fonts here once.
+   ========================================================= */
+
+@font-face{font-family:"Plus Jakarta Sans";font-weight:400;font-display:swap;src:url("fonts/plus-jakarta-sans-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"Plus Jakarta Sans";font-weight:500;font-display:swap;src:url("fonts/plus-jakarta-sans-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"Plus Jakarta Sans";font-weight:600;font-display:swap;src:url("fonts/plus-jakarta-sans-latin-600-normal.woff2") format("woff2")}
+@font-face{font-family:"Plus Jakarta Sans";font-weight:700;font-display:swap;src:url("fonts/plus-jakarta-sans-latin-700-normal.woff2") format("woff2")}
+
+:root{
+  /* Brand */
+  --deep:#0A3D49;        /* sidebar, headings */
+  --deep-2:#062F39;      /* active nav */
+  --teal:#11A39C;        /* actions, progress */
+  --teal-dark:#0B7F79;
+  --teal-soft:#E4F4F3;
+  --marigold:#F5B83D;    /* "you are here" */
+  --marigold-soft:#FFF4DC;
+  --coral:#E0526B;       /* overdue, errors */
+  --coral-soft:#FBE7EB;
+  --green:#2E7D4F;
+  --green-soft:#E6F4EA;
+  /* Neutrals */
+  --ink:#0B3B45; --ink-2:#51656B; --ink-3:#8A9A9F;
+  --line:#E2E9EA; --mist:#F3F6F6; --white:#fff;
+  /* Type */
+  --font:"Plus Jakarta Sans","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --r-sm:6px; --r:10px; --r-lg:16px;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:var(--font);color:var(--ink);background:var(--white);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--teal-dark)}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ---------- App shell: fixed sidebar + scrolling main ---------- */
+.shell{display:flex;min-height:100vh}
+.side{width:236px;flex:none;background:var(--deep);color:#B9CDD1;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;padding:22px 12px 0}
+.brand{display:flex;gap:10px;align-items:center;color:#fff;padding:0 10px 26px}
+.brand b{display:block;font-size:15px;font-weight:700;line-height:1.2}
+.brand small{display:block;font-size:12px;color:#8FB0B6}
+.nav{list-style:none;margin:0;padding:0}
+.nav a{display:flex;gap:11px;align-items:center;padding:10px 12px;border-radius:8px;color:#B9CDD1;text-decoration:none;font-size:14px}
+.nav a:hover{background:rgba(255,255,255,.06)}
+.nav a[aria-current="page"]{background:var(--deep-2);color:#fff;font-weight:600}
+.nav-label{font-size:12px;color:#8FB0B6;padding:20px 12px 6px}
+.side-foot{margin-top:auto;border-top:1px solid rgba(255,255,255,.1);padding:14px 10px;display:flex;gap:10px;align-items:center;color:#fff;font-size:14px}
+.side-foot .av{width:34px;height:34px;border-radius:50%;background:#12626C;display:grid;place-items:center;font-size:12px;font-weight:600;flex:none}
+.side-foot b{display:block;font-weight:600;line-height:1.3}
+.side-foot button{all:unset;cursor:pointer;color:#B9CDD1;font-size:12px}
+.side-foot button:hover{color:#fff}
+.main{flex:1;min-width:0}
+.wrap{max-width:1120px;margin:0 auto;padding:40px 44px 64px}
+
+/* ---------- Type ---------- */
+h1{font-size:30px;line-height:1.2;font-weight:600;letter-spacing:-.015em;margin:0}
+h2{font-size:19px;line-height:1.3;font-weight:600;margin:0}
+h3{font-size:15px;font-weight:600;margin:0}
+.muted{color:var(--ink-2)}
+.small{font-size:13px}
+
+/* ---------- Buttons ---------- */
+.btn{display:inline-flex;gap:6px;align-items:center;justify-content:center;border:1px solid var(--line);background:#fff;color:var(--ink);padding:9px 16px;border-radius:8px;font-weight:600;font-size:14px;text-decoration:none;white-space:nowrap}
+.btn:hover{background:var(--mist)}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.primary:hover{background:var(--teal-dark);border-color:var(--teal-dark)}
+.btn.sm{padding:6px 12px;font-size:13px}
+.btn[aria-disabled="true"]{opacity:.5;pointer-events:none}
+
+/* ---------- Tags ---------- */
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 9px;border-radius:20px;background:var(--mist);color:var(--ink-2);white-space:nowrap}
+.tag.done{background:var(--green-soft);color:var(--green)}
+.tag.now{background:var(--marigold-soft);color:#8A5A00}
+.tag.late{background:var(--coral-soft);color:var(--coral)}
+
+/* ---------- Demo / notice strip ---------- */
+.strip{background:var(--marigold-soft);color:#6B4E00;font-size:13px;padding:8px 44px;border-bottom:1px solid #F3E2B5}
+
+/* ---------- Mobile ---------- */
+@media (max-width:860px){
+  .shell{flex-direction:column}
+  .side{width:auto;height:auto;position:static;flex-direction:row;align-items:center;padding:12px 14px;gap:10px;flex-wrap:wrap}
+  .brand{padding:0;margin-right:auto}
+  .nav{display:flex;gap:4px;order:3;width:100%;overflow-x:auto}
+  .nav-label{display:none}
+  .side-foot{margin:0;border:0;padding:0}
+  .side-foot b{display:none}
+  .wrap{padding:28px 18px 48px}
+  .strip{padding:8px 18px}
+  h1{font-size:25px}
+}
