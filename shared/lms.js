@@ -48,7 +48,11 @@ window.LMS_CONFIG = {
     return read("user", null);          // set by index.html after Google sign-in
   }
   function storedUser(){ return read("user", null); }
-  const roster = () => window.LMS_ROSTER || { admins:[], learners:[] };   // read lazily: roster.js loads just after this file
+  /* Read lazily: roster.js loads just after this file. Returns { admins, learners, batches }. */
+  const roster = () => { const r = window.LMS_ROSTER || {}, batches = r.batches || {};
+    return { admins: r.admins || [], batches, learners: [].concat(...Object.values(batches)) }; };
+  function batchOf(email){ const e = String(email||"").trim().toLowerCase(), b = roster().batches;
+    return Object.keys(b).find(k => lc(b[k]).includes(e)) || ""; }
   const lc = a => (a||[]).map(e => String(e).trim().toLowerCase());
   function isCompanyEmail(email){
     const d = String(C.allowedDomain||"").toLowerCase();
@@ -88,6 +92,9 @@ window.LMS_CONFIG = {
     /** The saved user, or null. Unlike user(), never falls back to the demo user. */
     storedUser,
 
+    /** The access list: { admins, learners, batches }, and which batch an email is in ("" for none). */
+    roster, batchOf,
+
     /** True if this email belongs to the allowed company domain. */
     isCompanyEmail,
 
@@ -116,7 +123,7 @@ window.LMS_CONFIG = {
       if (!isAllowed(email)) throw new Error(isCompanyEmail(email) ? "not-on-list" : "not-company");
       const local = String(email).split("@")[0];
       const name = local.split(/[._-]/).map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(" ");
-      write("user", { name, email:String(email).toLowerCase(), startDate: C.demoUser.startDate });
+      write("user", { name, email:String(email).toLowerCase(), batch: batchOf(email), startDate: C.demoUser.startDate });
     },
 
     /** Send people to the sign-in page if they're not signed in. */

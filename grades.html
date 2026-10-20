@@ -41,7 +41,7 @@ examLabel["exam-connect-sim"] = "Connect Simulation";
 const taskLabel = {};
 (window.LMS_DAYS||[]).forEach(d => (d.tasks||[]).forEach(t => taskLabel[t.id] = t.label));
 const nice = id => examLabel[id] || taskLabel[id] || id;
-const nameOf = e => { const m = (window.LMS_ROSTER||{learners:[]}).learners.find(x=>x.toLowerCase()===e); return (m||e).split("@")[0].split(/[._-]/).map(w=>w[0].toUpperCase()+w.slice(1)).join(" "); };
+const nameOf = e => e.split("@")[0].split(/[._-]/).map(w=>w[0].toUpperCase()+w.slice(1)).join(" ");
 const pct = r => r.Percent !== "" && r.Percent != null ? Number(r.Percent) : (r.Max ? Math.round(r.Score/r.Max*1000)/10 : null);
 const when = iso => iso ? new Date(iso).toLocaleString("en-PH",{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}) : "";
 let DATA = { grades:[], progress:[] };
@@ -69,8 +69,11 @@ async function load(passcode){
 
 function render(){
   const g = DATA.grades.map(r => ({ ...r, Email:String(r.Email||"").toLowerCase(), p:pct(r) }));
-  const learners = [...new Set([ ...((window.LMS_ROSTER||{learners:[]}).learners.map(e=>e.toLowerCase())), ...g.map(r=>r.Email) ])]
-    .filter(e => !(window.LMS_ROSTER||{admins:[]}).admins.map(a=>a.toLowerCase()).includes(e));
+  const R = LMS.roster(), admins = R.admins.map(a=>a.toLowerCase());
+  const allLearners = [...new Set([ ...R.learners.map(e=>e.toLowerCase()), ...g.map(r=>r.Email) ])].filter(e => !admins.includes(e));
+  const batches = Object.keys(R.batches);
+  const batchSel = $("bf") ? $("bf").value : "";
+  const learners = allLearners.filter(e => !batchSel || LMS.batchOf(e) === batchSel);
   const exams = [...new Set(g.map(r=>r["Exam ID"]))];
   const prog = {}; DATA.progress.forEach(r => { const e=String(r.Email||"").toLowerCase(); (prog[e] = prog[e] || new Set()).add(r["Item ID"]); });
 
@@ -80,21 +83,23 @@ function render(){
 
   $("app").innerHTML = `
     <h1>Grades</h1><p class="muted">Best score per exam. Live from the Google Sheet.</p>
-    <div class="bar"><button class="btn sm" id="refresh">Refresh</button></div>
-    <div class="scroll"><table class="tbl"><thead><tr><th>Onboardee</th>${exams.map(x=>`<th>${esc(nice(x))}</th>`).join("")}<th>Tasks done</th></tr></thead><tbody>
-      ${learners.map(e=>`<tr><td><b>${esc(nameOf(e))}</b><div class="small muted">${esc(e)}</div></td>${exams.map(x=>`<td>${cell(e,x)}</td>`).join("")}<td>${(prog[e]||new Set()).size}</td></tr>`).join("") || '<tr><td class="muted">No onboardees yet.</td></tr>'}
+    <div class="bar"><button class="btn sm" id="refresh">Refresh</button>
+      <select id="bf" aria-label="Batch"><option value="">All batches</option>${batches.map(b=>`<option value="${esc(b)}" ${b===batchSel?"selected":""}>Batch ${esc(b)}</option>`).join("")}</select></div>
+    <div class="scroll"><table class="tbl"><thead><tr><th>Onboardee</th><th>Batch</th>${exams.map(x=>`<th>${esc(nice(x))}</th>`).join("")}<th>Tasks done</th></tr></thead><tbody>
+      ${learners.map(e=>`<tr><td><b>${esc(nameOf(e))}</b><div class="small muted">${esc(e)}</div></td><td>${esc(LMS.batchOf(e)||"—")}</td>${exams.map(x=>`<td>${cell(e,x)}</td>`).join("")}<td>${(prog[e]||new Set()).size}</td></tr>`).join("") || '<tr><td class="muted">No onboardees yet.</td></tr>'}
     </tbody></table></div>
 
     <h2 class="sec">Every attempt</h2>
     <div class="bar"><input id="q" type="search" placeholder="Search name or email" aria-label="Search"><select id="ex" aria-label="Exam"><option value="">All exams</option>${exams.map(x=>`<option value="${esc(x)}">${esc(nice(x))}</option>`).join("")}</select></div>
-    <div class="scroll"><table class="tbl"><thead><tr><th>When</th><th>Onboardee</th><th>Exam</th><th>Attempt</th><th>Score</th><th>Result</th><th>Notes</th></tr></thead><tbody id="rows"></tbody></table></div>`;
+    <div class="scroll"><table class="tbl"><thead><tr><th>When</th><th>Onboardee</th><th>Batch</th><th>Exam</th><th>Attempt</th><th>Score</th><th>Result</th><th>Notes</th></tr></thead><tbody id="rows"></tbody></table></div>`;
 
   const draw = () => {
     const q = $("q").value.trim().toLowerCase(), x = $("ex").value;
     const rows = g.filter(r => (!x || r["Exam ID"]===x) && (!q || (r.Email+" "+(r.Name||"")).toLowerCase().includes(q))).sort((a,b)=>String(b.Timestamp).localeCompare(String(a.Timestamp)));
-    $("rows").innerHTML = rows.map(r=>`<tr><td>${esc(when(r.Timestamp))}</td><td>${esc(r.Name||nameOf(r.Email))}<div class="small muted">${esc(r.Email)}</div></td><td>${esc(nice(r["Exam ID"]))}</td><td>${esc(r.Attempt)}</td><td>${esc(r.Score)}/${esc(r.Max)} ${r.p!=null?`(${r.p}%)`:""}</td><td><span class="pill ${r.Passed==="Yes"?"pass":"fail"}">${r.Passed==="Yes"?"Pass":"Not yet"}</span></td><td class="small muted">${esc(r.Details)}</td></tr>`).join("") || '<tr><td colspan="7" class="muted">No attempts yet.</td></tr>';
+    $("rows").innerHTML = rows.map(r=>`<tr><td>${esc(when(r.Timestamp))}</td><td>${esc(r.Name||nameOf(r.Email))}<div class="small muted">${esc(r.Email)}</div></td><td>${esc(r.Batch||LMS.batchOf(r.Email)||"—")}</td><td>${esc(nice(r["Exam ID"]))}</td><td>${esc(r.Attempt)}</td><td>${esc(r.Score)}/${esc(r.Max)} ${r.p!=null?`(${r.p}%)`:""}</td><td><span class="pill ${r.Passed==="Yes"?"pass":"fail"}">${r.Passed==="Yes"?"Pass":"Not yet"}</span></td><td class="small muted">${esc(r.Details)}</td></tr>`).join("") || '<tr><td colspan="8" class="muted">No attempts yet.</td></tr>';
   };
   $("q").oninput = draw; $("ex").onchange = draw; draw();
+  $("bf").onchange = render;
   $("refresh").onclick = () => load(sessionStorage.getItem("amhub.adminpc") || "");
 }
 

@@ -18,7 +18,7 @@ Static site on GitHub Pages (`salesoperations-fc/fcsalestraining`), no build ste
 - `index.html`: sign-in. Shows a Google-styled button that opens an email box (stopgap). Not-on-list message: "Email unauthorized. Please contact Salesops." Success shows a 1s "Signing you in" screen.
 - `shared/lms.js`: config, sign-in checks, progress saving (browser localStorage, key `amacademy`), sends results to the backend.
   - `emailLogin: true` = TEMPORARY email-list login. To remove it: set false, delete `shared/roster.js` and the `document.write` line near the top of lms.js, switch `AUTH_MODE` to "google" in the Apps Script.
-- `shared/roster.js`: allowed emails. `admins` see the Grades page, `learners` do not. The same list is duplicated in `apps-script/Code.gs` (keep in sync). Repo is public, so these emails are public.
+- `shared/roster.js`: allowed emails. `admins` see the Grades page. Onboardees are grouped in `batches`, keyed by batch number = start date as MMDDYY (e.g. `101926` = Oct 19, 2026); the batch shows in the sidebar, on the Grades page (column + filter) and in the Sheet's `Batch` column. The same lists are duplicated in `apps-script/Code.gs` (`BATCHES`, `ADMIN_EMAILS`; keep in sync). Repo is public, so these emails are public.
 - `shared/shell.js`: sidebar and helpers shared by pages. `shared/theme.css`: look and feel.
 - `dashboard.html`: 10 day cells (5 x 2). Clicking a cell opens a dropdown under that row. Static icons: padlock (locked), check (complete), half circle (in progress). Right column: Upcoming sessions, Graded exams.
 - `grades.html`: admin-only. Loads grades from the Sheet via the backend (needs an admin passcode).

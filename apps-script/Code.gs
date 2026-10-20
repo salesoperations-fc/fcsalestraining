@@ -10,19 +10,24 @@
 const CLIENT_ID = "PASTE_YOUR_GOOGLE_CLIENT_ID_HERE";
 const ALLOWED_DOMAIN = "firstcircle.com";
 
-// "email" = TEMPORARY: trust a typed email if it is on ALLOWED_EMAILS (no Google sign-in needed).
+// "email" = TEMPORARY: trust a typed email if it is in BATCHES or ADMIN_EMAILS (no Google sign-in needed).
 //            Not secure: anyone who knows a listed email could submit as that person.
 // "google" = verify the Google sign-in token (use once the OAuth client ID exists).
 const AUTH_MODE = "email";
-const ALLOWED_EMAILS = [          // keep in sync with shared/roster.js (admins + onboardees)
-  "salesoperations@firstcircle.com", "nice.junsay@firstcircle.com", "hanna.jo@firstcircle.com",
-  "reyster.barron@firstcircle.com", "charles.allen@firstcircle.com", "alan.smyth@firstcircle.com",
-  "ayrton.arteficio@firstcircle.com", "charles.gito@firstcircle.com", "jhoana.akut@firstcircle.com",
-  "giovanni.capawa@firstcircle.com", "joana.jayme@firstcircle.com", "cristina.articona@firstcircle.com",
-  "leslie.reyes@firstcircle.com", "elaine.fantolgo@firstcircle.com"
-];
+const BATCHES = {                 // batch number (start date, MMDDYY) -> onboardee emails. Keep in sync with shared/roster.js
+  "101926": [
+    "ayrton.arteficio@firstcircle.com",
+    "charles.gito@firstcircle.com",
+    "jhoana.akut@firstcircle.com",
+    "giovanni.capawa@firstcircle.com",
+    "joana.jayme@firstcircle.com",
+    "cristina.articona@firstcircle.com",
+    "leslie.reyes@firstcircle.com",
+    "elaine.fantolgo@firstcircle.com"
+  ]
+};
 
-// Who may open the Grades page (must also be in ALLOWED_EMAILS), and the shared passcode they type there.
+// Who may open the Grades page (admins are allowed in automatically), and the shared passcode they type there.
 // Change the passcode before using it. While it is "CHANGE-ME", the Grades page is refused.
 const ADMIN_EMAILS = [
   "salesoperations@firstcircle.com", "nice.junsay@firstcircle.com", "hanna.jo@firstcircle.com",
@@ -32,8 +37,8 @@ const ADMIN_PASSCODE = "CHANGE-ME";
 
 const GRADES_SHEET = "Grades";      // one row per scored attempt
 const PROGRESS_SHEET = "Progress";  // one row per completed task/lesson
-const GRADES_HEADER = ["Timestamp", "Email", "Name", "Exam ID", "Attempt", "Score", "Max", "Percent", "Passed", "Details"];
-const PROGRESS_HEADER = ["Timestamp", "Email", "Name", "Item ID"];
+const GRADES_HEADER = ["Timestamp", "Email", "Name", "Batch", "Exam ID", "Attempt", "Score", "Max", "Percent", "Passed", "Details"];
+const PROGRESS_HEADER = ["Timestamp", "Email", "Name", "Batch", "Item ID"];
 
 function doPost(e) {
   try {
@@ -45,11 +50,11 @@ function doPost(e) {
 
     if (req.action === "saveResult") {
       const pct = p.max ? Math.round((p.score / p.max) * 1000) / 10 : "";
-      appendByHeader_(sheet_(GRADES_SHEET, GRADES_HEADER), { "Timestamp": new Date(), "Email": user.email, "Name": user.name, "Exam ID": p.id, "Attempt": p.attempt, "Score": p.score, "Max": p.max, "Percent": pct, "Passed": p.passed ? "Yes" : "No", "Details": p.details || "" });
+      appendByHeader_(sheet_(GRADES_SHEET, GRADES_HEADER), { "Timestamp": new Date(), "Email": user.email, "Name": user.name, "Batch": user.batch || "", "Exam ID": p.id, "Attempt": p.attempt, "Score": p.score, "Max": p.max, "Percent": pct, "Passed": p.passed ? "Yes" : "No", "Details": p.details || "" });
       return json_({ ok: true });
     }
     if (req.action === "complete") {
-      appendByHeader_(sheet_(PROGRESS_SHEET, PROGRESS_HEADER), { "Timestamp": new Date(), "Email": user.email, "Name": user.name, "Item ID": p.id });
+      appendByHeader_(sheet_(PROGRESS_SHEET, PROGRESS_HEADER), { "Timestamp": new Date(), "Email": user.email, "Name": user.name, "Batch": user.batch || "", "Item ID": p.id });
       return json_({ ok: true });
     }
     if (req.action === "adminData") {
@@ -66,8 +71,9 @@ function doPost(e) {
 /** Temporary mode: accept an email that is on the allow list. */
 function checkEmail_(req) {
   const email = String(req.email || "").trim().toLowerCase();
-  if (!email.endsWith("@" + ALLOWED_DOMAIN) || ALLOWED_EMAILS.indexOf(email) === -1) throw new Error("not-on-list");
-  return { email: email, name: req.name || email };
+  const batch = Object.keys(BATCHES).filter(function (k) { return BATCHES[k].indexOf(email) !== -1; })[0] || "";
+  if (!email.endsWith("@" + ALLOWED_DOMAIN) || (!batch && ADMIN_EMAILS.indexOf(email) === -1)) throw new Error("not-on-list");
+  return { email: email, name: req.name || email, batch: batch };
 }
 
 /** Ask Google to validate the ID token, then enforce audience and domain. */

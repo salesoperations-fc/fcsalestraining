@@ -26,7 +26,7 @@ function renderSide(active){
       ${C.calendar.link ? link(C.calendar.link,"cal","Training calendar","cal",true) : ""}
       ${LMS.isAdmin() ? `<li class="nav-label">Trainers</li>${link("grades.html","grades","Grades","grades")}` : ""}
     </ul>
-    <div class="side-foot"><span class="av">${esc(LMS.initials(u.name))}</span><div><b>${esc(u.name)}</b><button id="signOut">Sign out</button></div></div>`;
+    <div class="side-foot"><span class="av">${esc(LMS.initials(u.name))}</span><div><b>${esc(u.name)}</b>${LMS.batchOf(u.email) ? `<small style="display:block;color:#8FB0B6;font-size:11px;line-height:1.3">Batch ${esc(LMS.batchOf(u.email))}</small>` : ""}<button id="signOut">Sign out</button></div></div>`;
   document.getElementById("signOut").onclick = () => LMS.signOut();
   if (C.demo && document.getElementById("strip")) document.getElementById("strip").innerHTML = `<div class="strip">Demo mode: you're signed in as ${esc(u.name)} and progress is saved in this browser only. <a href="#" id="resetDemo">Reset demo progress</a></div>`;
   const r = document.getElementById("resetDemo"); if (r) r.onclick = e => { e.preventDefault(); LMS.resetDemo(); };
