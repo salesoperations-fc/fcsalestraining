@@ -21,7 +21,7 @@ window.LMS_CONFIG = {
 
   demo: false,                        // true = fake demo user, progress in this browser only
   emailLogin: true,                   // TEMPORARY: sign in by typing an email on the list in shared/roster.js. Set false once Google sign-in is live.
-  demoUser: { name: "Juan dela Cruz", email: "juan.delacruz@firstcircle.com", startDate: "2026-09-30" },
+  demoUser: { name: "Juan dela Cruz", email: "juan.delacruz@firstcircle.com", startDate: "2026-10-19" },
 
   googleClientId: "",                 // from Google Cloud (step 4 of the build)
   allowedDomain: "firstcircle.com",    // only these Google accounts can sign in
@@ -74,7 +74,7 @@ window.LMS_CONFIG = {
     return fetch(C.backendUrl, {
       method:"POST",
       headers:{ "Content-Type":"text/plain;charset=utf-8" },   // avoids a CORS preflight, which Apps Script can't answer
-      body: JSON.stringify({ action, token, payload })
+      body: JSON.stringify({ action, token, payload, email: (currentUser()||{}).email, name: (currentUser()||{}).name })   // email/name are used only in the temporary email-list mode
     }).then(r=>r.json()).catch(()=>null);
   }
   function progressKey(){ const u = currentUser(); return `progress.${u ? u.email : "anon"}`; }

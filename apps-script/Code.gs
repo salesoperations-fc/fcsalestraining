@@ -10,6 +10,18 @@
 const CLIENT_ID = "PASTE_YOUR_GOOGLE_CLIENT_ID_HERE";
 const ALLOWED_DOMAIN = "firstcircle.com";
 
+// "email" = TEMPORARY: trust a typed email if it is on ALLOWED_EMAILS (no Google sign-in needed).
+//            Not secure: anyone who knows a listed email could submit as that person.
+// "google" = verify the Google sign-in token (use once the OAuth client ID exists).
+const AUTH_MODE = "email";
+const ALLOWED_EMAILS = [          // keep in sync with shared/roster.js (admins + onboardees)
+  "salesoperations@firstcircle.com", "nice.junsay@firstcircle.com", "hanna.jo@firstcircle.com",
+  "reyster.barron@firstcircle.com", "charles.allen@firstcircle.com", "alan.smyth@firstcircle.com",
+  "ayrton.arteficio@firstcircle.com", "charles.gito@firstcircle.com", "jhoana.akut@firstcircle.com",
+  "giovanni.capawa@firstcircle.com", "joana.jayme@firstcircle.com", "cristina.articona@firstcircle.com",
+  "leslie.reyes@firstcircle.com", "elaine.fantolgo@firstcircle.com"
+];
+
 const GRADES_SHEET = "Grades";      // one row per scored attempt
 const PROGRESS_SHEET = "Progress";  // one row per completed task/lesson
 const GRADES_HEADER = ["Timestamp", "Email", "Name", "Exam ID", "Attempt", "Score", "Max", "Percent", "Passed", "Details"];
@@ -18,7 +30,7 @@ const PROGRESS_HEADER = ["Timestamp", "Email", "Name", "Item ID"];
 function doPost(e) {
   try {
     const req = JSON.parse(e.postData.contents);
-    const user = verifyToken_(req.token);          // throws if bad or not a company account
+    const user = AUTH_MODE === "email" ? checkEmail_(req) : verifyToken_(req.token);   // throws if not allowed
     const p = req.payload || {};
 
     if (req.action === "verify") return json_({ ok: true, email: user.email });
@@ -36,6 +48,13 @@ function doPost(e) {
   } catch (err) {
     return json_({ ok: false, error: String(err.message || err) });
   }
+}
+
+/** Temporary mode: accept an email that is on the allow list. */
+function checkEmail_(req) {
+  const email = String(req.email || "").trim().toLowerCase();
+  if (!email.endsWith("@" + ALLOWED_DOMAIN) || ALLOWED_EMAILS.indexOf(email) === -1) throw new Error("not-on-list");
+  return { email: email, name: req.name || email };
 }
 
 /** Ask Google to validate the ID token, then enforce audience and domain. */
