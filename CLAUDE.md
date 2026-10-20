@@ -22,7 +22,8 @@ Static site on GitHub Pages (`salesoperations-fc/fcsalestraining`), no build ste
 - `shared/shell.js`: sidebar and helpers shared by pages. `shared/theme.css`: look and feel.
 - `dashboard.html`: 10 day cells (5 x 2). Clicking a cell opens a dropdown under that row. Static icons: padlock (locked), check (complete), half circle (in progress). Right column: Upcoming sessions, Graded exams.
 - `grades.html`: admin-only. Loads grades from the Sheet via the backend (needs an admin passcode).
-- `modules.js`: the course outline. Edit this to add content per day (tasks, materials, exam, `brief`). Day 1 has a SAMPLE task and exam to replace. Days 2 to 10 are empty with titles and a short `brief`.
+- `days/day-01.js` ... `day-10.js`: ONE FILE PER DAY (title, brief, tasks, materials, exam). To work on a day, edit only its file (plus its own lesson pages, e.g. `lessons/d02-*.html`), so several chats can work on different days at once without conflicts. Day 1 has a SAMPLE task and exam to replace. Days 2 to 10 have titles and a short `brief`.
+- `modules.js`: loads the day files, then `days/build.js` assembles `window.LMS_DAYS`. Also holds week labels and live sessions. Don't put day content here.
 - `sims/connect-exam.html`: Connect simulation exam. Kept in the repo but not linked from any day. Reports its score as `exam-connect-sim`.
 - `apps-script/Code.gs`: backend. Deployed as a web app (Execute as owner, access Anyone). `backendUrl` in lms.js points to it. Writes to the `Grades` and `Progress` tabs BY COLUMN NAME (columns can be reordered or added). `ADMIN_PASSCODE` must be set (not "CHANGE-ME") before grades.html works; after editing Code.gs, redeploy as a New version.
 
@@ -36,5 +37,5 @@ Static site on GitHub Pages (`salesoperations-fc/fcsalestraining`), no build ste
 - Set the real `ADMIN_PASSCODE`, redeploy, then test grades.html with real data.
 - Real Google sign-in once IT creates the Cloud project (see `apps-script/README.md`).
 - Google Form and trainer-scored exams do not auto-report scores; trainers add them to the Grades tab by hand (the Grades page will show them).
-- Content is being rewritten day by day. Add one day at a time in `modules.js`; new exams go in one at a time.
+- Content is being rewritten day by day, one chat per day. A day-chat edits only its `days/day-NN.js` (and its own lesson files). New exams go in one at a time. Exam ids must be unique and never renamed once people have results.
 - Email-only login is spoofable (anyone who knows a listed email). Fine as a stopgap only.
