@@ -120,7 +120,7 @@ function renderSide(active){
     <div class="brand">${LOGO}<div><b>${esc(C.appName)}</b><small>${esc(C.company)}</small></div></div>
     <ul class="nav">
       ${link("dashboard.html","home","Dashboard","dashboard")}
-      ${link("grades.html","grades","Grades","grades")}
+      ${LMS.isAdmin() ? link("grades.html","grades","Grades","grades") : ""}
       ${C.calendar.link ? link(C.calendar.link,"cal","Training calendar","cal",true) : ""}
       ${LMS.isAdmin() ? `<li class="nav-label">Trainers</li>${link("admin.html","admin","Admin","admin")}` : ""}
     </ul>

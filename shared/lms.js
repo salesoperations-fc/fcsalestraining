@@ -10,12 +10,17 @@
    LMS.complete() / LMS.saveResult() exactly the same way.
    ========================================================= */
 
+/* TEMPORARY email login: load the access list that sits next to this file.
+   To remove the stopgap, delete this line and shared/roster.js. */
+try { document.write('<script src="' + document.currentScript.src.replace(/lms\.js(\?.*)?$/, "roster.js") + '"><\/script>'); } catch(e){}
+
 window.LMS_CONFIG = {
   appName: "AM Onboarding Hub",
   company: "First Circle",
   programDays: 10,
 
-  demo: true,                         // set to false once sign-in is set up
+  demo: false,                        // true = fake demo user, progress in this browser only
+  emailLogin: true,                   // TEMPORARY: sign in by typing an email on the list in shared/roster.js. Set false once Google sign-in is live.
   demoUser: { name: "Juan dela Cruz", email: "juan.delacruz@firstcircle.com", startDate: "2026-09-30" },
 
   googleClientId: "",                 // from Google Cloud (step 4 of the build)
@@ -43,9 +48,18 @@ window.LMS_CONFIG = {
     return read("user", null);          // set by index.html after Google sign-in
   }
   function storedUser(){ return read("user", null); }
+  const roster = () => window.LMS_ROSTER || { admins:[], learners:[] };   // read lazily: roster.js loads just after this file
+  const lc = a => (a||[]).map(e => String(e).trim().toLowerCase());
   function isCompanyEmail(email){
     const d = String(C.allowedDomain||"").toLowerCase();
     return !!email && String(email).toLowerCase().endsWith("@"+d);
+  }
+  /* Temporary email login: must be on the roster. Google mode: any company email. */
+  function isAllowed(email){
+    if (!isCompanyEmail(email)) return false;
+    if (!C.emailLogin) return true;
+    const e = String(email).trim().toLowerCase();
+    return lc(roster().admins).includes(e) || lc(roster().learners).includes(e);
   }
   /* Decode the payload of a Google ID token (for display only; the backend does the real check). */
   function decodeJwt(t){
@@ -77,6 +91,9 @@ window.LMS_CONFIG = {
     /** True if this email belongs to the allowed company domain. */
     isCompanyEmail,
 
+    /** True if this email may sign in (company domain, and on the roster while emailLogin is on). */
+    isAllowed,
+
     /**
      * Sign in with a Google ID token (the "credential" Google hands back).
      * Rejects if the account isn't on the company domain. The backend repeats the
@@ -93,9 +110,10 @@ window.LMS_CONFIG = {
       write("user", { name: claims.name || claims.email, email: claims.email.toLowerCase(), picture: claims.picture || "", startDate: C.demoUser.startDate });
     },
 
-    /** Demo-mode stand-in for Google sign-in: runs the same domain check on a typed email. */
+    /** Temporary sign-in by typed email (stopgap until Google sign-in is live). */
     signInDemo(email){
-      if (!isCompanyEmail(email)) throw new Error("not-company");
+      email = String(email).trim();
+      if (!isAllowed(email)) throw new Error(isCompanyEmail(email) ? "not-on-list" : "not-company");
       const local = String(email).split("@")[0];
       const name = local.split(/[._-]/).map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(" ");
       write("user", { name, email:String(email).toLowerCase(), startDate: C.demoUser.startDate });
@@ -103,11 +121,11 @@ window.LMS_CONFIG = {
 
     /** Send people to the sign-in page if they're not signed in. */
     requireSignIn(){
-      if (!currentUser() || (!C.demo && !isCompanyEmail(currentUser().email))){ location.href = (location.pathname.includes("/lessons/")||location.pathname.includes("/sims/")) ? "../index.html" : "index.html"; return false; }
+      if (!currentUser() || (!C.demo && !isAllowed(currentUser().email))){ location.href = (location.pathname.includes("/lessons/")||location.pathname.includes("/sims/")) ? "../index.html" : "index.html"; return false; }
       return true;
     },
 
-    isAdmin(){ const u = currentUser(); return !!u && (C.demo || C.adminEmails.map(e=>e.toLowerCase()).includes(u.email.toLowerCase())); },
+    isAdmin(){ const u = currentUser(); return !!u && (C.demo || [...lc(C.adminEmails), ...lc(roster().admins)].includes(u.email.toLowerCase())); },
 
     /** All progress for the signed-in person: { moduleId: {status, score, max, attempts, updated} } */
     progress(){ return read(progressKey(), {}); },

@@ -28,13 +28,13 @@
 <main class="box">
   <svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 1 10 10h-7a3 3 0 0 0-3-3z" fill="#F0605D"/><path d="M22 12a10 10 0 0 1-10 10v-7a3 3 0 0 0 3-3z" fill="#2BB3A8"/><path d="M12 22A10 10 0 0 1 2 12h7a3 3 0 0 0 3 3z" fill="#F5B83D"/><path d="M2 12A10 10 0 0 1 12 2v7a3 3 0 0 0-3 3z" fill="#8FD3E0"/></svg>
   <h1 id="title"></h1>
-  <p>Sign in with your First Circle Google account to start your onboarding.</p>
+  <p id="lead">Sign in with your First Circle account to start your onboarding.</p>
   <div id="gbtn"></div>
   <div class="err" id="err" role="alert"></div>
 
   <div class="demo" id="demo" hidden>
-    <b>Demo mode</b>
-    <small>Google sign-in isn't connected yet. Type an email to test the First Circle check.</small>
+    <b id="demoTitle">Sign in with your work email</b>
+    <small id="demoHint">Type your First Circle email.</small>
     <form id="demoForm"><input id="demoEmail" type="email" placeholder="name@firstcircle.com" required aria-label="Email"><button>Continue</button></form>
   </div>
 </main>
@@ -45,7 +45,9 @@ $("title").textContent = C.appName;
 
 function showError(msg){ const e = $("err"); e.textContent = msg; e.classList.add("show"); }
 function fail(err){
-  showError(err && err.message === "not-company"
+  showError(err && err.message === "not-on-list"
+    ? "That email isn't on the access list. Check the spelling, or ask your trainer to add you."
+    : err && err.message === "not-company"
     ? `That account isn't a @${C.allowedDomain} account. Please sign in with your First Circle email.`
     : "We couldn't sign you in. Please try again, or ask your trainer for help.");
 }
@@ -53,11 +55,12 @@ const done = () => { location.href = "dashboard.html"; };
 
 // Already signed in? Skip the page.
 const saved = LMS.storedUser();
-if (saved && LMS.isCompanyEmail(saved.email)) done();
+if (saved && LMS.isAllowed(saved.email)) done();
 
-if (C.demo || !C.googleClientId) {
+if (C.demo || C.emailLogin || !C.googleClientId) {
   $("demo").hidden = false;
-  $("gbtn").innerHTML = '<button disabled style="padding:11px 18px;border:1px solid #C9D6D8;border-radius:var(--r);background:#fff;color:var(--ink-3);font:inherit;font-size:14px">Sign in with Google (not set up yet)</button>';
+  if (C.demo) { $("demoTitle").textContent = "Demo mode"; $("demoHint").textContent = "Type an email to test the First Circle check."; }
+  if (!C.emailLogin) $("gbtn").innerHTML = '<button disabled style="padding:11px 18px;border:1px solid #C9D6D8;border-radius:var(--r);background:#fff;color:var(--ink-3);font:inherit;font-size:14px">Sign in with Google (not set up yet)</button>';
   $("demoForm").onsubmit = e => {
     e.preventDefault();
     try { LMS.signInDemo($("demoEmail").value.trim()); done(); } catch(err){ fail(err); }
