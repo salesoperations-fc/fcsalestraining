@@ -25,7 +25,7 @@ window.LMS_CONFIG = {
 
   googleClientId: "",                 // from Google Cloud (step 4 of the build)
   allowedDomain: "firstcircle.com",    // only these Google accounts can sign in
-  backendUrl: "",                     // Apps Script web app URL (step 4)
+  backendUrl: "https://script.google.com/macros/s/AKfycbxwD5hJK3xUM2YhMggINVN9j6n__9nFzdE1XM_U8yt3wq2DxJJa68NTtCW4oZpLJqZ0hA/exec",                     // Apps Script web app URL (step 4)
   adminEmails: [],                    // who can open admin.html, e.g. ["tm.name@firstcircle.com"]
 
   calendar: {
