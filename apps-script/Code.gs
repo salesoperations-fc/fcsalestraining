@@ -22,6 +22,14 @@ const ALLOWED_EMAILS = [          // keep in sync with shared/roster.js (admins 
   "leslie.reyes@firstcircle.com", "elaine.fantolgo@firstcircle.com"
 ];
 
+// Who may open the Grades page (must also be in ALLOWED_EMAILS), and the shared passcode they type there.
+// Change the passcode before using it. While it is "CHANGE-ME", the Grades page is refused.
+const ADMIN_EMAILS = [
+  "salesoperations@firstcircle.com", "nice.junsay@firstcircle.com", "hanna.jo@firstcircle.com",
+  "reyster.barron@firstcircle.com", "charles.allen@firstcircle.com", "alan.smyth@firstcircle.com"
+];
+const ADMIN_PASSCODE = "CHANGE-ME";
+
 const GRADES_SHEET = "Grades";      // one row per scored attempt
 const PROGRESS_SHEET = "Progress";  // one row per completed task/lesson
 const GRADES_HEADER = ["Timestamp", "Email", "Name", "Exam ID", "Attempt", "Score", "Max", "Percent", "Passed", "Details"];
@@ -37,12 +45,17 @@ function doPost(e) {
 
     if (req.action === "saveResult") {
       const pct = p.max ? Math.round((p.score / p.max) * 1000) / 10 : "";
-      sheet_(GRADES_SHEET, GRADES_HEADER).appendRow([new Date(), user.email, user.name, p.id, p.attempt, p.score, p.max, pct, p.passed ? "Yes" : "No", p.details || ""]);
+      appendByHeader_(sheet_(GRADES_SHEET, GRADES_HEADER), { "Timestamp": new Date(), "Email": user.email, "Name": user.name, "Exam ID": p.id, "Attempt": p.attempt, "Score": p.score, "Max": p.max, "Percent": pct, "Passed": p.passed ? "Yes" : "No", "Details": p.details || "" });
       return json_({ ok: true });
     }
     if (req.action === "complete") {
-      sheet_(PROGRESS_SHEET, PROGRESS_HEADER).appendRow([new Date(), user.email, user.name, p.id]);
+      appendByHeader_(sheet_(PROGRESS_SHEET, PROGRESS_HEADER), { "Timestamp": new Date(), "Email": user.email, "Name": user.name, "Item ID": p.id });
       return json_({ ok: true });
+    }
+    if (req.action === "adminData") {
+      if (ADMIN_PASSCODE === "CHANGE-ME") throw new Error("passcode-not-set");
+      if (ADMIN_EMAILS.indexOf(user.email) === -1 || p.passcode !== ADMIN_PASSCODE) throw new Error("not-admin");
+      return json_({ ok: true, grades: readRows_(GRADES_SHEET), progress: readRows_(PROGRESS_SHEET) });
     }
     return json_({ ok: false, error: "unknown-action" });
   } catch (err) {
@@ -67,6 +80,24 @@ function verifyToken_(token) {
   if (String(t.email_verified) !== "true") throw new Error("email-not-verified");
   if (!String(t.email).toLowerCase().endsWith("@" + ALLOWED_DOMAIN)) throw new Error("not-company");
   return { email: String(t.email).toLowerCase(), name: t.name || t.email };
+}
+
+/** Write a row by matching column NAMES in row 1, so you can reorder columns or add your own. */
+function appendByHeader_(sh, obj) {
+  const headers = sh.getRange(1, 1, 1, Math.max(sh.getLastColumn(), 1)).getValues()[0];
+  sh.appendRow(headers.map(function (h) { return obj.hasOwnProperty(h) ? obj[h] : ""; }));
+}
+
+/** Read every row as an object keyed by the column names in row 1. */
+function readRows_(name) {
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name);
+  if (!sh || sh.getLastRow() < 2) return [];
+  const values = sh.getDataRange().getValues(), headers = values[0];
+  return values.slice(1).filter(function (r) { return r.join("") !== ""; }).map(function (r) {
+    const o = {};
+    headers.forEach(function (h, i) { o[h] = r[i] instanceof Date ? r[i].toISOString() : r[i]; });
+    return o;
+  });
 }
 
 function sheet_(name, header) {

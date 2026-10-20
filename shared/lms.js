@@ -164,6 +164,9 @@ window.LMS_CONFIG = {
       return Promise.resolve(p[id]);
     },
 
+    /** Admin only: fetch all grades and progress from the Sheet. Needs the admin passcode set in the Apps Script. */
+    adminData(passcode){ return send("adminData", { passcode }); },
+
     signOut(){
       try { localStorage.removeItem(`${KEY}.user`); sessionStorage.removeItem(`${KEY}.idtoken`); } catch(e){}
       location.href = "index.html";
