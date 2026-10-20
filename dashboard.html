@@ -34,6 +34,9 @@
   .card.current .day{color:#9DBCC2} .card.current .tt{color:#fff} .card.current .st{color:var(--marigold)}
   .card.locked,.card.soon{background:var(--mist);border:1px dashed #CFD9DB}
   .card.locked .tt,.card.soon .tt{color:var(--ink-2)}
+  .card .chev{position:absolute;bottom:10px;right:12px;display:flex;color:var(--ink-3);transition:transform .18s}
+  .card.current .chev{color:#9DBCC2}
+  .card[aria-expanded="true"] .chev{transform:rotate(180deg)}
   .card[aria-expanded="true"]{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--teal)}
 
   /* Dropdown that opens under the clicked row and pushes the rows below it down */
@@ -135,7 +138,8 @@ function compute(){
 
 const LOCK_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
 const CHECK_ICON = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>';
-const PROGRESS_ICON = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 2.5a9.5 9.5 0 0 1 0 19z" fill="currentColor" stroke="none"/></svg>';
+const PROGRESS_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12M6 21h12"/><path d="M7 3v3.5a5 5 0 0 0 2 4L12 12l-3 1.5a5 5 0 0 0-2 4V21M17 3v3.5a5 5 0 0 1-2 4L12 12l3 1.5a5 5 0 0 1 2 4V21"/></svg>';
+const CHEVRON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
 const STATUS_ICON = { complete:CHECK_ICON, current:PROGRESS_ICON, locked:LOCK_ICON, soon:"" };
 const STATUS_TEXT = { complete:"complete", current:"in progress", locked:"locked", soon:"coming soon" };
 
@@ -207,7 +211,7 @@ function render(){
     : current ? `Day ${current} of ${days.length}` : "Your lessons are on the way.";
 
   const card = d => `<button class="card ${d.status}" data-day="${d.day}" aria-expanded="${d.day===selected}" aria-label="Day ${d.day}${d.title?": "+esc(d.title):""}, ${STATUS_TEXT[d.status]}">
-      <span class="st">${STATUS_ICON[d.status]}</span><span class="day">Day ${d.day}</span>${d.title?`<span class="tt">${esc(d.title)}</span>`:""}</button>`;
+      <span class="st">${STATUS_ICON[d.status]}</span><span class="chev">${CHEVRON}</span><span class="day">Day ${d.day}</span>${d.title?`<span class="tt">${esc(d.title)}</span>`:""}</button>`;
 
   const weeks = Object.entries(window.LMS_WEEKS).map(([w,label]) => {
     const wd = days.filter(d => String(d.week)===w);
