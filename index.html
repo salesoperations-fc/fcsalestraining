@@ -22,6 +22,12 @@
   .demo input{flex:1;min-width:0;padding:10px 12px;border:1px solid #C9D6D8;border-radius:var(--r);font:inherit;font-size:14px}
   .demo button{padding:10px 16px;border:0;border-radius:var(--r);background:var(--teal);color:#fff;font-weight:600;font-size:14px}
   .demo button:hover{background:var(--teal-dark)}
+  .gbtn{display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;max-width:300px;padding:11px 18px;border:1px solid #C9D6D8;border-radius:999px;background:#fff;color:#1f1f1f;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+  .gbtn:hover{background:var(--mist)}
+  .load{position:fixed;inset:0;background:rgba(255,255,255,.92);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--ink-2);font-size:14px;z-index:10}
+  .load.show{display:flex}
+  .spin{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--teal);border-radius:50%;animation:sp .8s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -32,38 +38,36 @@
   <div id="gbtn"></div>
   <div class="err" id="err" role="alert"></div>
 
-  <div class="demo" id="demo" hidden>
-    <b id="demoTitle">Sign in with your work email</b>
-    <small id="demoHint">Type your First Circle email.</small>
+  <div class="demo" id="demo" hidden style="margin-top:20px">
+    <b id="demoTitle">Continue with your work email</b>
+    <small id="demoHint">Use your First Circle email.</small>
     <form id="demoForm"><input id="demoEmail" type="email" placeholder="name@firstcircle.com" required aria-label="Email"><button>Continue</button></form>
   </div>
 </main>
+<div class="load" id="load" role="status" aria-live="polite"><div class="spin"></div>Signing you in…</div>
 
 <script>
 const C = LMS.config, $ = id => document.getElementById(id);
 $("title").textContent = C.appName;
 
 function showError(msg){ const e = $("err"); e.textContent = msg; e.classList.add("show"); }
-function fail(err){
-  showError(err && err.message === "not-on-list"
-    ? "That email isn't on the access list. Check the spelling, or ask your trainer to add you."
-    : err && err.message === "not-company"
-    ? `That account isn't a @${C.allowedDomain} account. Please sign in with your First Circle email.`
-    : "We couldn't sign you in. Please try again, or ask your trainer for help.");
-}
-const done = () => { location.href = "dashboard.html"; };
+function fail(){ showError("Email unauthorized. Please contact Salesops."); }
+// Short "signing in" screen, then the dashboard.
+const done = () => { $("load").classList.add("show"); setTimeout(() => { location.href = "dashboard.html"; }, 1000); };
+
+const GOOGLE_G = '<svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.9 2.3-8.4 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.500 42.600 14.600 48 24 48z"/></svg>';
 
 // Already signed in? Skip the page.
 const saved = LMS.storedUser();
-if (saved && LMS.isAllowed(saved.email)) done();
+if (saved && LMS.isAllowed(saved.email)) location.replace("dashboard.html");
 
 if (C.demo || C.emailLogin || !C.googleClientId) {
-  $("demo").hidden = false;
-  if (C.demo) { $("demoTitle").textContent = "Demo mode"; $("demoHint").textContent = "Type an email to test the First Circle check."; }
-  if (!C.emailLogin) $("gbtn").innerHTML = '<button disabled style="padding:11px 18px;border:1px solid #C9D6D8;border-radius:var(--r);background:#fff;color:var(--ink-3);font:inherit;font-size:14px">Sign in with Google (not set up yet)</button>';
+  // Google sign-in isn't connected yet: the button leads to the email step.
+  $("gbtn").innerHTML = `<button class="gbtn" id="gfake" type="button">${GOOGLE_G}Sign in with Google</button>`;
+  $("gfake").onclick = () => { $("demo").hidden = false; $("demoEmail").focus(); };
   $("demoForm").onsubmit = e => {
-    e.preventDefault();
-    try { LMS.signInDemo($("demoEmail").value.trim()); done(); } catch(err){ fail(err); }
+    e.preventDefault(); $("err").classList.remove("show");
+    try { LMS.signInDemo($("demoEmail").value.trim()); done(); } catch(err){ fail(); }
   };
 } else {
   const s = document.createElement("script");
