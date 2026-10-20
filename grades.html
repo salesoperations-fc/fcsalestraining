@@ -59,8 +59,8 @@ async function load(passcode){
   const res = await LMS.adminData(passcode);
   if (!res || !res.ok) {
     const e = res && res.error;
-    return gate(e === "not-admin" ? "Wrong passcode, or your email isn't an admin."
-      : e === "passcode-not-set" ? "The admin passcode hasn't been set in the Apps Script yet (ADMIN_PASSCODE in Code.gs)."
+    if (e === "passcode-required") return gate(passcode ? "Wrong passcode." : "");
+    return gate(e === "not-admin" ? "Your email isn't an admin."
       : !res ? "Couldn't reach the Sheet. Check your connection." : "Couldn't load grades (" + e + ").");
   }
   try { sessionStorage.setItem("amhub.adminpc", passcode); } catch(e){}
@@ -107,7 +107,7 @@ if (LMS.requireSignIn()) {
   renderSide("grades");
   if (!LMS.isAdmin()) { $("app").innerHTML = '<h1>Grades</h1><p class="muted">This page is for trainers.</p>'; }
   else if (!LMS.config.backendUrl) { $("app").innerHTML = '<h1>Grades</h1><p class="muted">The Google Sheet isn\'t connected yet (backendUrl in shared/lms.js).</p>'; }
-  else { let pc=""; try { pc = sessionStorage.getItem("amhub.adminpc") || ""; } catch(e){} pc ? load(pc) : gate(); }
+  else { let pc=""; try { pc = sessionStorage.getItem("amhub.adminpc") || ""; } catch(e){} load(pc); }
 }
 </script>
 </body>

@@ -25,7 +25,7 @@ Static site on GitHub Pages (`salesoperations-fc/fcsalestraining`), no build ste
 - `days/day-01.js` ... `day-10.js`: ONE FILE PER DAY (title, brief, tasks, materials, exam). To work on a day, edit only its file (plus its own lesson pages, e.g. `lessons/d02-*.html`), so several chats can work on different days at once without conflicts. Day 1 has a SAMPLE task and exam to replace. Days 2 to 10 have titles and a short `brief`.
 - `modules.js`: loads the day files, then `days/build.js` assembles `window.LMS_DAYS`. Also holds week labels and live sessions. Don't put day content here.
 - `sims/connect-exam.html`: Connect simulation exam. Kept in the repo but not linked from any day. Reports its score as `exam-connect-sim`.
-- `apps-script/Code.gs`: backend. Deployed as a web app (Execute as owner, access Anyone). `backendUrl` in lms.js points to it. Writes to the `Grades` and `Progress` tabs BY COLUMN NAME (columns can be reordered or added). `ADMIN_PASSCODE` must be set (not "CHANGE-ME") before grades.html works; after editing Code.gs, redeploy as a New version.
+- `apps-script/Code.gs`: backend. Deployed as a web app (Execute as owner, access Anyone). `backendUrl` in lms.js points to it. Writes to the `Grades` and `Progress` tabs BY COLUMN NAME (columns can be reordered or added). `ADMIN_PASSCODE` is "" (no extra passcode; admins are identified by email only). Set a value to require one. After editing Code.gs, redeploy as a New version.
 
 ## Rules built into the dashboard
 - A day completes when all its tasks are ticked and its exam (if any) is done. Day N+1 unlocks when day N is complete.

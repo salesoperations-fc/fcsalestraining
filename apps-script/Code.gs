@@ -27,13 +27,12 @@ const BATCHES = {                 // batch number (start date, MMDDYY) -> onboar
   ]
 };
 
-// Who may open the Grades page (admins are allowed in automatically), and the shared passcode they type there.
-// Change the passcode before using it. While it is "CHANGE-ME", the Grades page is refused.
+// Who may open the Grades page (admins are allowed in automatically). Optional extra passcode: leave "" for none.
 const ADMIN_EMAILS = [
   "salesoperations@firstcircle.com", "nice.junsay@firstcircle.com", "hanna.jo@firstcircle.com",
   "reyster.barron@firstcircle.com", "charles.allen@firstcircle.com", "alan.smyth@firstcircle.com"
 ];
-const ADMIN_PASSCODE = "CHANGE-ME";
+const ADMIN_PASSCODE = "";
 
 const GRADES_SHEET = "Grades";      // one row per scored attempt
 const PROGRESS_SHEET = "Progress";  // one row per completed task/lesson
@@ -62,8 +61,8 @@ function doPost(e) {
       return json_({ ok: true });
     }
     if (req.action === "adminData") {
-      if (ADMIN_PASSCODE === "CHANGE-ME") throw new Error("passcode-not-set");
-      if (ADMIN_EMAILS.indexOf(user.email) === -1 || p.passcode !== ADMIN_PASSCODE) throw new Error("not-admin");
+      if (ADMIN_EMAILS.indexOf(user.email) === -1) throw new Error("not-admin");
+      if (ADMIN_PASSCODE && p.passcode !== ADMIN_PASSCODE) throw new Error("passcode-required");
       return json_({ ok: true, grades: readRows_(GRADES_SHEET), progress: readRows_(PROGRESS_SHEET) });
     }
     return json_({ ok: false, error: "unknown-action" });
