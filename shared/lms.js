@@ -1,5 +1,5 @@
 /* =========================================================
-   First Circle AM Academy — lms.js
+   First Circle AM Onboarding Hub — lms.js
    Loaded by every page. Handles who's signed in and saving progress.
 
    RIGHT NOW: demo mode. Progress is saved in this browser only,
@@ -11,17 +11,17 @@
    ========================================================= */
 
 window.LMS_CONFIG = {
-  appName: "AM Academy",
+  appName: "AM Onboarding Hub",
   company: "First Circle",
   programDays: 10,
 
   demo: true,                         // set to false once sign-in is set up
-  demoUser: { name: "Juan dela Cruz", email: "juan.delacruz@firstcircle.ph", startDate: "2026-09-30" },
+  demoUser: { name: "Juan dela Cruz", email: "juan.delacruz@firstcircle.com", startDate: "2026-09-30" },
 
   googleClientId: "",                 // from Google Cloud (step 4 of the build)
-  allowedDomain: "firstcircle.ph",    // only these Google accounts can sign in
+  allowedDomain: "firstcircle.com",    // only these Google accounts can sign in
   backendUrl: "",                     // Apps Script web app URL (step 4)
-  adminEmails: [],                    // who can open admin.html, e.g. ["tm.name@firstcircle.ph"]
+  adminEmails: [],                    // who can open admin.html, e.g. ["tm.name@firstcircle.com"]
 
   calendar: {
     // Paste your TL's shared Google Calendar here (Settings → Integrate calendar → "Embed code" src link).

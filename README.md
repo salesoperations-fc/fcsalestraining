@@ -1,4 +1,4 @@
-# AM Academy (First Circle)
+# AM Onboarding Hub (First Circle)
 
 Training site for new Account Managers. Hosted on GitHub Pages.
 

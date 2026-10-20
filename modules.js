@@ -1,5 +1,5 @@
 /* =========================================================
-   AM Academy — 2-Week Learning Path (course outline)
+   AM Onboarding Hub — 2-Week Learning Path (course outline)
    This is the only file to edit when changing the program.
 
    Each day:
