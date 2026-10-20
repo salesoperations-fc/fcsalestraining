@@ -60,6 +60,8 @@
   .mats li:last-child{border-bottom:0}
   .mats a{font-weight:600;text-decoration:none}
   .mats a:hover{text-decoration:underline}
+  .mats a.dl{color:var(--ink);text-decoration:underline;font-weight:500;display:inline-flex;gap:8px;align-items:center}
+  .mats a.dl::before{content:"";width:16px;height:16px;flex:none;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3v12M7 10l5 5 5-5M4 17v3h16v-3'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3v12M7 10l5 5 5-5M4 17v3h16v-3'/%3E%3C/svg%3E") center/contain no-repeat}
   .mats .soon{font-size:12px;color:var(--ink-3);white-space:nowrap}
   .exam{margin-top:22px;border-radius:12px;padding:16px 18px;background:var(--marigold-soft);display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
   .exam.ok{background:var(--green-soft)}
@@ -113,7 +115,7 @@ const LOCK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke
 /* ---------- Status rules ----------
    A day is complete when every task is ticked and its exam (if any) is done.
    A day with no content yet can't be completed, so it keeps the days after it locked. Otherwise a day unlocks when the one before it is complete. */
-let selected = null;   // the day whose dropdown is open
+let selected = (+new URLSearchParams(location.search).get('day')) || null;   // the day whose dropdown is open (lessons link back with ?day=N)
 function compute(){
   const P = LMS.progress(), done = id => P[id] && P[id].status === "done";
   let prevComplete = true, current = null;
@@ -153,17 +155,17 @@ function dropdown(sel, P){
       ${t.href ? `<a class="open" href="${esc(t.href)}" data-open="${t.id}">Open</a>` : ""}</label></li>`;
   }).join("");
   const mats = (sel.materials||[]).length ? `<ul class="mats">${sel.materials.map(m => m.href
-      ? `<li><a href="${esc(m.href)}" target="${/^https?:/.test(m.href)?"_blank":"_self"}" rel="noopener">${esc(m.label)}</a></li>`
+      ? `<li><a ${m.dl?'class="dl"':""} href="${esc(m.href)}" ${m.download?`download="${esc(m.download)}"`:""} target="${(m.dl||/^https?:/.test(m.href))?"_blank":"_self"}" rel="noopener">${esc(m.label)}</a></li>`
       : `<li><span>${esc(m.label)}</span><span class="soon">Link coming soon</span></li>`).join("")}</ul>` : "";
   let examHtml = "";
   if (sel.exam){
     const e = sel.exam, rec = P[e.id], sub = rec && rec.status === "done";
     const scoreTxt = rec && rec.max ? `Score: ${rec.score}/${rec.max}` : (e.kind==="trainer" ? "Scored live by your trainer." : "");
-    if (sub) examHtml = `<div class="exam ok" style="display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:12px;padding:14px 16px;background:var(--green-soft)"><div><b>${ico("check",14)} ${esc(e.label)} done</b><br><span class="small muted">${scoreTxt}</span></div></div>`;
+    if (sub) examHtml = `<div class="exam ok" style="display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:12px;padding:14px 16px;background:var(--green-soft)"><div><b>${ico("check",14)} ${esc(e.label)} done</b><br><span class="small muted">${scoreTxt}</span></div>${e.kind==="lms"&&e.href?`<a class="btn sm" href="${esc(e.href)}">Review your answers</a>`:""}</div>`;
     else {
-      const open = e.href ? `<a class="btn sm" href="${esc(e.href)}" target="${/^https?:/.test(e.href)?"_blank":"_self"}" rel="noopener">${e.kind==="sim"?"Start simulation":"Open exam"}</a>` : "";
-      examHtml = `<div class="exam" style="display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:12px;padding:14px 16px;background:var(--marigold-soft)"><div><b>${esc(e.label)}</b><br><span class="small muted">Graded. Pass mark ${e.passing}%.</span></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">${open}<button class="btn sm primary" data-submit="${e.id}">${e.kind==="trainer"?"Mark completed":"I've submitted it"}</button></div></div>`;
+      const open = e.href ? `<a class="btn sm" href="${esc(e.href)}" target="${/^https?:/.test(e.href)?"_blank":"_self"}" rel="noopener">${e.kind==="sim"?"Start simulation":e.kind==="lms"?"Start exam":"Open exam"}</a>` : "";
+      examHtml = `<div class="exam" style="display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:12px;padding:14px 16px;background:var(--marigold-soft)"><div><b>${esc(e.label)}</b><br><span class="small muted">${e.kind==="lms"?"Agree to every statement to submit.":`Graded. Pass mark ${e.passing}%.`}</span></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">${open}${e.kind==="lms"?"":`<button class="btn sm primary" data-submit="${e.id}">${e.kind==="trainer"?"Mark completed":"I've submitted it"}</button>`}</div></div>`;
     }
   }
   const body = (tasks || mats) ? `<div class="two">${tasks?`<div><h3>Tasks (${sel.tasksDone} of ${sel.tasks.length})</h3><ul class="tasks">${tasks}</ul></div>`:"<div></div>"}${mats?`<div><h3>Materials</h3>${mats}</div>`:""}</div>` : "";

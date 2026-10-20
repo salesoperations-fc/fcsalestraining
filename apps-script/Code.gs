@@ -39,6 +39,9 @@ const GRADES_SHEET = "Grades";      // one row per scored attempt
 const PROGRESS_SHEET = "Progress";  // one row per completed task/lesson
 const GRADES_HEADER = ["Timestamp", "Email", "Name", "Batch", "Exam ID", "Attempt", "Score", "Max", "Percent", "Passed", "Details"];
 const PROGRESS_HEADER = ["Timestamp", "Email", "Name", "Batch", "Item ID"];
+// Exams that also get their own tab (in addition to the Grades row). Exam ID -> tab name.
+const EXAM_TABS = { "d1-exam-responsible-selling": "D1-1" };
+const EXAM_TAB_HEADER = ["Timestamp", "Email", "Name", "Batch", "Attempt", "Score", "Max", "Percent", "Passed", "Details"];
 
 function doPost(e) {
   try {
@@ -51,6 +54,7 @@ function doPost(e) {
     if (req.action === "saveResult") {
       const pct = p.max ? Math.round((p.score / p.max) * 1000) / 10 : "";
       appendByHeader_(sheet_(GRADES_SHEET, GRADES_HEADER), { "Timestamp": new Date(), "Email": user.email, "Name": user.name, "Batch": user.batch || "", "Exam ID": p.id, "Attempt": p.attempt, "Score": p.score, "Max": p.max, "Percent": pct, "Passed": p.passed ? "Yes" : "No", "Details": p.details || "" });
+      if (EXAM_TABS[p.id]) appendByHeader_(sheet_(EXAM_TABS[p.id], EXAM_TAB_HEADER), { "Timestamp": new Date(), "Email": user.email, "Name": user.name, "Batch": user.batch || "", "Attempt": p.attempt, "Score": p.score, "Max": p.max, "Percent": pct, "Passed": p.passed ? "Yes" : "No", "Details": p.details || "" });
       return json_({ ok: true });
     }
     if (req.action === "complete") {
