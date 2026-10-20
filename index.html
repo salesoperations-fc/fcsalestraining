@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in | AM Onboarding Hub</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 2a10 10 0 0 1 10 10h-7a3 3 0 0 0-3-3z' fill='%23F0605D'/><path d='M22 12a10 10 0 0 1-10 10v-7a3 3 0 0 0 3-3z' fill='%232BB3A8'/><path d='M12 22A10 10 0 0 1 2 12h7a3 3 0 0 0 3 3z' fill='%23F5B83D'/><path d='M2 12A10 10 0 0 1 12 2v7a3 3 0 0 0-3 3z' fill='%238FD3E0'/></svg>">
+<link rel="stylesheet" href="shared/theme.css">
+<script src="shared/lms.js"></script>
+<style>
+  body{background:var(--mist);display:grid;place-items:center;min-height:100vh;padding:24px}
+  .box{width:100%;max-width:420px;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:36px 32px;text-align:center}
+  .box h1{font-size:24px;margin:14px 0 6px;letter-spacing:-.01em}
+  .box p{margin:0 0 22px;color:var(--ink-2);font-size:14px}
+  #gbtn{display:flex;justify-content:center;min-height:44px}
+  .err{display:none;margin-top:16px;padding:10px 12px;border-radius:var(--r);background:var(--coral-soft);color:#8E2A3E;font-size:13px;text-align:left}
+  .err.show{display:block}
+  .demo{margin-top:24px;padding-top:20px;border-top:1px dashed var(--line);text-align:left}
+  .demo b{font-size:13px;color:var(--ink-2)}
+  .demo small{display:block;margin:2px 0 10px;color:var(--ink-3);font-size:12px}
+  .demo form{display:flex;gap:8px}
+  .demo input{flex:1;min-width:0;padding:10px 12px;border:1px solid #C9D6D8;border-radius:var(--r);font:inherit;font-size:14px}
+  .demo button{padding:10px 16px;border:0;border-radius:var(--r);background:var(--teal);color:#fff;font-weight:600;font-size:14px}
+  .demo button:hover{background:var(--teal-dark)}
+</style>
+</head>
+<body>
+<main class="box">
+  <svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 1 10 10h-7a3 3 0 0 0-3-3z" fill="#F0605D"/><path d="M22 12a10 10 0 0 1-10 10v-7a3 3 0 0 0 3-3z" fill="#2BB3A8"/><path d="M12 22A10 10 0 0 1 2 12h7a3 3 0 0 0 3 3z" fill="#F5B83D"/><path d="M2 12A10 10 0 0 1 12 2v7a3 3 0 0 0-3 3z" fill="#8FD3E0"/></svg>
+  <h1 id="title"></h1>
+  <p>Sign in with your First Circle Google account to start your onboarding.</p>
+  <div id="gbtn"></div>
+  <div class="err" id="err" role="alert"></div>
+
+  <div class="demo" id="demo" hidden>
+    <b>Demo mode</b>
+    <small>Google sign-in isn't connected yet. Type an email to test the First Circle check.</small>
+    <form id="demoForm"><input id="demoEmail" type="email" placeholder="name@firstcircle.com" required aria-label="Email"><button>Continue</button></form>
+  </div>
+</main>
+
+<script>
+const C = LMS.config, $ = id => document.getElementById(id);
+$("title").textContent = C.appName;
+
+function showError(msg){ const e = $("err"); e.textContent = msg; e.classList.add("show"); }
+function fail(err){
+  showError(err && err.message === "not-company"
+    ? `That account isn't a @${C.allowedDomain} account. Please sign in with your First Circle email.`
+    : "We couldn't sign you in. Please try again, or ask your trainer for help.");
+}
+const done = () => { location.href = "dashboard.html"; };
+
+// Already signed in? Skip the page.
+const saved = LMS.storedUser();
+if (saved && LMS.isCompanyEmail(saved.email)) done();
+
+if (C.demo || !C.googleClientId) {
+  $("demo").hidden = false;
+  $("gbtn").innerHTML = '<button disabled style="padding:11px 18px;border:1px solid #C9D6D8;border-radius:var(--r);background:#fff;color:var(--ink-3);font:inherit;font-size:14px">Sign in with Google (not set up yet)</button>';
+  $("demoForm").onsubmit = e => {
+    e.preventDefault();
+    try { LMS.signInDemo($("demoEmail").value.trim()); done(); } catch(err){ fail(err); }
+  };
+} else {
+  const s = document.createElement("script");
+  s.src = "https://accounts.google.com/gsi/client"; s.async = true;
+  s.onload = () => {
+    google.accounts.id.initialize({
+      client_id: C.googleClientId,
+      hd: C.allowedDomain,                                   // hint only: Google shows just this domain's accounts
+      callback: r => LMS.signInWithGoogle(r.credential).then(done).catch(fail)
+    });
+    google.accounts.id.renderButton($("gbtn"), { theme:"outline", size:"large", text:"signin_with", shape:"pill" });
+  };
+  document.head.appendChild(s);
+}
+</script>
+</body>
+</html>
