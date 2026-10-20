@@ -24,16 +24,19 @@
 window.LMS_WEEKS = { 1: "Week 1", 2: "Week 2" };
 
 window.LMS_DAYS = [
-  { day:1,  week:1, title:"", tasks:[], materials:[] },
-  { day:2,  week:1, title:"", brief:"Review the industry background and First Circle's products.", tasks:[], materials:[] },
-  { day:3,  week:1, title:"", brief:"Learn to navigate FC Connect.", tasks:[], materials:[] },
-  { day:4,  week:1, title:"", brief:"Virtual simulation exam for FC Connect.", tasks:[], materials:[] },
-  { day:5,  week:1, title:"", brief:"Upload referrals and self-gen leads; request document uploads and lead re-assignment.", tasks:[], materials:[] },
-  { day:6,  week:2, title:"", brief:"Shadow calls with a mentor and take notes on objection handling.", tasks:[], materials:[] },
-  { day:7,  week:2, title:"", brief:"Handle 3–5 mock client scenarios in FC Connect staging across industry types.", tasks:[], materials:[] },
-  { day:8,  week:2, title:"", brief:"Process 1–2 real accounts under direct supervision.", tasks:[], materials:[] },
-  { day:9,  week:2, title:"", brief:"Client-facing role-play: discovery, objection, close.", tasks:[], materials:[] },
-  { day:10, week:2, title:"", brief:"Manager review and final sign-off.", tasks:[], materials:[] }
+  { day:1,  week:1, title:"Tools Set Up & Orientation",
+    tasks:[ { id:"d1-sample-task", label:"Sample task: set up your work devices" } ],   // SAMPLE: replace with the real tasks
+    materials:[],
+    exam:{ id:"exam-sample", label:"Sample Exam", href:"", kind:"form", passing:80 } },    // SAMPLE: replace with the real exam
+  { day:2,  week:1, title:"Product Knowledge & Positioning", brief:"Review the industry background and First Circle's products.", tasks:[], materials:[] },
+  { day:3,  week:1, title:"FC Connect Platform (Account Staging)", brief:"Learn to navigate FC Connect.", tasks:[], materials:[] },
+  { day:4,  week:1, title:"Connect Exam Simulation", brief:"Virtual simulation exam for FC Connect.", tasks:[], materials:[] },
+  { day:5,  week:1, title:"BVP & Sales Process", brief:"Upload referrals and self-gen leads; request document uploads and lead re-assignment.", tasks:[], materials:[] },
+  { day:6,  week:2, title:"Live Call Shadowing", brief:"Shadow calls with a mentor and take notes on objection handling.", tasks:[], materials:[] },
+  { day:7,  week:2, title:"Supervised Sandbox Practice", brief:"Handle 3–5 mock client scenarios in FC Connect staging across industry types.", tasks:[], materials:[] },
+  { day:8,  week:2, title:"Real Account Exposure (Supervised)", brief:"Process 1–2 real accounts under direct supervision.", tasks:[], materials:[] },
+  { day:9,  week:2, title:"Role-Play Assessment", brief:"Client-facing role-play: discovery, objection, close.", tasks:[], materials:[] },
+  { day:10, week:2, title:"Final Certification", brief:"Manager review and final sign-off.", tasks:[], materials:[] }
 ];
 
 /* Live sessions shown on the dashboard if no Google Calendar is embedded.
