@@ -479,6 +479,8 @@ table.res th{font-size:12px;color:var(--ink-2);font-weight:600}
 .workspace{top:0}
 .hidden{display:none !important}
 #spot{position:fixed;z-index:9000;border-radius:10px;box-shadow:0 0 0 9999px rgba(12,30,38,.42);outline:3px solid #F4B63F;pointer-events:none;transition:left .25s,top .25s,width .25s,height .25s;animation:chl 1.2s ease-in-out infinite}
+#tipPill{position:fixed;right:20px;bottom:20px;z-index:9150;background:var(--deep,#0B3B45);color:#fff;border:0;border-radius:20px;padding:9px 16px;font:600 13px var(--font);cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.bmin{float:right;margin:-4px -6px 0 8px;background:#EEF2F3;border:0;border-radius:12px;padding:3px 10px;font:600 12px var(--font);color:var(--ink-2);cursor:pointer}
 #spot.nodim{box-shadow:none}
 @keyframes chl{50%{outline-color:rgba(244,182,63,.3)}}
 .bubble{position:fixed;z-index:9100;width:340px;max-width:calc(100vw - 16px);background:#fff;border-radius:14px;padding:14px 16px;box-shadow:0 10px 36px rgba(0,0,0,.3);font-size:14px;line-height:1.5;color:var(--ink)}
@@ -528,6 +530,7 @@ table.res th{font-size:12px;color:var(--ink-2);font-weight:600}
 <div id="spot" class="hidden"></div>
 <div id="bubble" class="bubble hidden"></div>
 <div id="hud"></div>
+<button id="tipPill" class="hidden"></button>
 <div id="msgBox" class="hidden"><div class="mh"><span>📱 Code by text / email</span><button class="mx" aria-label="Close">×</button></div><div id="msgList"></div></div>
 <div id="wrong" class="hidden"></div>
 <div id="endCard" class="hidden"></div>
@@ -1839,6 +1842,7 @@ const FUNCS = [
 const QS = new URLSearchParams(location.search);
 let CUR = QS.get("fn"); if(!FUNCS.some(f=>f.id===CUR)) CUR = FUNCS[0].id;
 let MODE = QS.get("mode")==="try" ? "try" : "guide";
+let bubHidden = false;
 let LATCH = [], ENDED = false, stepIdx = -1, scrolledFor = null, wrongTimer = null;
 const FN = () => FUNCS.find(f=>f.id===CUR);
 
@@ -1859,7 +1863,7 @@ let tickT=null; function tickSoon(){ clearTimeout(tickT); tickT=setTimeout(refre
 function refresh(){
   updateLatch();
   const f=FN(), cur=LATCH.findIndex(x=>!x);
-  if(cur!==stepIdx){ stepIdx=cur; scrolledFor=null; }
+  if(cur!==stepIdx){ stepIdx=cur; scrolledFor=null; bubHidden=false; }
   if(cur<0 && !ENDED){ ENDED=true; setTimeout(showEnd, 700); }
   drawHud(); place();
 }
@@ -1869,14 +1873,15 @@ function rectOf(sel){ if(!sel) return null; for(const part of sel.split(/,(?![^\
 function union(a,b){ return !a?b:!b?a:{el:a.el, l:Math.min(a.l,b.l), t:Math.min(a.t,b.t), r:Math.max(a.r,b.r), b:Math.max(a.b,b.b)}; }
 function place(){
   const spot=$("#spot"), bub=$("#bubble");
-  if(MODE!=="guide" || ENDED || stepIdx<0){ spot.classList.add("hidden"); bub.classList.add("hidden"); return; }
+  if(MODE!=="guide" || ENDED || stepIdx<0){ spot.classList.add("hidden"); bub.classList.add("hidden"); $("#tipPill").classList.add("hidden"); return; }
   const f=FN(), s=f.steps[stepIdx];
   const tgt=rectOf(s.sel), reg=s.fill?rectOf(s.fill):null, R=union(tgt,reg);
   if(R && tgt && !s.loose && scrolledFor!==stepIdx){ scrolledFor=stepIdx; const vh=innerHeight; if(tgt.t<60||tgt.b>vh-40) tgt.el.scrollIntoView({block:"center",behavior:"smooth"}); }
   const vals = s.showVals && f.vals.length ? `<div class="bvals">${f.vals.map(v=>`<div>${v}</div>`).join("")}</div>` : "";
-  const html=`<div class="bstep">Step ${stepIdx+1} of ${f.steps.length}</div><div class="btext">${stepText(s)}</div>${s.sub?`<div class="bsub">${s.sub}</div>`:""}${vals}<div class="bfoot"><button class="blink" id="skipGuide">Skip, let me try it myself</button></div>`;
+  const html=`<button class="bmin" id="bmin" title="Hide this tip" aria-label="Hide this tip">Hide –</button><div class="bstep">Step ${stepIdx+1} of ${f.steps.length}</div><div class="btext">${stepText(s)}</div>${s.sub?`<div class="bsub">${s.sub}</div>`:""}${vals}<div class="bfoot"><button class="blink" id="skipGuide">Skip, let me try it myself</button></div>`;
   if(bub.dataset.k!==stepIdx+"|"+f.id){ bub.innerHTML=html; bub.dataset.k=stepIdx+"|"+f.id; }
-  bub.classList.remove("hidden");
+  $("#tipPill").classList.toggle("hidden", !bubHidden); $("#tipPill").textContent=`💡 Show tip · step ${stepIdx+1} of ${f.steps.length}`;
+  bub.classList.toggle("hidden", bubHidden);
   if(!R){ spot.classList.add("hidden"); bub.style.left=""; bub.style.top="76px"; bub.style.right="24px"; bub.dataset.side="none"; return; }
   if(s.loose){   // no gray-out, no auto-scroll: the learner needs to scroll and click several things
     const bw0=bub.offsetWidth||340;
@@ -1889,7 +1894,7 @@ function place(){
     Object.assign(spot.style,{left:(T.l-6)+"px", top:(T.t-6)+"px", width:(T.r-T.l+12)+"px", height:(T.b-T.t+12)+"px"});
     return;
   }
-  spot.classList.remove("nodim");
+  spot.classList.toggle("nodim", bubHidden);
   const pad=s.fill?10:6;
   spot.classList.remove("hidden");
   Object.assign(spot.style,{left:(R.l-pad)+"px", top:(R.t-pad)+"px", width:(R.r-R.l+pad*2)+"px", height:(R.b-R.t+pad*2)+"px"});
@@ -1956,6 +1961,8 @@ function drawHud(){
 }
 $("#hud").addEventListener("click", e=>{ if(e.target.id==="taskBtn"){ $("#hud").dataset.open = $("#hud").dataset.open==="0"?"1":"0"; drawHud(); } });
 document.addEventListener("click", e=>{
+  if(e.target.id==="bmin"){ bubHidden=true; place(); return; }
+  if(e.target.id==="tipPill"){ bubHidden=false; place(); return; }
   if(e.target.id==="skipGuide") startTry();
 });
 function startTry(){ MODE="try"; $("#hud").dataset.open="1"; newSession(); }
