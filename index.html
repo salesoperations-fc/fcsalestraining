@@ -59,9 +59,18 @@ const GOOGLE_G = '<svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="t
 
 // Already signed in? Skip the page.
 const saved = LMS.storedUser();
-if (saved && LMS.isAllowed(saved.email)) location.replace("dashboard.html");
+const alreadyIn = saved && LMS.isAllowed(saved.email);
+if (alreadyIn) {
+  $("lead").innerHTML = `You're signed in as <b>${saved.name.replace(/[<>&]/g,"")}</b><br><span style="font-size:13px">${saved.email.replace(/[<>&]/g,"")}</span>`;
+  $("gbtn").innerHTML = '<button class="gbtn" id="goOn" type="button" style="background:var(--teal);border-color:var(--teal);color:#fff">Continue</button>';
+  $("goOn").onclick = done;
+  $("gbtn").insertAdjacentHTML("afterend", '<p style="margin:14px 0 0"><a href="#" id="switchAcc">Use a different account</a></p>');
+  $("switchAcc").onclick = e => { e.preventDefault(); try { localStorage.removeItem("amacademy.user"); sessionStorage.removeItem("amacademy.idtoken"); } catch(err){} location.reload(); };
+}
 
-if (C.demo || C.emailLogin || !C.googleClientId) {
+if (alreadyIn) {
+  // nothing else to set up: the Continue / switch buttons above handle it
+} else if (C.demo || C.emailLogin || !C.googleClientId) {
   // Google sign-in isn't connected yet: the button leads to the email step.
   $("gbtn").innerHTML = `<button class="gbtn" id="gfake" type="button">${GOOGLE_G}Sign in with Google</button>`;
   $("gfake").onclick = () => { $("demo").hidden = false; $("demoEmail").focus(); };

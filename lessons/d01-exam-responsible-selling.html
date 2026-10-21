@@ -63,5 +63,5 @@ $("submit").onclick=async()=>{
   showSubmitted(LMS.progress()[EXAM_ID]);
 };
 upd();
-if(p&&p.status==="done"&&!(LMS.canRetake()&&/[?&]retake=1/.test(location.search))) showSubmitted(p);
+LMS.ready.then(()=>{ const q=LMS.progress()[EXAM_ID]; if(q&&q.status==="done"&&!(LMS.canRetake()&&/[?&]retake=1/.test(location.search))) showSubmitted(q); });
 </script></body></html>

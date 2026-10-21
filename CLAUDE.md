@@ -27,6 +27,12 @@ Static site on GitHub Pages (`salesoperations-fc/fcsalestraining`), no build ste
 - `sims/connect-exam.html`: Connect simulation exam. Kept in the repo but not linked from any day. Reports its score as `exam-connect-sim`.
 - `apps-script/Code.gs`: backend. Deployed as a web app (Execute as owner, access Anyone). `backendUrl` in lms.js points to it. Writes to the `Grades` and `Progress` tabs BY COLUMN NAME (columns can be reordered or added). `ADMIN_PASSCODE` is "" (no extra passcode; admins are identified by email only). Set a value to require one. After editing Code.gs, redeploy as a New version.
 
+## Progress storage
+- The Google Sheet is the source of truth for progress and grades; the browser copy (localStorage `amacademy`) is a cache. On every page load `LMS.ready = sync()` calls the script's `myProgress` action and merges the result in (so progress follows a person to any browser). Pages that decide on "already taken" wait on `LMS.ready`.
+- Completions go to the `Progress` tab; unticks are logged as a row whose Item ID is `UNDO:<id>` (latest row per item wins). Scored attempts go to `Grades` (and per-exam tabs).
+- One attempt per exam is enforced on the server too (`RETAKE_BATCHES` in Code.gs, same list as `multiAttempt` in lms.js). The sim's "last result" text is still stored per browser only.
+- Auth is separate from storage: all of this keys off `user.email`, so switching `AUTH_MODE` to "google" later changes nothing about the data.
+
 ## Rules built into the dashboard
 - A day completes when all its tasks are ticked and its exam (if any) is done. Day N+1 unlocks when day N is complete.
 - A day with no content yet can't be completed, so it keeps later days locked.

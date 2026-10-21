@@ -2037,11 +2037,13 @@ $("#finishNo").onclick=()=>$("#finishOv").classList.add("hidden");
 $("#finishYes").onclick=()=>finish(false);
 $("#whoAmI").textContent=ME.name+(MY_BATCH?" · Batch "+MY_BATCH:"")+" ("+ME.email+")";
 (function oneAttempt(){      // everyone except batches in LMS.config.multiAttempt gets a single attempt
+ LMS.ready.then(()=>{
   const rec=LMS.progress()[EXAM_ID];
   if(rec && rec.status==="done" && !LMS.canRetake()){
     const b=$("#startBtn"); b.disabled=true; b.textContent="Already taken";
     b.insertAdjacentHTML("afterend",'<span class="hint" style="align-self:center">You have already taken this exam. Ask Salesops if you need another attempt.</span>');
   }
+ });
 })();
 (function showLast(){
   let r=null; try{ r=JSON.parse(localStorage.getItem("amacademy.d4last."+ME.email)||"null"); }catch(e){}

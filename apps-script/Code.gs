@@ -32,6 +32,9 @@ const ADMIN_EMAILS = [
 ];
 const ADMIN_PASSCODE = "";
 
+// Batches that may retake exams. Everyone else gets one attempt per exam (enforced here, not just in the browser).
+const RETAKE_BATCHES = ["000001"];
+
 const GRADES_SHEET = "Grades";      // one row per scored attempt
 const PROGRESS_SHEET = "Progress";  // one row per completed task/lesson
 const GRADES_HEADER = ["Timestamp", "Email", "Name", "Batch", "Exam ID", "Attempt", "Score", "Max", "Percent", "Passed", "Details"];
@@ -51,6 +54,9 @@ function doPost(e) {
     if (req.action === "verify") return json_({ ok: true, email: user.email });
 
     if (req.action === "saveResult") {
+      if (RETAKE_BATCHES.indexOf(user.batch) === -1 && readRows_(GRADES_SHEET).some(function (r) { return String(r.Email).toLowerCase() === user.email && r["Exam ID"] === p.id; })) {
+        return json_({ ok: false, error: "already-taken" });
+      }
       const pct = p.max ? Math.round((p.score / p.max) * 1000) / 10 : "";
       appendByHeader_(sheet_(GRADES_SHEET, GRADES_HEADER), { "Timestamp": new Date(), "Email": user.email, "Name": user.name, "Batch": user.batch ? "'" + user.batch : "", "Exam ID": p.id, "Attempt": p.attempt, "Score": p.score, "Max": p.max, "Percent": pct, "Passed": p.passed ? "Yes" : "No", "Details": p.details || "" });
       if (EXAM_TABS[p.id]) appendByHeader_(sheet_(EXAM_TABS[p.id], EXAM_TAB_HEADERS[p.id] || EXAM_TAB_HEADER), { "Timestamp": new Date(), "Email": user.email, "Name": user.name, "Batch": user.batch ? "'" + user.batch : "", "Attempt": p.attempt, "Score": p.score, "Max": p.max, "Percent": pct, "Passed": p.passed ? "Yes" : "No", "Details": p.details || "", "Breakdown": p.breakdown || "", "Notes": p.notes || "" });
@@ -59,6 +65,34 @@ function doPost(e) {
     if (req.action === "complete") {
       appendByHeader_(sheet_(PROGRESS_SHEET, PROGRESS_HEADER), { "Timestamp": new Date(), "Email": user.email, "Name": user.name, "Batch": user.batch ? "'" + user.batch : "", "Item ID": p.id });
       return json_({ ok: true });
+    }
+    if (req.action === "undo") {          // logged as a row "UNDO:<id>" in Progress; the latest row for an item wins
+      appendByHeader_(sheet_(PROGRESS_SHEET, PROGRESS_HEADER), { "Timestamp": new Date(), "Email": user.email, "Name": user.name, "Batch": user.batch ? "'" + user.batch : "", "Item ID": "UNDO:" + p.id });
+      return json_({ ok: true });
+    }
+    if (req.action === "myProgress") {
+      const done = {};
+      readRows_(PROGRESS_SHEET).forEach(function (r) {
+        if (String(r.Email).toLowerCase() !== user.email) return;
+        const id = String(r["Item ID"]);
+        if (id.indexOf("UNDO:") === 0) delete done[id.substring(5)]; else done[id] = true;
+      });
+      const results = {};
+      readRows_(GRADES_SHEET).forEach(function (r) {
+        if (String(r.Email).toLowerCase() !== user.email) return;
+        const id = r["Exam ID"], at = new Date(r.Timestamp).getTime() || 0;
+        const attempt = { score: Number(r.Score), max: Number(r.Max), passed: r.Passed === "Yes", at: at };
+        const cur = results[id] || { history: [] };
+        cur.history.push(attempt);
+        results[id] = cur;
+      });
+      Object.keys(results).forEach(function (id) {
+        const h = results[id].history;
+        const best = h.reduce(function (a, b) { return (b.score / b.max) > (a.score / a.max) ? b : a; });
+        results[id] = { status: "done", score: best.score, max: best.max, passed: best.passed, attempts: h.length, history: h, updated: h[h.length - 1].at };
+        done[id] = true;
+      });
+      return json_({ ok: true, done: Object.keys(done).filter(function (id) { return !results[id]; }), results: results });
     }
     if (req.action === "myGrades") {
       return json_({ ok: true, grades: readRows_(GRADES_SHEET).filter(function (r) { return String(r.Email).toLowerCase() === user.email; }) });

@@ -267,7 +267,7 @@ function advance(){
   if (was && was.status==="complete" && current && current !== before) setTimeout(()=>{ selected = current; render(); }, 900);
 }
 
-if (LMS.requireSignIn()) { renderSide("dashboard"); render(); }
+if (LMS.requireSignIn()) { renderSide("dashboard"); render(); LMS.ready.then(changed => { if (changed) render(); }); }
 </script>
 </body>
 </html>

@@ -86,6 +86,21 @@ window.LMS_CONFIG = {
       body: JSON.stringify({ action, token, payload, email: (currentUser()||{}).email, name: (currentUser()||{}).name })   // email/name are used only in the temporary email-list mode
     }).then(r=>r.json()).catch(()=>null);
   }
+  /* Progress lives in the Google Sheet (so it follows the person to any browser). The browser copy is just a cache.
+     sync() loads it and merges it in; LMS.ready resolves (to true if anything changed) when that's done. */
+  function sync(){
+    if (C.demo || !C.backendUrl || !currentUser()) return Promise.resolve(false);
+    return send("myProgress", {}).then(res => {
+      if (!res || !res.ok) return false;
+      const key = progressKey(), local = read(key, {}), merged = {}, now = Date.now();
+      (res.done || []).forEach(id => { merged[id] = { ...(local[id] || {}), status:"done", updated:(local[id] && local[id].updated) || 0 }; });
+      Object.entries(res.results || {}).forEach(([id, r]) => { merged[id] = r; });
+      Object.entries(local).forEach(([id, r]) => { if (!merged[id] && now - (r.updated || 0) < 60000) merged[id] = r; });   // very recent local change the Sheet may not have yet
+      const changed = JSON.stringify(merged) !== JSON.stringify(local);
+      write(key, merged);
+      return changed;
+    }).catch(() => false);
+  }
   function progressKey(){ const u = currentUser(); return `progress.${u ? u.email : "anon"}`; }
 
   const LMS = {
@@ -163,7 +178,7 @@ window.LMS_CONFIG = {
     /** Undo a tick (task unchecked, exam submission undone). */
     undo(id){
       const p = LMS.progress();
-      if (p[id] && !p[id].max) { delete p[id]; write(progressKey(), p); }
+      if (p[id] && !p[id].max) { delete p[id]; write(progressKey(), p); send("undo", { id }); }
       return Promise.resolve(null);
     },
 
@@ -198,4 +213,6 @@ window.LMS_CONFIG = {
   };
 
   window.LMS = LMS;
+  LMS.sync = sync;
+  LMS.ready = sync();       // pages that need the Sheet's progress (e.g. one-attempt exams) wait on this
 })();
