@@ -2037,7 +2037,9 @@ $("#finishNo").onclick=()=>$("#finishOv").classList.add("hidden");
 $("#finishYes").onclick=()=>finish(false);
 $("#whoAmI").textContent=ME.name+(MY_BATCH?" · Batch "+MY_BATCH:"")+" ("+ME.email+")";
 (function oneAttempt(){      // everyone except batches in LMS.config.multiAttempt gets a single attempt
+ const sb=$("#startBtn"), sbText=sb.textContent; sb.disabled=true; sb.textContent="Checking…";   // wait until we know if it was already taken
  LMS.ready.then(()=>{
+  sb.disabled=false; sb.textContent=sbText;
   const rec=LMS.progress()[EXAM_ID];
   if(rec && rec.status==="done" && !LMS.canRetake()){
     const b=$("#startBtn"); b.disabled=true; b.textContent="Already taken";

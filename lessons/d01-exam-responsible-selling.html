@@ -27,9 +27,10 @@ h1{font-size:28px;margin:0 0 4px;color:var(--deep)}.lede{color:var(--ink-2);marg
 .ok3 .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}.btn.alt{background:#fff;color:var(--deep);border:2px solid var(--line)}a.btn{text-decoration:none;display:inline-block}
 .locked .ag span{opacity:.55}.locked .ag input:checked+span{opacity:1}.rv{margin:20px 0 0;font-size:16px;color:var(--deep)}
 @media(max-width:600px){.pill3,.steps3{grid-template-columns:1fr}.card{padding:20px}}
-</style></head><body>
+.checking .st,.checking .bar,.checking .msg,.checking .pill3,.checking .intro{display:none}.chk{display:none;color:var(--ink-2,#51656B);font-size:14px;margin:18px 0}.checking .chk{display:block}
+</style></head><body class="checking">
 <div class="pg"><a class="back" href="../dashboard.html?day=1">← Back to dashboard</a>
-<div class="card"><div id="doneMsg"></div>
+<div class="card"><div id="doneMsg"></div><p class="chk">Checking your progress…</p>
 <h1>Foundations of Responsible Selling</h1><p class="lede">A guide to becoming a responsible sales person</p>
 <div class="pill3"><div>Ensure trust and integrity in our relationships</div><div>Protect the reputation of the company</div><div>Promote a positive and productive work environment</div></div>
 <div class="intro"><b>Objective:</b> Maintain ethical, respectful, and professional interactions with all clients, colleagues, and the company<br>As responsible sales people, we should adhere to the code of conduct to:</div>
@@ -63,5 +64,13 @@ $("submit").onclick=async()=>{
   showSubmitted(LMS.progress()[EXAM_ID]);
 };
 upd();
-LMS.ready.then(()=>{ const q=LMS.progress()[EXAM_ID]; if(q&&q.status==="done"&&!(LMS.canRetake()&&/[?&]retake=1/.test(location.search))) showSubmitted(q); });
+// Decide as soon as we can: from this browser's saved progress right away, otherwise once the Sheet answers.
+let decided=false;
+function decide(){
+  if(decided) return;
+  const q=LMS.progress()[EXAM_ID], retake=LMS.canRetake()&&/[?&]retake=1/.test(location.search);
+  if(q&&q.status==="done"&&!retake){ decided=true; document.body.classList.remove("checking"); showSubmitted(q); }
+}
+decide();
+LMS.ready.then(()=>{ decide(); document.body.classList.remove("checking"); });
 </script></body></html>
