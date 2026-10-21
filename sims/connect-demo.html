@@ -479,6 +479,7 @@ table.res th{font-size:12px;color:var(--ink-2);font-weight:600}
 .workspace{top:0}
 .hidden{display:none !important}
 #spot{position:fixed;z-index:9000;border-radius:10px;box-shadow:0 0 0 9999px rgba(12,30,38,.42);outline:3px solid #F4B63F;pointer-events:none;transition:left .25s,top .25s,width .25s,height .25s;animation:chl 1.2s ease-in-out infinite}
+#spot.nodim{box-shadow:none}
 @keyframes chl{50%{outline-color:rgba(244,182,63,.3)}}
 .bubble{position:fixed;z-index:9100;width:340px;max-width:calc(100vw - 16px);background:#fff;border-radius:14px;padding:14px 16px;box-shadow:0 10px 36px rgba(0,0,0,.3);font-size:14px;line-height:1.5;color:var(--ink)}
 .bubble .arrow{position:absolute;width:14px;height:14px;background:#fff;transform:rotate(45deg)}
@@ -1705,7 +1706,8 @@ const AM_FIRST = (ME.name||"AM").split(/\s+/)[0], AM_LAST = (ME.name||"").split(
 const verifiedStart = () => { S.phase="ver"; S.auth="in"; S.page="home"; S.members=[{id:"me", me:true, since:"Sep 29, 2026", general:"Admin", biz:"Approver", credit:"Approver"}]; };
 const onbStart = () => { S.phase="onb"; S.auth="in"; S.page="docs"; S.members=[]; S.user={first:AM_FIRST, last:AM_LAST, email:ME.email, mobile:"9170000000"}; };
 /* the shared steps for signing + uploading checks */
-const dd_flow_ids = true;
+const ddN = () => { const d=S.drawdowns.find(x=>!x.cancelled); return d?calcLoan(d.amount,d.term,d.freq).n:3; };
+const stepText = s => typeof s.t==="function" ? s.t() : s.t;
 
 const FUNCS = [
   /* ================= Guided Demos (Onboarding) ================= */
@@ -1813,20 +1815,24 @@ const FUNCS = [
       chk("Repayment method","Post-dated checks",d?d.repay:"–",!!d&&d.repay==="Post-dated checks"),
       chk("Disbursement account","SOS Inc. ***4821 (BDO)",d?disbLabel(d):"–",!!d&&d.disb==="bdo")]; } },
   { id:"uploadchecks", group:"Open BCL", pov:"client", name:"Sign the contract and upload cheques", doc:"Drawdown",
-    goal:"The drawdown from the last demo is waiting for review. Wait for the credit check, sign the loan contract, then upload the post-dated cheques and book the pickup.",
-    vals:["Uploads: any 3 image or PDF files (one per repayment)","Pickup: any address, date and time slot","Point of contact and mobile: <b>your choice</b>"],
-    init(){ verifiedStart(); S.page="credit";
-      S.drawdowns.push({id:"dprev", ref:"BCL-2609-101", product:"BCL", amount:300000, term:3, freq:"Monthly", repay:"Post-dated checks", disb:"bdo", reviewDone:false, signed:false, files:[], pickup:null, cancelled:false}); },
+    goal:"The drawdown from the last demo has been reviewed (about 30 minutes in real life). Log back in, sign the loan contract, then upload the post-dated cheques and book the pickup.",
+    vals:["Uploads: one file per repayment. Any image or PDF works, nobody checks it in this demo","Pickup: any address, date and time slot","Point of contact and mobile: <b>your choice</b>"],
+    init(){ verifiedStart();
+      S.drawdowns.push({id:"dprev", ref:"BCL-2609-101", product:"BCL", amount:300000, term:3, freq:"Monthly", repay:"Post-dated checks", disb:"bdo", reviewDone:false, signed:false, files:[], pickup:null, cancelled:false});
+      S.auth="login"; S.timeSkipLabel="30 minutes later…"; S.timeSkip="First Circle has finished reviewing SOS Inc.'s drawdown request BCL-2609-101. Log in to continue."; S.skipPending="dprev"; },
     steps:[
-      { t:"Your drawdown is <b>Under review</b>. In real life the credit check takes about 30 minutes, and you'd refresh later. To skip ahead, click <b>Log Out</b>.", sel:'[data-act="logout"]', done:()=>S.drawdowns.some(d=>d.reviewDone)||S.auth!=="in" },
-      { t:"Click <b>Log in</b>, then type the code from the message card.", sel:'[data-act="login"]', allow:'[data-act="login"]', done:()=>S.drawdowns.some(d=>d.reviewDone) && S.auth==="in" },
-      { t:"The review is done. Click <b>View status</b> on the drawdown, then <b>Sign contract</b>.", sub:"Read the contract, tick the agreement box, then click Sign contract.", sel:'[data-act="dd-sign"],[data-act="view-dd"],[data-nav="credit"]', allow:'[data-act="dd-sign-yes"],[data-act="view-dd"],[data-act="dd-sign"]', done:()=>S.drawdowns.some(d=>d.signed) },
-      { t:"Click <b>Upload checks</b>, add the check files (one per repayment), wait until each shows verified, then <b>Next</b>.", sub:"Cheques are made payable to FIRST CIRCLE GROWTH FINANCE CORP.", sel:'[data-act="dd-upload"],[data-act="up-next"]:not([disabled]),.drop', allow:'[data-act="dd-upload"],[data-act="up-next"],[data-act="dd-rmfile"]', done:()=>S.drawdowns.some(d=>d.signed && d.files.length>0) && (fstep("upload")>=1 || S.drawdowns.some(d=>d.pickup)) },
+      { t:"This is what the client sees after the credit check (about 30 minutes in real life). Click <b>Log in</b>.", sel:'[data-act="login"]', done:()=>S.auth!=="login" },
+      { t:"Type the code from the <b>message card (bottom left)</b>.", sel:'.otp', done:()=>S.auth==="in" },
+      { t:"Open <b>Credit</b>, then click <b>View status</b> on the drawdown.", sel:'[data-act="view-dd"],[data-nav="credit"]', done:()=>S.page==="dd"||S.drawdowns.some(d=>d.signed) },
+      { t:"The review is done. Click <b>Sign contract</b>.", sel:'[data-act="dd-sign"]', done:()=>fty("sign")||S.drawdowns.some(d=>d.signed) },
+      { t:"<b>Scroll down</b> to read the contract, tick the agreement box, then click <b>Sign contract</b> at the bottom.", loose:true, sel:'[data-act="dd-sign-yes"]', allow:'[data-act="dd-sign-yes"]', fill:inFlow, done:()=>S.drawdowns.some(d=>d.signed) },
+      { t:"Click <b>Upload checks</b>.", sel:'[data-act="dd-upload"]', done:()=>fty("upload")||S.drawdowns.some(d=>d.pickup) },
+      { t:()=>`Add the cheque files: <b>one per repayment</b>. This loan has <b>${ddN()}</b>, so add ${ddN()} files (a 12-month loan needs 12). Wait until each shows verified, then click <b>Next</b>.`, sub:"For this demo it doesn't matter which file you pick. Any image or PDF works. We only test the flow and nothing is verified for real.", loose:true, sel:'.drop,[data-act="up-next"]:not([disabled])', allow:'[data-act="up-next"],[data-act="dd-rmfile"]', done:()=>fstep("upload")>=1||S.drawdowns.some(d=>d.pickup) },
       { t:"Pick the pickup address, date and time slot, then <b>Next</b> and <b>Confirm</b>.", sub:"Pickup must be within 2 business days. Funds are released after the cheques are received.", sel:'[data-act="up-next"],[data-act="up-confirm"]', allow:'[data-act="pk-slot"],[data-act="up-next"],[data-act="up-confirm"],[data-act="up-back"]', fill:inFlow, done:()=>S.drawdowns.some(d=>d.pickup) }
     ],
-    check:()=>{ const d=S.drawdowns[0]; return [
+    check:()=>{ const d=S.drawdowns[0], n=ddN(); return [
       chk("Contract signed","Yes",d&&d.signed?"Yes":"No",!!d&&d.signed),
-      chk("Cheques uploaded","3 of 3",d?`${d.files.filter(f=>f.ok).length} of 3`:"–",!!d&&d.files.filter(f=>f.ok).length===3),
+      chk("Cheques uploaded",`${n} of ${n}`,d?`${d.files.filter(f=>f.ok).length} of ${n}`:"–",!!d&&d.files.filter(f=>f.ok).length===n),
       chk("Pickup booked","Scheduled",d&&d.pickup?`${d.pickup.date}, ${d.pickup.slot}`:"Not scheduled",!!d&&!!d.pickup)]; } }
 ];
 
@@ -1866,12 +1872,24 @@ function place(){
   if(MODE!=="guide" || ENDED || stepIdx<0){ spot.classList.add("hidden"); bub.classList.add("hidden"); return; }
   const f=FN(), s=f.steps[stepIdx];
   const tgt=rectOf(s.sel), reg=s.fill?rectOf(s.fill):null, R=union(tgt,reg);
-  if(R && tgt && scrolledFor!==stepIdx){ scrolledFor=stepIdx; const vh=innerHeight; if(tgt.t<60||tgt.b>vh-40) tgt.el.scrollIntoView({block:"center",behavior:"smooth"}); }
+  if(R && tgt && !s.loose && scrolledFor!==stepIdx){ scrolledFor=stepIdx; const vh=innerHeight; if(tgt.t<60||tgt.b>vh-40) tgt.el.scrollIntoView({block:"center",behavior:"smooth"}); }
   const vals = s.showVals && f.vals.length ? `<div class="bvals">${f.vals.map(v=>`<div>${v}</div>`).join("")}</div>` : "";
-  const html=`<div class="bstep">Step ${stepIdx+1} of ${f.steps.length}</div><div class="btext">${s.t}</div>${s.sub?`<div class="bsub">${s.sub}</div>`:""}${vals}<div class="bfoot"><button class="blink" id="skipGuide">Skip, let me try it myself</button></div>`;
+  const html=`<div class="bstep">Step ${stepIdx+1} of ${f.steps.length}</div><div class="btext">${stepText(s)}</div>${s.sub?`<div class="bsub">${s.sub}</div>`:""}${vals}<div class="bfoot"><button class="blink" id="skipGuide">Skip, let me try it myself</button></div>`;
   if(bub.dataset.k!==stepIdx+"|"+f.id){ bub.innerHTML=html; bub.dataset.k=stepIdx+"|"+f.id; }
   bub.classList.remove("hidden");
   if(!R){ spot.classList.add("hidden"); bub.style.left=""; bub.style.top="76px"; bub.style.right="24px"; bub.dataset.side="none"; return; }
+  if(s.loose){   // no gray-out, no auto-scroll: the learner needs to scroll and click several things
+    const bw0=bub.offsetWidth||340;
+    bub.style.left=Math.max(8,innerWidth-bw0-24)+"px"; bub.style.top="76px"; bub.style.right="auto"; bub.dataset.side="none";
+    const ar0=bub.querySelector(".arrow"); if(ar0) ar0.style.display="none";
+    const T=tgt, vis=T && T.t>=0 && T.b<=innerHeight && T.l>=0 && T.r<=innerWidth;
+    spot.classList.add("nodim");
+    if(!vis){ spot.classList.add("hidden"); return; }
+    spot.classList.remove("hidden");
+    Object.assign(spot.style,{left:(T.l-6)+"px", top:(T.t-6)+"px", width:(T.r-T.l+12)+"px", height:(T.b-T.t+12)+"px"});
+    return;
+  }
+  spot.classList.remove("nodim");
   const pad=s.fill?10:6;
   spot.classList.remove("hidden");
   Object.assign(spot.style,{left:(R.l-pad)+"px", top:(R.t-pad)+"px", width:(R.r-R.l+pad*2)+"px", height:(R.b-R.t+pad*2)+"px"});
@@ -1913,7 +1931,7 @@ document.addEventListener("click", e=>{
 }, true);
 function showWrong(x,y){
   const f=FN(), s=f.steps[stepIdx], w=$("#wrong");
-  w.innerHTML=`<button class="wx" aria-label="Close">×</button><b>Not quite.</b> That's not the next step.<div class="whint">Hint: ${s.t}</div>`;
+  w.innerHTML=`<button class="wx" aria-label="Close">×</button><b>Not quite.</b> That's not the next step.<div class="whint">Hint: ${stepText(s)}</div>`;
   w.classList.remove("hidden");
   const ww=300, wh=w.offsetHeight||90;
   w.style.left=Math.max(8,Math.min(innerWidth-ww-8,x-ww/2))+"px"; w.style.top=Math.max(8,Math.min(innerHeight-wh-8,y+18))+"px";
