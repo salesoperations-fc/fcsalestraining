@@ -479,6 +479,7 @@ table.res th{font-size:12px;color:var(--ink-2);font-weight:600}
 .workspace{top:0}
 .hidden{display:none !important}
 #spot{position:fixed;z-index:9000;border-radius:10px;box-shadow:0 0 0 9999px rgba(12,30,38,.42);outline:3px solid #F4B63F;pointer-events:none;transition:left .25s,top .25s,width .25s,height .25s;animation:chl 1.2s ease-in-out infinite}
+.berr{background:#FDECEE;color:#9B1C2E;border-radius:8px;padding:8px 10px;margin-top:10px;font-size:13px;line-height:1.5} .berr ul{margin:4px 0 0;padding-left:18px}
 #tipPill{position:fixed;right:20px;bottom:20px;z-index:9150;background:var(--deep,#0B3B45);color:#fff;border:0;border-radius:20px;padding:9px 16px;font:600 13px var(--font);cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.3)}
 .bmin{float:right;margin:-4px -6px 0 8px;background:#EEF2F3;border:0;border-radius:12px;padding:3px 10px;font:600 12px var(--font);color:var(--ink-2);cursor:pointer}
 #spot.nodim{box-shadow:none}
@@ -1696,6 +1697,9 @@ NOTION.authrep = NOTION.team; NOTION.uploadchecks = NOTION.drawdown;
 const fty = t => !!(S.flow && S.flow.type===t), fstep = t => fty(t) ? S.flow.step : -1;
 const did = (task, start) => LOG.some(l=>l.task===task && l.what.startsWith(start));
 const inFlow = ".flow-content";
+const mob = v => { let m=digits(v); if(m.startsWith("63")) m=m.slice(2); if(m.startsWith("0")) m=m.slice(1); return m; };
+const val = id => { const e=document.getElementById(id); return e?e.value:""; };
+const D = () => (S.flow && S.flow.data) || {};
 const chk = (label, expected, actual, ok) => ({label, expected, actual, ok});
 
 const POV_AM = "the <b>Account Manager (AM)</b> from First Circle, working in the client's account while onboarding them.";
@@ -1720,8 +1724,7 @@ const FUNCS = [
     steps:[
       { t:"This is the Connect login page. Your email and the password are already filled in. Click <b>Log in</b>.", sel:'[data-act="login"]', done:()=>S.auth!=="login" },
       { t:"A 6-digit code was sent by text. Look at the <b>message card (bottom left)</b> and type the code into the boxes.", sub:"In real life the code goes to your phone and email.", sel:'.otp', done:()=>S.auth==="in" },
-      { t:"You're in the client's onboarding view: <b>Documents</b> (what the client must submit), <b>Team Access</b> and <b>Settings</b>. Click <b>Team Access</b> to continue.", sel:'[data-nav="team"]', done:()=>S.page==="team" }
-    ], check:()=>[] },
+    ], endNote:"You're in the client's onboarding view: <b>Documents</b> (what the client must submit), <b>Team Access</b> and <b>Settings</b>.", check:()=>[] },
   { id:"authrep", group:"Onboarding", pov:"am", name:"Add the authorized representative", doc:"Teams",
     goal:"The client just signed up. Add their authorized representative to the Connect account so they can finish onboarding.",
     vals:["First name: <b>Elizabeth</b>","Last name: <b>Cruz</b>","Email: <b>elizabeth.cruz@sosinc.com</b>","Mobile: <b>0917 123 4567</b>","Permission: <b>Applicant</b>"],
@@ -1729,8 +1732,10 @@ const FUNCS = [
     steps:[
       { t:"Open <b>Team Access</b> in the left menu.", sel:'[data-nav="team"]', done:()=>S.page==="team"||!!S.flow },
       { t:"Click <b>Add new member</b>.", sel:'[data-act="add-member"]', done:()=>fty("member")||S.members.some(m=>m.added) },
-      { t:"Fill in the representative's details, then click <b>Next</b>.", sub:"Use the exact name and email the client gave you. The invite goes to that email.", showVals:true, fill:inFlow, sel:'[data-act="mem-next1"]', done:()=>fstep("member")>=1||S.members.some(m=>m.added) },
-      { t:"Choose <b>Applicant</b> as the permission, then <b>Next</b>.", sub:"During onboarding, Applicant is the only role. Full roles come after the account is verified.", fill:inFlow, sel:'[data-act="mem-next2"]', done:()=>fstep("member")>=2||S.members.some(m=>m.added) },
+      { t:"Fill in the representative's details, then click <b>Next</b>.", sub:"Use the exact name and email the client gave you. The invite goes to that email.", showVals:true, fill:inFlow, sel:'[data-act="mem-next1"]', done:()=>fstep("member")>=1||S.members.some(m=>m.added),
+        verify:()=>{ const e=[]; if(norm(val("mFirst"))!=="elizabeth") e.push("First name should be <b>Elizabeth</b>"); if(norm(val("mLast"))!=="cruz") e.push("Last name should be <b>Cruz</b>"); if(norm(val("mEmail"))!=="elizabeth.cruz@sosinc.com") e.push("Email should be <b>elizabeth.cruz@sosinc.com</b>"); if(mob(val("mMobile"))!=="9171234567") e.push("Mobile should be <b>0917 123 4567</b>"); return e; } },
+      { t:"Choose <b>Applicant</b> as the permission, then <b>Next</b>.", sub:"During onboarding, Applicant is the only role. Full roles come after the account is verified.", fill:inFlow, sel:'[data-act="mem-next2"]', done:()=>fstep("member")>=2||S.members.some(m=>m.added),
+        verify:()=>D().role==="Applicant"?[]:["Choose <b>Applicant</b> as the permission"] },
       { t:"Review everything, then click <b>Confirm</b>.", sel:'[data-act="mem-confirm"]', done:()=>S.members.some(m=>m.added) },
       { t:"Click <b>Go to Team Access</b>. The representative shows <i>Invite sent</i> until they accept the email.", sel:'[data-act="succ-go"]', done:()=>S.members.some(m=>m.added) && S.page==="team" && !S.success }
     ],
@@ -1747,10 +1752,12 @@ const FUNCS = [
     steps:[
       { t:"Open <b>Settings</b> in the left menu.", sel:'[data-nav="settings"]', done:()=>S.page==="settings" },
       { t:"Click <b>Change</b> next to <b>Mobile number</b>.", sel:'[data-act="m-mobile"]', done:()=>!!(S.modal&&(S.modal.type==="mobile"||S.modal.type==="otp"))||S.mobileVerified },
-      { t:"Type the new number, then click <b>Update mobile number</b>.", showVals:true, fill:'.modal', sel:'[data-act="send-otp"]', done:()=>!!(S.modal&&S.modal.type==="otp")||S.mobileVerified },
+      { t:"Type the new number, then click <b>Update mobile number</b>.", showVals:true, fill:'.modal', sel:'[data-act="send-otp"]', done:()=>!!(S.modal&&S.modal.type==="otp")||S.mobileVerified,
+        verify:()=>mob(val("fMobile"))==="9175550123"?[]:["The new mobile number should be <b>0917 555 0123</b>"] },
       { t:"A code was sent to the <b>new</b> number. Type it from the <b>message card (bottom left)</b>.", sub:"The new number must be verified before it is saved.", fill:'.modal', sel:'.otp', done:()=>S.mobileVerified },
       { t:"Now click <b>Change</b> next to <b>Full name</b>.", sel:'[data-act="m-name"]', done:()=>!!(S.modal&&S.modal.type==="name")||did("settings","Changed full name") },
-      { t:"Add the second name after Elizabeth in the <b>First name</b> box (keep the last name), then click <b>Update full name</b>.", sub:"A second name goes in the first name field, e.g. first name \"Elizabeth Ingrid\", last name \"Cruz\".", showVals:true, fill:'.modal', sel:'[data-act="save-name"]', done:()=>did("settings","Changed full name") }
+      { t:"Add the second name after Elizabeth in the <b>First name</b> box (keep the last name), then click <b>Update full name</b>.", sub:"A second name goes in the first name field, e.g. first name \"Elizabeth Ingrid\", last name \"Cruz\".", showVals:true, fill:'.modal', sel:'[data-act="save-name"]', done:()=>did("settings","Changed full name"),
+        verify:()=>{ const e=[]; if(norm(val("fFirst"))!==norm("Elizabeth "+SECOND)) e.push(`First name should be <b>Elizabeth ${SECOND}</b>`); if(norm(val("fLast"))!=="cruz") e.push("Last name should stay <b>Cruz</b>"); return e; } }
     ],
     check:()=>[
       chk("Mobile number","+63 917 555 0123",S.mobileVerified?fmtMobile(S.user.mobile):"Not changed",S.mobileVerified&&S.user.mobile==="9175550123"),
@@ -1764,9 +1771,12 @@ const FUNCS = [
     steps:[
       { t:"Open <b>Contacts</b> in the left menu.", sel:'[data-nav="contacts"]', done:()=>S.page==="contacts"||!!S.flow },
       { t:"Click <b>Add new contact</b>.", sel:'[data-act="add-contact"]', done:()=>fty("contact")||S.contacts.some(c=>c.added) },
-      { t:"Choose the contact type and type the name, then <b>Next</b>.", sub:"The nickname is only how it's saved for your team.", showVals:true, fill:inFlow, sel:'[data-act="ct-next"]', done:()=>fstep("contact")>=1||S.contacts.some(c=>c.added) },
-      { t:"Enter the bank account details, then <b>Next</b>.", sub:"Check the bank and the 12-digit number twice. A wrong digit sends money to the wrong account.", showVals:true, fill:inFlow, sel:'[data-act="ct-next"]', done:()=>fstep("contact")>=2||S.contacts.some(c=>c.added) },
-      { t:"Enter the contact person's name and email, then <b>Next</b>.", showVals:true, fill:inFlow, sel:'[data-act="ct-next"]', done:()=>fstep("contact")>=3||S.contacts.some(c=>c.added) },
+      { t:"Choose the contact type and type the name, then <b>Next</b>.", sub:"The nickname is only how it's saved for your team.", showVals:true, fill:inFlow, sel:'[data-act="ct-next"]', done:()=>fstep("contact")>=1||S.contacts.some(c=>c.added),
+        verify:()=>{ const d=D(), e=[]; if(d.type!=="Company") e.push("Contact type should be <b>Company</b>"); if(norm(d.name)!=="davao fresh produce trading") e.push("Company name should be <b>Davao Fresh Produce Trading</b>"); return e; } },
+      { t:"Enter the bank account details, then <b>Next</b>.", sub:"Check the bank and the 12-digit number twice. A wrong digit sends money to the wrong account.", showVals:true, fill:inFlow, sel:'[data-act="ct-next"]', done:()=>fstep("contact")>=2||S.contacts.some(c=>c.added),
+        verify:()=>{ const b=(D().banks||[{}])[0]||{}, e=[]; if(norm(b.acctName)!=="davao fresh produce trading") e.push("Account name should be <b>Davao Fresh Produce Trading</b>"); if(b.bank!=="BPI") e.push("Bank should be <b>BPI</b>"); if(digits(b.number)!=="301298765432") e.push("Account number should be <b>3012 9876 5432</b>"); return e; } },
+      { t:"Enter the contact person's name and email, then <b>Next</b>.", showVals:true, fill:inFlow, sel:'[data-act="ct-next"]', done:()=>fstep("contact")>=3||S.contacts.some(c=>c.added),
+        verify:()=>{ const p=(D().persons||[{}])[0]||{}, e=[]; if(norm(p.name)!==norm(PERSON)) e.push(`Contact person should be <b>${PERSON}</b>`); if(norm(p.email)!==personEmail()) e.push(`Email should be <b>${personEmail()}</b>`); return e; } },
       { t:"Review the details, then click <b>Confirm</b>.", sel:'[data-act="ct-confirm"]', done:()=>S.contacts.some(c=>c.added) }
     ],
     check:()=>{ const c=S.contacts.find(x=>x.added), b=c&&c.banks[0], p=c&&c.persons[0]; return [
@@ -1779,20 +1789,21 @@ const FUNCS = [
     goal:"The client asks where to deposit money into the FC account, and wants the QR code to send to the finance team.",
     vals:[], init(){ verifiedStart(); },
     steps:[
-      { t:"On <b>Home</b>, click <b>Local bank deposit</b>.", sub:"You can also find it under Business Accounts.", sel:'[data-act="open-deposit"]', done:()=>S.depositOpened },
+      { t:"On <b>Home</b>, click <b>Local bank deposit</b>.", sub:"You can also find it under Business Accounts.", sel:'[data-act="open-deposit"]', allow:'[data-nav="biz"],[data-act="ba-menu"]', done:()=>S.depositOpened },
       { t:"Click <b>Copy all account details</b>.", sub:"Note the <b>Transaction reference</b>. The client must enter it when transferring, or we can't match the deposit.", sel:'[data-act="dep-copy"][data-k="all"]', done:()=>did("topup","Copied all") },
       { t:"Click <b>Download image</b> to save the QR code (Save as PDF also works).", sel:'[data-act="dep-qr"][data-k="image"]', allow:'[data-act="dep-qr"]', done:()=>!!S.qrShared },
-      { t:"Open <b>Making a local bank transfer</b> to see what to tell the client.", sel:'[data-act="dep-acc"][data-k="a"]', allow:'[data-act="dep-acc"]', done:()=>!!S.depAcc },
-      { t:"Click the <b>×</b> at the top right to close the deposit page.", sel:'[data-act="dep-close"]', done:a=>a[3] && !fty("deposit") }
+      { t:"Open <b>Making a local bank transfer</b> to see what to tell the client.", sel:'[data-act="dep-acc"][data-k="a"]', allow:'[data-act="dep-acc"]', done:()=>!!S.depAcc }
     ],
     check:()=>[chk("QR code downloaded","Image or PDF",S.qrShared?(S.qrShared==="pdf"?"PDF":"Image"):"Not downloaded",!!S.qrShared)] },
   { id:"transfer", group:"Open BCL", pov:"client", name:"Transfer funds", doc:"Transfers",
     goal:"The client wants to pay a supplier that is already saved as a Contact.",
     vals:["Contact: <b>Metro Office Rentals</b> (BPI)","Amount: <b>25,000</b>","Notes (optional): <b>Invoice 1042</b>"], init(){ verifiedStart(); },
     steps:[
-      { t:"On <b>Home</b>, click <b>Single transfer</b>.", sel:'[data-act="open-transfer"]', done:()=>fty("transfer")||S.transfers.length>0 },
-      { t:"Search and pick the contact, choose its bank account, then <b>Next</b>.", sub:"No contact yet? Use + Add new contact (see the Contacts demo).", showVals:true, fill:inFlow, sel:'[data-act="tf-next"]', allow:'[data-act="tf-pick"],[data-ddpick]', done:()=>fstep("transfer")>=1||S.transfers.length>0 },
-      { t:"Enter the amount (and a note if you like), then <b>Next</b>.", sub:"Up to ₱50,000 goes by InstaPay. Bigger amounts go by PESONet.", showVals:true, fill:inFlow, sel:'[data-act="tf-next"]', allow:'[data-act="tf-notes"]', done:()=>fstep("transfer")>=2||S.transfers.length>0 },
+      { t:"On <b>Home</b>, click <b>Single transfer</b>.", sel:'[data-act="open-transfer"]', allow:'[data-nav="biz"],[data-act="ba-menu"]', done:()=>fty("transfer")||S.transfers.length>0 },
+      { t:"Search and pick the contact, choose its bank account, then <b>Next</b>.", sub:"No contact yet? Use + Add new contact (see the Contacts demo).", showVals:true, fill:inFlow, sel:'[data-act="tf-next"]', allow:'[data-act="tf-pick"],[data-ddpick]', done:()=>fstep("transfer")>=1||S.transfers.length>0,
+        verify:()=>{ const c=S.contacts.find(x=>x.id===D().contactId); return c&&norm(c.name)==="metro office rentals"?[]:["Pick the contact <b>Metro Office Rentals</b>"]; } },
+      { t:"Enter the amount (and a note if you like), then <b>Next</b>.", sub:"Up to ₱50,000 goes by InstaPay. Bigger amounts go by PESONet.", showVals:true, fill:inFlow, sel:'[data-act="tf-next"]', allow:'[data-act="tf-notes"]', done:()=>fstep("transfer")>=2||S.transfers.length>0,
+        verify:()=>parseAmt(D().amount)===25000?[]:["The amount should be <b>25,000</b>"] },
       { t:"Check who is paid and how much, then click <b>Confirm transfer</b>.", sub:"This is the last check before the money moves.", sel:'[data-act="tf-confirm"]', done:()=>fstep("transfer")>=3||S.transfers.length>0 },
       { t:"Type the 6-digit code from the <b>message card (bottom left)</b>.", sub:"In real life the OTP goes to the client's phone and email.", sel:'.otp', done:()=>S.transfers.length>0 },
       { t:"On the success page, click <b>Save proof of payment</b>.", sel:'[data-act="tf-proof"]', done:()=>did("transfer","Saved proof") }
@@ -1804,12 +1815,19 @@ const FUNCS = [
     goal:"The client needs working capital. Request a drawdown from the Business Credit Line.",
     vals:["Product: <b>Business Credit Line</b>","Amount: <b>300,000</b>","Term: <b>3 months</b>, <b>Monthly</b>","Repayment: <b>Post-dated checks</b>","Disbursement: <b>SOS Inc. ***4821</b> (BDO)"], init(){ verifiedStart(); },
     steps:[
-      { t:"Open <b>Credit</b> in the left menu to see the available credit.", sel:'[data-nav="credit"]', done:()=>S.page==="credit"||S.page==="dd"||!!S.flow },
+      { t:"Open <b>Credit</b> in the left menu to see the available credit. (Clicking <b>Draw funds</b> on Home works too.)", sel:'[data-nav="credit"]', allow:'[data-act="open-dd"]', done:()=>S.page==="credit"||S.page==="dd"||!!S.flow },
       { t:"Click <b>Draw funds</b>.", sel:'[data-act="open-dd"]', done:()=>fty("dd")||S.drawdowns.length>0 },
-      { t:"Choose <b>Business Credit Line</b>, then <b>Next</b>.", sub:"Express Business Loan is one month only. The Credit Line goes up to 12 months.", sel:'[data-act="dd-next"]', allow:'[data-act="dd-prod"]', fill:inFlow, done:()=>fstep("dd")>=1||S.drawdowns.length>0 },
-      { t:"Set the amount, term and repayment frequency, then <b>Next</b>.", sub:"Watch the box on the right: what the client receives, the fee, the interest and each repayment.", showVals:true, sel:'[data-act="dd-next"]', allow:'[data-act="dd-freq"]', fill:inFlow, done:()=>fstep("dd")>=2||S.drawdowns.length>0 },
+      { t:"Choose <b>Business Credit Line</b>, then <b>Next</b>.", sub:"Express Business Loan is one month only. The Credit Line goes up to 12 months.", sel:'[data-act="dd-next"]', allow:'[data-act="dd-prod"]', fill:inFlow, done:()=>fstep("dd")>=1||S.drawdowns.length>0,
+        verify:()=>D().product==="BCL"?[]:["Choose <b>Business Credit Line</b>"] },
+      { t:"Set the amount, term and repayment frequency, then <b>Next</b>.", sub:"Watch the box on the right: what the client receives, the fee, the interest and each repayment.", showVals:true, sel:'[data-act="dd-next"]', allow:'[data-act="dd-freq"]', fill:inFlow, done:()=>fstep("dd")>=2||S.drawdowns.length>0,
+        verify:()=>{ const d=D(), e=[]; if(parseAmt(d.amountStr)!==300000) e.push("Loan amount should be <b>300,000</b>"); if(d.term!==3) e.push("Term should be <b>3 months</b>"); if(d.freq!=="Monthly") e.push("Repayment frequency should be <b>Monthly</b>"); return e; } },
       { t:"Review the loan details, then click <b>Confirm loan details</b>.", sel:'[data-act="dd-next"]', done:()=>fstep("dd")>=3||S.drawdowns.length>0 },
-      { t:"Pick the repayment method and the disbursement account, then <b>Submit drawdown request</b>.", sub:"These can't be changed after the contract is signed.", showVals:true, sel:'[data-act="dd-next"]', allow:'[data-act="dd-opt"]', fill:inFlow, done:()=>S.drawdowns.length>0 },
+      { t:"Pick the repayment method and the disbursement account, then <b>Submit drawdown request</b>.", sub:"These can't be changed after the contract is signed.", showVals:true, sel:'[data-act="dd-next"]', allow:'[data-act="dd-opt"]', fill:inFlow, done:()=>S.drawdowns.length>0,
+        verify:()=>{ const d=D(), e=[]; if(d.repay!=="Post-dated checks") e.push("Repayment method should be <b>Post-dated checks</b>"); if(d.disb!=="bdo") e.push("Disbursement account should be <b>SOS Inc. ***4821 (BDO)</b>"); return e; },
+        watch:n=>{ if(!n.matches('[data-act="dd-opt"]')) return null; const g=n.dataset.g, v=n.dataset.v;
+          if(g==="repay"&&v!=="Post-dated checks") return "Direct debit is a real option, but this demo continues with cheques. Choose <b>Post-dated checks</b> so you can practise the cheque upload next.";
+          if(g==="disb"&&v!=="bdo") return "For this demo choose <b>SOS Inc. ***4821 (BDO)</b>. Disbursing to the Payments Account would release the funds instantly, with no bank wait.";
+          return null; } },
       { t:"Request sent! First Circle now runs a <b>credit check, about 30 minutes</b>. Only after that can the client sign the contract and upload the cheques (next demo). Click <b>Return to Credit</b>.", sel:'[data-act="succ-go"]', done:()=>S.drawdowns.length>0 && !S.success && S.page==="credit" }
     ],
     check:()=>{ const d=S.drawdowns.filter(x=>!x.cancelled)[0]; return [
@@ -1930,10 +1948,24 @@ function allowedClick(el){
 }
 document.addEventListener("click", e=>{
   if(ENDED || !e.target.closest("#screen")) return;
+  if(MODE==="guide" && stepIdx>=0){
+    const s=FN().steps[stepIdx], n=e.target.closest(NAVLIKE);
+    if(s && n && s.verify && s.sel && n.matches(s.sel)){ const errs=s.verify(); if(errs.length){ e.preventDefault(); e.stopPropagation(); showBubbleErr(errs); return; } clearBubbleErr(); }
+    if(s && n && s.watch){ const m=s.watch(n); if(m) setTimeout(()=>showBubbleErr([m],true),0); }
+  }
   if(allowedClick(e.target)) return;
   if(MODE==="guide"){ e.preventDefault(); e.stopPropagation(); const b=$("#bubble"); b.classList.remove("nudge"); void b.offsetWidth; b.classList.add("nudge"); return; }
   showWrong(e.clientX, e.clientY);
 }, true);
+function clearBubbleErr(){ const o=document.querySelector("#bubble .berr"); if(o) o.remove(); }
+function showBubbleErr(list, tip){
+  clearBubbleErr(); const b=$("#bubble");
+  const el=document.createElement("div"); el.className="berr";
+  el.innerHTML=(tip?"<b>Tip:</b> ":"<b>Not yet.</b> Fix this first:")+(tip?list[0]:`<ul>${list.map(x=>`<li>${x}</li>`).join("")}</ul>`);
+  b.insertBefore(el, b.querySelector(".bfoot")||null);
+  if(bubHidden){ bubHidden=false; place(); }
+  b.classList.remove("nudge"); void b.offsetWidth; b.classList.add("nudge");
+}
 function showWrong(x,y){
   const f=FN(), s=f.steps[stepIdx], w=$("#wrong");
   w.innerHTML=`<button class="wx" aria-label="Close">×</button><b>Not quite.</b> That's not the next step.<div class="whint">Hint: ${stepText(s)}</div>`;
@@ -1971,8 +2003,13 @@ function showEnd(){
   const f=FN(), card=$("#endCard"); closeWrong();
   const rd=document.querySelector("#screen");
   let inner;
-  if(MODE==="guide"){
-    inner=`<h2>Guided run complete 🎉</h2><p>That's <b>${f.name}</b>. Now try it yourself, without hints. The task and details stay in the corner.</p>
+  const gitems=f.check(), gbad=gitems.filter(i=>!i.ok);
+  if(MODE==="guide" && gbad.length){
+    inner=`<h2>Almost there</h2><p>The guided run needs to be perfect before you try it yourself. These didn't match:</p>
+      <table class="res"><thead><tr><th></th><th>Expected</th><th>You saved</th></tr></thead><tbody>${gbad.map(i=>`<tr><td><span class="cross">✗</span> ${i.label}</td><td>${i.expected}</td><td>${i.actual}</td></tr>`).join("")}</tbody></table>
+      <div class="ebtns"><button class="btn primary" id="goReplay">Replay the guide</button></div>`;
+  } else if(MODE==="guide"){
+    inner=`<h2>Guided run complete 🎉</h2><p>That's <b>${f.name}</b>, with every detail correct. ${f.endNote?f.endNote+" ":""}Now try it yourself, without hints. The task and details stay in the corner.</p>
       <div class="ebtns"><button class="btn primary" id="goTry">Try it myself</button><button class="btn" id="goReplay">Replay the guide</button></div>
       ${f.next?`<div class="ebtns"><button class="btn primary" id="goNext">${f.nextLabel||"Next demo"} →</button></div>`:""}
       ${NOTION[f.id]?`<p class="nt"><a href="${NOTION[f.id]}" target="_blank" rel="noopener">Further reading: Notion ↗</a></p>`:""}`;
