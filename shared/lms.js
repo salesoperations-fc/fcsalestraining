@@ -77,21 +77,37 @@ window.LMS_CONFIG = {
     catch(e){ return null; }
   }
   /* Send an event to the Apps Script backend (which writes to the Google Sheet). No-op in demo mode. */
-  function send(action, payload){
+  /* Talk to the Apps Script. Google's script server is usually quick (2-4s) but sometimes stalls, so:
+     - every call gives up after a timeout and returns null (pages show an error instead of waiting forever);
+     - reads (opts.retry) are "hedged": if no answer after 6s a second copy is sent alongside (and again at 14s),
+       and the first good answer wins. Writes are sent once, so nothing is recorded twice. */
+  function send(action, payload, opts){
     if (C.demo || !C.backendUrl) return Promise.resolve(null);
-    let token = ""; try { token = sessionStorage.getItem(`${KEY}.idtoken`) || ""; } catch(e){}
-    return fetch(C.backendUrl, {
-      method:"POST",
-      headers:{ "Content-Type":"text/plain;charset=utf-8" },   // avoids a CORS preflight, which Apps Script can't answer
-      body: JSON.stringify({ action, token, payload, email: (currentUser()||{}).email, name: (currentUser()||{}).name })   // email/name are used only in the temporary email-list mode
-    }).then(r=>r.json()).catch(()=>null);
+    opts = opts || {};
+    const body = () => { let token = ""; try { token = sessionStorage.getItem(`${KEY}.idtoken`) || ""; } catch(e){}
+      return JSON.stringify({ action, token, payload, email: (currentUser()||{}).email, name: (currentUser()||{}).name }); };   // email/name are used only in the temporary email-list mode
+    const once = ms => { const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), ms);
+      return fetch(C.backendUrl, { method:"POST", headers:{ "Content-Type":"text/plain;charset=utf-8" }, body: body(), signal: ctl.signal })   // text/plain avoids a CORS preflight, which Apps Script can't answer
+        .then(r => r.json()).then(j => { clearTimeout(t); return j; }).catch(() => { clearTimeout(t); return null; }); };
+    if (!opts.retry) return once(opts.timeout || 30000);
+    return new Promise(resolve => {
+      let finished = false, failed = 0; const delays = [0, 6000, 14000];
+      const fin = v => { if (!finished) { finished = true; resolve(v); } };
+      delays.forEach(d => setTimeout(() => { if (finished) return;
+        once(25000).then(r => { if (r) fin(r); else if (++failed === delays.length) fin(null); }); }, d));
+      setTimeout(() => fin(null), 34000);
+    });
   }
+
   /* Progress lives in the Google Sheet (so it follows the person to any browser). The browser copy is just a cache.
      sync() loads it and merges it in; LMS.ready resolves (to true if anything changed) when that's done. */
   function sync(){
     if (C.demo || !C.backendUrl || !currentUser()) return Promise.resolve(false);
-    return send("myProgress", {}).then(res => {
+    const email = currentUser().email;
+    if (Date.now() - read("lastsync." + email, 0) < 20000) return Promise.resolve(false);   // synced a moment ago (another page): use the saved copy
+    return send("myProgress", {}, { retry:true }).then(res => {
       if (!res || !res.ok) return false;
+      write("lastsync." + email, Date.now());
       const key = progressKey(), local = read(key, {}), merged = {}, now = Date.now();
       (res.done || []).forEach(id => { merged[id] = { ...(local[id] || {}), status:"done", updated:(local[id] && local[id].updated) || 0 }; });
       Object.entries(res.results || {}).forEach(([id, r]) => { merged[id] = r; });
@@ -196,9 +212,9 @@ window.LMS_CONFIG = {
 
     /** Admin only: fetch all grades and progress from the Sheet. Needs the admin passcode set in the Apps Script. */
     /** Signed-in person's own grades (rows of the Grades tab for their email). */
-    myGrades(){ return send("myGrades", {}); },
+    myGrades(){ return send("myGrades", {}, { retry:true }); },
 
-    adminData(passcode){ return send("adminData", { passcode }); },
+    adminData(passcode){ return send("adminData", { passcode }, { retry:true }); },
 
     signOut(){
       try { localStorage.removeItem(`${KEY}.user`); sessionStorage.removeItem(`${KEY}.idtoken`); } catch(e){}
@@ -214,5 +230,6 @@ window.LMS_CONFIG = {
 
   window.LMS = LMS;
   LMS.sync = sync;
-  LMS.ready = sync();       // pages that need the Sheet's progress (e.g. one-attempt exams) wait on this
+  LMS.syncDone = sync();    // resolves (true if anything changed) whenever the Sheet answers, however long it takes
+  LMS.ready = Promise.race([LMS.syncDone, new Promise(r => setTimeout(() => r(false), 8000))]);   // pages that must wait on the Sheet wait at most 8s
 })();

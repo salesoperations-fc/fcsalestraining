@@ -2037,15 +2037,18 @@ $("#finishNo").onclick=()=>$("#finishOv").classList.add("hidden");
 $("#finishYes").onclick=()=>finish(false);
 $("#whoAmI").textContent=ME.name+(MY_BATCH?" · Batch "+MY_BATCH:"")+" ("+ME.email+")";
 (function oneAttempt(){      // everyone except batches in LMS.config.multiAttempt gets a single attempt
- const sb=$("#startBtn"), sbText=sb.textContent; sb.disabled=true; sb.textContent="Checking…";   // wait until we know if it was already taken
- LMS.ready.then(()=>{
-  sb.disabled=false; sb.textContent=sbText;
+ const sb=$("#startBtn"), sbText=sb.textContent; if(!LMS.canRetake()){ sb.disabled=true; sb.textContent="Checking…"; }   // retake batches never need the check   // wait (at most 8s) until we know if it was already taken
+ let blocked=false;
+ function apply(){
+  if(blocked) return;
   const rec=LMS.progress()[EXAM_ID];
   if(rec && rec.status==="done" && !LMS.canRetake()){
-    const b=$("#startBtn"); b.disabled=true; b.textContent="Already taken";
-    b.insertAdjacentHTML("afterend",'<span class="hint" style="align-self:center">You have already taken this exam. Ask Salesops if you need another attempt.</span>');
-  }
- });
+    blocked=true; sb.disabled=true; sb.textContent="Already taken";
+    sb.insertAdjacentHTML("afterend",'<span class="hint" style="align-self:center">You have already taken this exam. Ask Salesops if you need another attempt.</span>');
+  } else { sb.disabled=false; sb.textContent=sbText; }
+ }
+ LMS.ready.then(apply);
+ LMS.syncDone.then(apply);     // if the Sheet answers after the 8s cut-off
 })();
 (function showLast(){
   let r=null; try{ r=JSON.parse(localStorage.getItem("amacademy.d4last."+ME.email)||"null"); }catch(e){}

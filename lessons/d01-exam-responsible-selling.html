@@ -71,6 +71,8 @@ function decide(){
   const q=LMS.progress()[EXAM_ID], retake=LMS.canRetake()&&/[?&]retake=1/.test(location.search);
   if(q&&q.status==="done"&&!retake){ decided=true; document.body.classList.remove("checking"); showSubmitted(q); }
 }
+if(LMS.canRetake()&&/[?&]retake=1/.test(location.search)) document.body.classList.remove("checking");   // retaking: no need to wait
 decide();
 LMS.ready.then(()=>{ decide(); document.body.classList.remove("checking"); });
+LMS.syncDone.then(()=>decide());
 </script></body></html>
