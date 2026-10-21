@@ -15,15 +15,13 @@ const ALLOWED_DOMAIN = "firstcircle.com";
 // "google" = verify the Google sign-in token (use once the OAuth client ID exists).
 const AUTH_MODE = "email";
 const BATCHES = {                 // batch number (start date, MMDDYY) -> onboardee emails. Keep in sync with shared/roster.js
-  "101926": [
-    "ayrton.arteficio@firstcircle.com",
-    "charles.gito@firstcircle.com",
-    "jhoana.akut@firstcircle.com",
-    "giovanni.capawa@firstcircle.com",
-    "joana.jayme@firstcircle.com",
-    "cristina.articona@firstcircle.com",
-    "leslie.reyes@firstcircle.com",
-    "elaine.fantolgo@firstcircle.com"
+  "000000": [                     // test batch: no retake
+    "test1@firstcircle.com",
+    "test2@firstcircle.com",
+    "test3@firstcircle.com"
+  ],
+  "000001": [                     // test batch: can retake exams
+    "hanna.test@firstcircle.com"
   ]
 };
 
@@ -39,8 +37,10 @@ const PROGRESS_SHEET = "Progress";  // one row per completed task/lesson
 const GRADES_HEADER = ["Timestamp", "Email", "Name", "Batch", "Exam ID", "Attempt", "Score", "Max", "Percent", "Passed", "Details"];
 const PROGRESS_HEADER = ["Timestamp", "Email", "Name", "Batch", "Item ID"];
 // Exams that also get their own tab (in addition to the Grades row). Exam ID -> tab name.
-const EXAM_TABS = { "d1-exam-responsible-selling": "D1-1" };
+const EXAM_TABS = { "d1-exam-responsible-selling": "D1-1", "d4-exam-connect-sim": "D4-1" };
 const EXAM_TAB_HEADER = ["Timestamp", "Email", "Name", "Batch", "Attempt", "Score", "Max", "Percent", "Passed", "Details"];
+// Exams whose tab needs a different header (default is EXAM_TAB_HEADER). The Connect sim also records the step-by-step breakdown and trainer notes.
+const EXAM_TAB_HEADERS = { "d4-exam-connect-sim": ["Timestamp", "Email", "Name", "Batch", "Attempt", "Score", "Max", "Percent", "Passed", "Details", "Breakdown", "Notes"] };
 
 function doPost(e) {
   try {
@@ -52,12 +52,12 @@ function doPost(e) {
 
     if (req.action === "saveResult") {
       const pct = p.max ? Math.round((p.score / p.max) * 1000) / 10 : "";
-      appendByHeader_(sheet_(GRADES_SHEET, GRADES_HEADER), { "Timestamp": new Date(), "Email": user.email, "Name": user.name, "Batch": user.batch || "", "Exam ID": p.id, "Attempt": p.attempt, "Score": p.score, "Max": p.max, "Percent": pct, "Passed": p.passed ? "Yes" : "No", "Details": p.details || "" });
-      if (EXAM_TABS[p.id]) appendByHeader_(sheet_(EXAM_TABS[p.id], EXAM_TAB_HEADER), { "Timestamp": new Date(), "Email": user.email, "Name": user.name, "Batch": user.batch || "", "Attempt": p.attempt, "Score": p.score, "Max": p.max, "Percent": pct, "Passed": p.passed ? "Yes" : "No", "Details": p.details || "" });
+      appendByHeader_(sheet_(GRADES_SHEET, GRADES_HEADER), { "Timestamp": new Date(), "Email": user.email, "Name": user.name, "Batch": user.batch ? "'" + user.batch : "", "Exam ID": p.id, "Attempt": p.attempt, "Score": p.score, "Max": p.max, "Percent": pct, "Passed": p.passed ? "Yes" : "No", "Details": p.details || "" });
+      if (EXAM_TABS[p.id]) appendByHeader_(sheet_(EXAM_TABS[p.id], EXAM_TAB_HEADERS[p.id] || EXAM_TAB_HEADER), { "Timestamp": new Date(), "Email": user.email, "Name": user.name, "Batch": user.batch ? "'" + user.batch : "", "Attempt": p.attempt, "Score": p.score, "Max": p.max, "Percent": pct, "Passed": p.passed ? "Yes" : "No", "Details": p.details || "", "Breakdown": p.breakdown || "", "Notes": p.notes || "" });
       return json_({ ok: true });
     }
     if (req.action === "complete") {
-      appendByHeader_(sheet_(PROGRESS_SHEET, PROGRESS_HEADER), { "Timestamp": new Date(), "Email": user.email, "Name": user.name, "Batch": user.batch || "", "Item ID": p.id });
+      appendByHeader_(sheet_(PROGRESS_SHEET, PROGRESS_HEADER), { "Timestamp": new Date(), "Email": user.email, "Name": user.name, "Batch": user.batch ? "'" + user.batch : "", "Item ID": p.id });
       return json_({ ok: true });
     }
     if (req.action === "adminData") {
@@ -92,6 +92,7 @@ function verifyToken_(token) {
 }
 
 /** Write a row by matching column NAMES in row 1, so you can reorder columns or add your own. */
+// Note: batch values are written with a leading apostrophe so Sheets stores them as text and keeps leading zeros (000001).
 function appendByHeader_(sh, obj) {
   const headers = sh.getRange(1, 1, 1, Math.max(sh.getLastColumn(), 1)).getValues()[0];
   sh.appendRow(headers.map(function (h) { return obj.hasOwnProperty(h) ? obj[h] : ""; }));

@@ -507,8 +507,9 @@ table.res th{font-size:12px;color:var(--ink-2);font-weight:600}
       <li>Explain what you're doing out loud as you go, like a real client demo.</li>
       <li>When you're finished with a request, click <b>Done, next request</b>. You can also skip a request, but you'll get 0 points for it.</li>
     </ul>
-    <div class="field"><label for="amName">Your full name</label><input id="amName" placeholder="e.g. Juan dela Cruz" autocomplete="name"></div>
-    <button class="btn primary" id="startBtn">Start the exam</button>
+    <div class="field"><label>Signed in as</label><div id="whoAmI" style="font-weight:700"></div></div>
+    <div id="lastRes" class="hint" style="margin-bottom:10px"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="startBtn">Start the exam</button><a class="btn" href="../dashboard.html?day=4" style="text-decoration:none">Back to dashboard</a></div>
   </div>
 </div>
 
@@ -537,6 +538,9 @@ table.res th{font-size:12px;color:var(--ink-2);font-weight:600}
 /* ============================================================
    CONFIG: client story + answer keys
    ============================================================ */
+if(!LMS.requireSignIn()) throw new Error("not signed in");
+const EXAM_ID = "d4-exam-connect-sim";
+const ME = LMS.user(), MY_BATCH = LMS.batchOf(ME.email) || ME.batch || "";
 const COMPANY = "JJBP Corporation";
 const EXAM_MINUTES = 30;
 const PASS_MARK = 0.8;
@@ -1885,6 +1889,69 @@ function computeResults(){
   return out;
 }
 
+/* ============================================================
+   TRAINER NOTES: inferred from the pattern of mistakes
+   ============================================================ */
+function lev(a,b){ a=String(a||"").toLowerCase(); b=String(b||"").toLowerCase(); const d=[...Array(b.length+1).keys()]; for(let i=1;i<=a.length;i++){ let p=d[0]; d[0]=i; for(let j=1;j<=b.length;j++){ const t=d[j]; d[j]=Math.min(d[j]+1,d[j-1]+1,p+(a[i-1]===b[j-1]?0:1)); p=t; } } return d[b.length]; }
+function buildNotes(res, total, max, pass, timeUp){
+  const N=[], scored=res.filter(r=>!r.notbuilt), pct=max?Math.round(total/max*100):0;
+  const full=r=>r.items.every(i=>i.ok||i.max===0)&&!r.critical.length;
+  const wrong=r=>r.items.filter(i=>!i.ok&&i.max>0);
+  const nothing=r=>!r.items.some(i=>i.ok&&i.max>0);
+  const fix=i=>`${i.label.toLowerCase()} (expected ${i.expected}, saved ${i.actual})`;
+  const skipped=[], notDone=[], untouched=[], fullOk=[], smallMiss=[];
+  scored.forEach(r=>{
+    const t=r.task.title, w=wrong(r);
+    if(r.status==="skipped"){ skipped.push(t); return; }
+    const amtItem=w.find(i=>i.label==="Loan amount"||i.label==="Exact amount");
+    if(amtItem&&w.length===1&&r.critical.length&&r.critical.every(c=>/^Wrong (loan )?amount/i.test(c))){
+      N.push(r.task.id==="drawdown"?`Wrong drawdown amount (asked ${amtItem.expected}, requested ${amtItem.actual}) but the entire process was done correctly.`:`Wrong transfer amount (expected ${amtItem.expected}, sent ${amtItem.actual}) but the right supplier account and the rest of the process were correct.`);
+      N.push(`A wrong amount is a critical error, so "${t}" scores 0 and blocks a pass. Re-read the amount in Maria's message before confirming.`); return; }
+    if(r.critical.length){ r.critical.forEach(c=>N.push(`Critical error in "${t}": ${c} This task scores 0 and the exam cannot be passed with a critical error.`)); }
+    if(nothing(r)){ if(r.status==="done") N.push(`"${t}" was marked done but nothing was saved. Check that you actually completed and saved it before clicking Done.`); else untouched.push(t); return; }
+    if(r.status!=="done") notDone.push(t);
+    if(full(r)){ fullOk.push(t); return; }
+    if(r.critical.length) return;
+    if(r.task.id==="drawdown"){
+      const amt=w.find(i=>i.label==="Loan amount");
+      const late=w.filter(i=>["Loan contract signed","Checks uploaded","Pickup scheduled"].includes(i.label));
+      if(late.length) N.push(`Drawdown was set up but not finished: ${late.map(i=>i.label.toLowerCase()).join(", ")} missing.`+(w.some(i=>i.label==="Loan contract signed"&&/Credit check/.test(i.actual))?" The credit check never finished because you did not log out and back in (30 minutes later).":""));
+      const other=w.filter(i=>!late.includes(i)&&i!==amt);
+      if(amt&&!late.length&&!other.length) { N.push(`Wrong drawdown amount (asked ${amt.expected}, requested ${amt.actual}) but the entire process was done correctly.`); return; }
+      if(amt) N.push(`Wrong drawdown amount (asked ${amt.expected}, requested ${amt.actual}).`);
+      if(other.length) N.push(`Drawdown details not matching Maria's request: ${other.map(fix).join("; ")}.`);
+      return;
+    }
+    if(r.task.id==="authrep"&&w.length===1&&w[0].label==="Permission"){ N.push(`Authorized representative added correctly but the permission was left as "${w[0].actual}" instead of Applicant.`); return; }
+    if(r.task.id==="topup"){ if(w.some(i=>i.label.startsWith("QR"))&&!w.some(i=>i.label.startsWith("Found"))) N.push(`Found the deposit page but did not download the QR code for Maria.`); else N.push(`Top-up: ${w.map(fix).join("; ")}.`); return; }
+    if(r.task.id==="transfer"){ const rec=w.find(i=>i.label==="Correct recipient"), amt=w.find(i=>i.label==="Exact amount");
+      if(amt&&!rec&&w.length===1) N.push(`Transfer went to the right supplier account but the amount was wrong (expected ${amt.expected}, sent ${amt.actual}).`);
+      else if(rec&&!amt) N.push(`Right amount but wrong recipient (sent to ${rec.actual}).`);
+      else N.push(`Transfer: ${w.map(fix).join("; ")}.`); return; }
+    // typo-level differences (names, emails, account numbers)
+    const typos=w.filter(i=>/name|email|account number/i.test(i.label)&&i.actual!=="–"&&lev(String(i.expected).replace(/[-\s]/g,""),String(i.actual).replace(/[-\s]/g,""))<=2&&!/^First:/.test(i.expected));
+    if(typos.length===w.length){ N.push(`"${t}": only small typos: ${typos.map(fix).join("; ")}. The process was right, so re-read what you typed against Maria's message.`); smallMiss.push(t); return; }
+    if(w.length===1){ N.push(`"${t}": everything was done right except ${fix(w[0])}.`); smallMiss.push(t); return; }
+    N.push(`"${t}": ${w.length} fields differ: ${w.map(fix).join("; ")}.`);
+    if(r.task.id==="contact"&&w.some(i=>i.label.startsWith("Account"))&&!w.some(i=>i.label==="Bank")) N.push("Bank was right but the account number was not: copy it exactly from Maria's message.");
+  });
+  if(skipped.length) N.push(`Skipped: ${skipped.join(", ")}. Skipping scores 0 for the task.`);
+  if(notDone.length) N.push(`Never clicked "Done" for: ${notDone.join(", ")}. Work saved there was still scored, but follow the call flow and close each request.`);
+  if(untouched.length) N.push(`Not attempted: ${untouched.join(", ")}.`);
+  if(timeUp) N.push(`Time ran out. Practise speed on the routine tasks (add member, contact, transfer) so the drawdown gets enough time.`);
+  const secs=Math.min(elapsed(),EXAM_MINUTES*60);
+  if(!timeUp&&secs<8*60&&total<max) N.push(`Finished very fast (${mmss(secs)}) with errors. Slow down and re-check each detail before clicking Done.`);
+  if(fullOk.length&&fullOk.length<scored.length&&(skipped.length+untouched.length)>=Math.ceil(scored.length/2)) N.push(`${fullOk.length} request${fullOk.length>1?"s":""} fully correct, but several were skipped or not attempted.`);
+  if(smallMiss.length>=3) N.push("Small detail errors across several requests. The process knowledge looks fine; the pattern is not double-checking against the client's message.");
+  if(!skipped.length&&!untouched.length&&!N.length&&fullOk.length===scored.length) N.push("All requests done correctly. Well done.");
+  const critAny=scored.some(r=>r.critical.length);
+  const head=`Score ${total}/${max} (${pct}%): ${pass?"PASS":"NOT YET"}.`+(pass?"":(critAny&&pct>=PASS_MARK*100?" The score is above the pass mark but a critical error blocks a pass.":` Pass mark is ${Math.round(PASS_MARK*100)}% with no critical errors.`));
+  return {head, notes:N};
+}
+function buildBreakdown(res){
+  return res.filter(r=>!r.notbuilt).map(r=>`${r.task.title} ${r.pts}/${r.max} [${r.status==="skipped"?"skipped":r.status==="done"?"done":"not marked done"}]: `+r.items.filter(i=>i.max>0||!i.ok).map(i=>i.ok?`OK ${i.label}`:`X ${i.label} (expected ${i.expected}; saved ${i.actual})`).join("; ")+(r.critical.length?" | CRITICAL: "+r.critical.join(" "):"")).join("\n");
+}
+
 function finish(timeUp){
   if(EX.finished) return; EX.finished=true; EX.end=Date.now(); clearInterval(EX.timerId);
   $("#finishOv").classList.add("hidden"); $("#skipOv").classList.add("hidden");
@@ -1892,9 +1959,10 @@ function finish(timeUp){
   const total=scored.reduce((a,r)=>a+r.pts,0), max=scored.reduce((a,r)=>a+r.max,0);
   const anyCrit=scored.some(r=>r.critical.length);
   const pass= max>0 && total/max>=PASS_MARK && !anyCrit;
-  EX.results={res,total,max,pass,timeUp};
-  // Record the score for the signed-in AM (goes to the Grades sheet once the backend is connected).
-  try { if (window.LMS && LMS.user()) LMS.saveResult("exam-connect-sim", { score:total, max, passed:pass, details:`${anyCrit?"critical error; ":""}${timeUp?"time ran out; ":""}time used ${mmss(Math.min(elapsed(),EXAM_MINUTES*60))}` }); } catch(e){}
+  const nt=buildNotes(res,total,max,pass,timeUp), breakdown=buildBreakdown(res), notesTxt=nt.head+"\n"+nt.notes.map(n=>"- "+n).join("\n");
+  EX.results={res,total,max,pass,timeUp,nt,breakdown};
+  // Record the result for the signed-in AM (Grades sheet + the D4-1 tab, with the breakdown and notes).
+  try { LMS.saveResult(EXAM_ID, { score:total, max, passed:pass, details:`${anyCrit?"critical error; ":""}${timeUp?"time ran out; ":""}time used ${mmss(Math.min(elapsed(),EXAM_MINUTES*60))}`, breakdown, notes:notesTxt }); } catch(e){}
   const rows=scored.map(r=>{
     const status=r.status==="skipped"?'<span class="tag skip">Skipped</span>':r.status==="done"?'<span class="tag done">Marked done</span>':'<span class="tag">Not marked done</span>';
     const detail=r.items.map(it=>`<tr><td style="padding-left:18px">${it.ok?'<span class="check">✓</span>':'<span class="cross">✗</span>'} ${it.label}</td><td>${esc(it.expected)}</td><td>${esc(it.actual)}</td><td>${r.status==="skipped"?0:it.pts}/${it.max}</td></tr>`).join("");
@@ -1909,7 +1977,11 @@ function finish(timeUp){
     <p class="hint" style="margin-top:8px">Pass mark is ${Math.round(PASS_MARK*100)}% with no critical errors. Names ignore capitalization and extra spaces, but spelling and numbers must be exact.</p>
     <div style="overflow-x:auto"><table class="res"><thead><tr><th>Check</th><th>Expected</th><th>What was saved</th><th>Points</th></tr></thead><tbody>${rows}</tbody></table></div>
     ${nb?`<p class="hint">Not scored in this build: ${nb}.</p>`:""}
-    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="dlRes">Download results</button></div>`;
+    <h3 style="margin:18px 0 6px">Score and notes</h3>
+    <p><b>${esc(nt.head)}</b></p>
+    <ul>${nt.notes.map(n=>`<li>${esc(n)}</li>`).join("")}</ul>
+    <div style="display:flex;gap:8px;flex-wrap:wrap" id="resBtns"><button class="btn primary" id="dlRes">Download results</button><a class="btn" href="../dashboard.html?day=4" style="text-decoration:none">Back to dashboard</a></div>`;
+  try{ const h=$("#resPanel").innerHTML; localStorage.setItem("amacademy.d4last."+ME.email, JSON.stringify({total,max,pass,when:new Date().toLocaleString("en-PH",{dateStyle:"medium",timeStyle:"short"}),html:h.slice(0,h.indexOf('<div style="display:flex;gap:8px;flex-wrap:wrap" id="resBtns">'))})); }catch(e){}
   $("#resOv").classList.remove("hidden");
   $("#dlRes").onclick=downloadResults;
 }
@@ -1921,6 +1993,7 @@ function downloadResults(){
   L.push(`Date: ${new Date(EX.start).toLocaleString()}`);
   L.push(`Time used: ${mmss(Math.min(elapsed(),EXAM_MINUTES*60))} of ${EXAM_MINUTES}:00${R.timeUp?" (time ran out)":""}`);
   L.push(`Score: ${R.total}/${R.max}  Result: ${R.pass?"PASS":"NOT YET"}`);
+  L.push(`Batch: ${MY_BATCH||"-"}`);
   L.push(`Drawdown asked for: ${peso(DD_TARGET.amount)} over ${DD_TARGET.term} months, ${DD_TARGET.freq}`,"");
   R.res.forEach(r=>{
     if(r.notbuilt){ L.push(`[Not in this build] ${r.task.title}`,""); return; }
@@ -1929,6 +2002,7 @@ function downloadResults(){
     r.critical.forEach(c=>L.push(`  CRITICAL: ${c}`));
     L.push("");
   });
+  L.push("SCORE AND NOTES", R.nt.head, ...R.nt.notes.map(n=>"- "+n), "");
   L.push("ACTIVITY LOG");
   LOG.forEach(l=>L.push(`  ${mmss(l.t)}  ${l.what}`));
   const a=document.createElement("a");
@@ -1941,8 +2015,7 @@ function downloadResults(){
    START
    ============================================================ */
 $("#startBtn").onclick=()=>{
-  const n=$("#amName").value.trim();
-  if(!n){ $("#amName").focus(); $("#amName").style.borderColor="var(--red)"; return; }
+  const n=ME.name;
   const AMTS=[300000,350000,400000,450000,500000,600000], TERMS=[3,4,6,9,12];
   DD_TARGET={amount:AMTS[Math.floor(Math.random()*AMTS.length)], term:TERMS[Math.floor(Math.random()*TERMS.length)]};
   const FREQS=["Monthly","Bi-weekly","Bullet"]; DD_TARGET.freq=FREQS[Math.floor(Math.random()*3)];
@@ -1962,7 +2035,20 @@ $("#startBtn").onclick=()=>{
 $("#finishBtn").onclick=()=>$("#finishOv").classList.remove("hidden");
 $("#finishNo").onclick=()=>$("#finishOv").classList.add("hidden");
 $("#finishYes").onclick=()=>finish(false);
-$("#amName").addEventListener("keydown",e=>{ if(e.key==="Enter") $("#startBtn").click(); });
+$("#whoAmI").textContent=ME.name+(MY_BATCH?" · Batch "+MY_BATCH:"")+" ("+ME.email+")";
+(function oneAttempt(){      // everyone except batches in LMS.config.multiAttempt gets a single attempt
+  const rec=LMS.progress()[EXAM_ID];
+  if(rec && rec.status==="done" && !LMS.canRetake()){
+    const b=$("#startBtn"); b.disabled=true; b.textContent="Already taken";
+    b.insertAdjacentHTML("afterend",'<span class="hint" style="align-self:center">You have already taken this exam. Ask Salesops if you need another attempt.</span>');
+  }
+})();
+(function showLast(){
+  let r=null; try{ r=JSON.parse(localStorage.getItem("amacademy.d4last."+ME.email)||"null"); }catch(e){}
+  if(!r) return;
+  $("#lastRes").innerHTML=`Your last attempt: <b>${r.total}/${r.max}</b> (${r.pass?"PASS":"NOT YET"}) on ${esc(r.when)}. <a href="#" id="viewLast">View that result</a>. ${LMS.canRetake()?" You can retake the exam; your best score is kept.":""}`;
+  $("#viewLast").onclick=ev=>{ ev.preventDefault(); $("#resPanel").innerHTML=r.html+`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="closeLast">Close</button><a class="btn primary" href="../dashboard.html?day=4" style="text-decoration:none">Back to dashboard</a></div>`; $("#resOv").classList.remove("hidden"); $("#closeLast").onclick=()=>$("#resOv").classList.add("hidden"); };
+})();
 </script>
 </body>
 </html>

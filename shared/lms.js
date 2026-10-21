@@ -26,6 +26,11 @@ window.LMS_CONFIG = {
   googleClientId: "",                 // from Google Cloud (step 4 of the build)
   allowedDomain: "firstcircle.com",    // only these Google accounts can sign in
   backendUrl: "https://script.google.com/macros/s/AKfycbxwD5hJK3xUM2YhMggINVN9j6n__9nFzdE1XM_U8yt3wq2DxJJa68NTtCW4oZpLJqZ0hA/exec",                     // Apps Script web app URL (step 4)
+  // Catch-up: onboardees in these batches get a "Mark day done" button on the listed days
+  // (for people who did those days before this site existed). Delete a line to turn it off.
+  // Batches allowed to retake exams. Everyone else gets one attempt per exam.
+  multiAttempt: ["000001"],
+  catchUp: {},                        // e.g. { "101926": [1, 2, 3] }
   adminEmails: [],                    // who can open admin.html, e.g. ["tm.name@firstcircle.com"]
 
   calendar: {
@@ -94,6 +99,9 @@ window.LMS_CONFIG = {
 
     /** The access list: { admins, learners, batches }, and which batch an email is in ("" for none). */
     roster, batchOf,
+
+    /** May the signed-in person retake exams? (their batch is listed in multiAttempt) */
+    canRetake(){ const u = currentUser(); return !!u && (C.multiAttempt || []).includes(batchOf(u.email)); },
 
     /** True if this email belongs to the allowed company domain. */
     isCompanyEmail,
@@ -167,7 +175,7 @@ window.LMS_CONFIG = {
       const best = history.reduce((a,b)=> (b.score/b.max) > (a.score/a.max) ? b : a);
       p[id] = { status:"done", score:best.score, max:best.max, passed:best.passed, attempts:history.length, history, updated:Date.now() };
       write(progressKey(), p);
-      send("saveResult", { id, score:result.score, max:result.max, passed:!!result.passed, attempt:history.length, details:result.details || "" });
+      send("saveResult", { id, score:result.score, max:result.max, passed:!!result.passed, attempt:history.length, details:result.details || "", breakdown:result.breakdown || "", notes:result.notes || "" });
       return Promise.resolve(p[id]);
     },
 

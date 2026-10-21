@@ -119,21 +119,24 @@ let selected = (+new URLSearchParams(location.search).get('day')) || null;   // 
 function compute(){
   const P = LMS.progress(), done = id => P[id] && P[id].status === "done";
   let prevComplete = true, current = null;
+  const u = LMS.user(), catchDays = (LMS.config.catchUp || {})[LMS.batchOf(u && u.email)] || [];
   const days = window.LMS_DAYS.map(d => {
+    const catchUp = catchDays.includes(d.day), manual = catchUp && done("catchup-d" + d.day);   // marked done by hand
     const empty = !d.tasks.length && !(d.materials||[]).length && !d.exam;
-    if (empty) {                       // no content yet: follows the lock chain but can't be completed
-      const status = prevComplete ? "current" : "locked";
+    if (empty) {                       // no content yet: follows the lock chain but can't be completed (unless marked done by hand)
+      if (manual) { prevComplete = true; return { ...d, empty:true, tasksDone:0, status:"complete", catchUp }; }
+      const status = (prevComplete || catchUp) ? "current" : "locked";
       if (status === "current" && current === null) current = d.day;
       prevComplete = false;
-      return { ...d, empty:true, tasksDone:0, status };
+      return { ...d, empty:true, tasksDone:0, status, catchUp };
     }
     const tasksDone = d.tasks.filter(t => done(t.id)).length;
     const examDone = !d.exam || done(d.exam.id);
-    const complete = tasksDone === d.tasks.length && examDone;
-    const status = complete ? "complete" : prevComplete ? "current" : "locked";
+    const complete = manual || (tasksDone === d.tasks.length && examDone);
+    const status = complete ? "complete" : (prevComplete || catchUp) ? "current" : "locked";
     if (status === "current" && current === null) current = d.day;
     prevComplete = complete;
-    return { ...d, tasksDone, examDone, status };
+    return { ...d, tasksDone, examDone, status, catchUp };
   });
   return { days, current, P };
 }
@@ -145,10 +148,15 @@ const CHEVRON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" str
 const STATUS_ICON = { complete:CHECK_ICON, current:PROGRESS_ICON, locked:LOCK_ICON, soon:"" };
 const STATUS_TEXT = { complete:"complete", current:"in progress", locked:"locked", soon:"coming soon" };
 
+function catchBtn(sel){
+  if (!sel.catchUp || sel.status === "complete") return "";
+  return `<div style="margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="btn sm" data-markday="${sel.day}">Mark day done</button><span class="small muted">Already finished this day? Mark it done.</span></div>`;
+}
+
 function dropdown(sel, P){
   const brief = sel.brief ? `<p class="brief"><small>What to expect</small>${esc(sel.brief)}</p>` : "";
   if (sel.status === "locked") return `<div class="drop"><div class="lockmsg">${LOCK} Complete day ${sel.day-1} to unlock this day.</div>${brief}</div>`;
-  if (sel.empty) return `<div class="drop">${brief}<p class="empty" style="margin-top:${brief?8:0}px">Content coming soon.</p></div>`;
+  if (sel.empty) return `<div class="drop">${brief}<p class="empty" style="margin-top:${brief?8:0}px">Content coming soon.</p>${catchBtn(sel)}</div>`;
   const tasks = sel.tasks.map(t => {
     const isDone = P[t.id] && P[t.id].status === "done";
     return `<li><label><input type="checkbox" data-task="${t.id}" ${isDone?"checked":""}><span>${esc(t.label)}</span>
@@ -161,15 +169,15 @@ function dropdown(sel, P){
   if (sel.exam){
     const e = sel.exam, rec = P[e.id], sub = rec && rec.status === "done";
     const scoreTxt = rec && rec.max ? `Score: ${rec.score}/${rec.max}` : (e.kind==="trainer" ? "Scored live by your trainer." : "");
-    if (sub) examHtml = `<div class="exam ok" style="display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:12px;padding:14px 16px;background:var(--green-soft)"><div><b>${ico("check",14)} ${esc(e.label)} done</b><br><span class="small muted">${scoreTxt}</span></div>${e.kind==="lms"&&e.href?`<a class="btn sm" href="${esc(e.href)}">Review your answers</a>`:""}</div>`;
+    if (sub) examHtml = `<div class="exam ok" style="display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:12px;padding:14px 16px;background:var(--green-soft)"><div><b>${ico("check",14)} ${esc(e.label)} done</b><br><span class="small muted">${scoreTxt}</span></div>${(e.kind==="lms"||e.kind==="sim")&&e.href?`<div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn sm" href="${esc(e.href)}">${e.kind==="sim"?"Review your result":"Review your answers"}</a>${LMS.canRetake()?`<a class="btn sm primary" href="${esc(e.href)}${e.kind==="lms"?"?retake=1":""}">Retake</a>`:""}</div>`:""}</div>`;
     else {
       const open = e.href ? `<a class="btn sm" href="${esc(e.href)}" target="${/^https?:/.test(e.href)?"_blank":"_self"}" rel="noopener">${e.kind==="sim"?"Start simulation":e.kind==="lms"?"Start exam":"Open exam"}</a>` : "";
-      examHtml = `<div class="exam" style="display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:12px;padding:14px 16px;background:var(--marigold-soft)"><div><b>${esc(e.label)}</b><br><span class="small muted">${e.kind==="lms"?"Agree to every statement to submit.":`Graded. Pass mark ${e.passing}%.`}</span></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">${open}${e.kind==="lms"?"":`<button class="btn sm primary" data-submit="${e.id}">${e.kind==="trainer"?"Mark completed":"I've submitted it"}</button>`}</div></div>`;
+      examHtml = `<div class="exam" style="display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:12px;padding:14px 16px;background:var(--marigold-soft)"><div><b>${esc(e.label)}</b><br><span class="small muted">${e.kind==="lms"?"Agree to every statement to submit.":e.kind==="sim"?`Your score is recorded when you finish. Pass mark ${e.passing}%.`:`Graded. Pass mark ${e.passing}%.`}</span></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">${open}${e.kind==="lms"||e.kind==="sim"?"":`<button class="btn sm primary" data-submit="${e.id}">${e.kind==="trainer"?"Mark completed":"I've submitted it"}</button>`}</div></div>`;
     }
   }
   const body = (tasks || mats) ? `<div class="two">${tasks?`<div><h3>Tasks (${sel.tasksDone} of ${sel.tasks.length})</h3><ul class="tasks">${tasks}</ul></div>`:"<div></div>"}${mats?`<div><h3>Materials</h3>${mats}</div>`:""}</div>` : "";
-  return `<div class="drop">${body}${examHtml}${sel.status==="complete"?`<div class="daydone">${ico("check",16)} Day ${sel.day} complete</div>`:""}</div>`;
+  return `<div class="drop">${body}${examHtml}${sel.status==="complete"?`<div class="daydone">${ico("check",16)} Day ${sel.day} complete</div>`:""}${catchBtn(sel)}</div>`;
 }
 
 function sessionsHtml(){
@@ -236,6 +244,10 @@ function render(){
 
 document.addEventListener("click", e => {
   const d = e.target.closest("[data-day]"); if (d){ const n = +d.dataset.day; selected = selected === n ? null : n; render(); return; }
+  const m = e.target.closest("[data-markday]");
+  if (m){ const day = window.LMS_DAYS.find(x => x.day === +m.dataset.markday);
+    day.tasks.forEach(t => LMS.complete(t.id)); if (day.exam) LMS.complete(day.exam.id); LMS.complete("catchup-d" + day.day);
+    advance(); return; }
   const s = e.target.closest("[data-submit]"); if (s){ LMS.complete(s.dataset.submit); advance(); return; }
   const o = e.target.closest("[data-open]"); if (o) LMS.start(o.dataset.open);
 });

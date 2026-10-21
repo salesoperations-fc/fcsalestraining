@@ -42,7 +42,7 @@ if(!LMS.requireSignIn()) throw 0;
 const $=id=>document.getElementById(id), sts=[...document.querySelectorAll(".st")];
 function showSubmitted(rec){
   const when=rec&&rec.updated?new Date(rec.updated).toLocaleString("en-PH",{dateStyle:"medium",timeStyle:"short"}):"";
-  $("doneMsg").innerHTML=`<div class="ok3"><div class="tick">✓</div><h2>Exam submitted</h2><div>Your score</div><div class="sc3">${rec.score}/${rec.max}</div><p>You agreed to all ${N} statements${when?" on "+when:""}.</p><div class="row"><a class="btn" href="../dashboard.html?day=1">Back to dashboard</a><a class="btn alt" href="#review">Review your answers</a></div></div>`;
+  $("doneMsg").innerHTML=`<div class="ok3"><div class="tick">✓</div><h2>Exam submitted</h2><div>Your score</div><div class="sc3">${rec.score}/${rec.max}</div><p>You agreed to all ${N} statements${when?" on "+when:""}.</p><div class="row">${LMS.canRetake()?'<a class="btn" href="?retake=1">Retake exam</a>':""}<a class="btn" href="../dashboard.html?day=1">Back to dashboard</a><a class="btn alt" href="#review">Review your answers</a></div></div>`;
   document.querySelectorAll(".st input[value=agree]").forEach(i=>i.checked=true);
   document.querySelectorAll(".st input").forEach(i=>i.disabled=true);
   document.body.classList.add("locked"); document.querySelector(".bar").style.display="none";
@@ -63,5 +63,5 @@ $("submit").onclick=async()=>{
   showSubmitted(LMS.progress()[EXAM_ID]);
 };
 upd();
-if(p&&p.status==="done") showSubmitted(p);
+if(p&&p.status==="done"&&!(LMS.canRetake()&&/[?&]retake=1/.test(location.search))) showSubmitted(p);
 </script></body></html>

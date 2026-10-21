@@ -16,17 +16,15 @@ window.LMS_ROSTER = {
     "charles.allen@firstcircle.com",
     "alan.smyth@firstcircle.com"
   ],
-  // Onboardees grouped by batch. Batch number = start date as MMDDYY (101926 = Oct 19, 2026).
+  // Onboardees grouped by batch. Batch number = start date as MMDDYY (e.g. 101926 = Oct 19, 2026).
   batches: {
-    "101926": [
-      "ayrton.arteficio@firstcircle.com",
-      "charles.gito@firstcircle.com",
-      "jhoana.akut@firstcircle.com",
-      "giovanni.capawa@firstcircle.com",
-      "joana.jayme@firstcircle.com",
-      "cristina.articona@firstcircle.com",
-      "leslie.reyes@firstcircle.com",
-      "elaine.fantolgo@firstcircle.com"
+    "000000": [   // test batch: no retake
+      "test1@firstcircle.com",
+      "test2@firstcircle.com",
+      "test3@firstcircle.com"
+    ],
+    "000001": [   // test batch: can retake exams
+      "hanna.test@firstcircle.com"
     ]
   }
 };
