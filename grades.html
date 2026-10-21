@@ -69,7 +69,7 @@ async function load(passcode){
 
 function render(){
   const bn = v => (v === "" || v == null) ? "" : String(v).padStart(6, "0");   // Sheets may drop leading zeros
-  const g = DATA.grades.map(r => ({ ...r, Email:String(r.Email||"").toLowerCase(), Batch:bn(r.Batch), p:pct(r) }));
+  const g = DATA.grades.filter(r => !String(r["Exam ID"]).startsWith("TEST-")).map(r => ({ ...r, Email:String(r.Email||"").toLowerCase(), Batch:bn(r.Batch), p:pct(r) }));
   const bOf = e => LMS.batchOf(e) || (g.find(r => r.Email === e && r.Batch) || {}).Batch || "";
   const R = LMS.roster(), admins = R.admins.map(a=>a.toLowerCase());
   const allLearners = [...new Set([ ...R.learners.map(e=>e.toLowerCase()), ...g.map(r=>r.Email) ])].filter(e => !admins.includes(e));
@@ -107,10 +107,28 @@ function render(){
   $("refresh").onclick = () => load(sessionStorage.getItem("amhub.adminpc") || "");
 }
 
+/* ---------- A trainee's own grades ---------- */
+async function loadMine(){
+  $("app").innerHTML = '<h1>My grades</h1><p class="muted">Loading…</p>';
+  const res = await LMS.myGrades();
+  if (!res || !res.ok) { $("app").innerHTML = '<h1>My grades</h1><p class="muted">Couldn\'t load your grades. Please try again in a moment.</p>'; return; }
+  const bn = v => (v === "" || v == null) ? "" : String(v).padStart(6, "0");
+  const rows = res.grades.filter(r => !String(r["Exam ID"]).startsWith("TEST-")).sort((a,b)=>String(b.Timestamp).localeCompare(String(a.Timestamp)));
+  const best = {}; rows.forEach(r => { const p = pct(r); if (best[r["Exam ID"]] == null || (p != null && p > best[r["Exam ID"]].p)) best[r["Exam ID"]] = { ...r, p }; });
+  const exams = Object.values(best);
+  $("app").innerHTML = `<h1>My grades</h1><p class="muted">Your results for the graded exams. The best score counts.</p>
+    <div class="scroll" style="margin-top:18px"><table class="tbl"><thead><tr><th>Exam</th><th>Best score</th><th>Result</th><th>Attempts</th></tr></thead><tbody>
+      ${exams.map(r=>`<tr><td><b>${esc(nice(r["Exam ID"]))}</b></td><td>${esc(r.Score)}/${esc(r.Max)}${r.p!=null?` (${r.p}%)`:""}</td><td><span class="pill ${r.Passed==="Yes"?"pass":"fail"}">${r.Passed==="Yes"?"Pass":"Not yet"}</span></td><td>${rows.filter(x=>x["Exam ID"]===r["Exam ID"]).length}</td></tr>`).join("") || '<tr><td colspan="4" class="muted">No graded exams yet.</td></tr>'}
+    </tbody></table></div>
+    ${rows.length ? `<h2 class="sec">Every attempt</h2><div class="scroll"><table class="tbl"><thead><tr><th>When</th><th>Exam</th><th>Attempt</th><th>Score</th><th>Result</th></tr></thead><tbody>
+      ${rows.map(r=>{ const p = pct(r); return `<tr><td>${esc(when(r.Timestamp))}</td><td>${esc(nice(r["Exam ID"]))}</td><td>${esc(r.Attempt)}</td><td>${esc(r.Score)}/${esc(r.Max)}${p!=null?` (${p}%)`:""}</td><td><span class="pill ${r.Passed==="Yes"?"pass":"fail"}">${r.Passed==="Yes"?"Pass":"Not yet"}</span></td></tr>`; }).join("")}
+    </tbody></table></div>` : ""}`;
+}
+
 if (LMS.requireSignIn()) {
   renderSide("grades");
-  if (!LMS.isAdmin()) { $("app").innerHTML = '<h1>Grades</h1><p class="muted">This page is for trainers.</p>'; }
-  else if (!LMS.config.backendUrl) { $("app").innerHTML = '<h1>Grades</h1><p class="muted">The Google Sheet isn\'t connected yet (backendUrl in shared/lms.js).</p>'; }
+  if (!LMS.config.backendUrl) { $("app").innerHTML = '<h1>Grades</h1><p class="muted">The Google Sheet isn\'t connected yet (backendUrl in shared/lms.js).</p>'; }
+  else if (!LMS.isAdmin()) { loadMine(); }
   else { let pc=""; try { pc = sessionStorage.getItem("amhub.adminpc") || ""; } catch(e){} load(pc); }
 }
 </script>

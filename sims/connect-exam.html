@@ -1230,7 +1230,7 @@ function flowView(){
       const pf=(key,label,opts)=>`<div class="field ${e[key]?"err":""}"><label>${label}</label>${dd(key, d[key], opts, "Select a role")}${e[key]?`<div class="err-msg">${e[key]}</div>`:""}</div>`;
       body=`<h3>Assign permissions</h3><p class="sub">Select the role that corresponds with the permissions you'd like to assign to this member.</p>
         ${S.phase==="onb" ? pf("role","General permissions",["Applicant"])
-          : pf("role","General permissions",["Admin","Editor","Viewer"])+pf("biz","Business account permissions",["Approver","Super Preparer","Preparer","Viewer"])+pf("credit","Credit account permissions",["Approver","Preparer","Viewer"])}
+          : pf("role","General permissions",["Editor","Viewer"])+pf("biz","Business account permissions",["Approver","Super Preparer","Preparer","Viewer"])+pf("credit","Credit account permissions",["Approver","Preparer","Viewer"])}
         <div class="flow-btns"><button class="btn" data-act="mem-back">← Back</button><button class="btn primary" data-act="mem-next2">Next →</button></div>`;
     } else {
       body=`<h3>Review team member</h3><p class="sub"></p>

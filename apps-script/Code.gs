@@ -60,6 +60,9 @@ function doPost(e) {
       appendByHeader_(sheet_(PROGRESS_SHEET, PROGRESS_HEADER), { "Timestamp": new Date(), "Email": user.email, "Name": user.name, "Batch": user.batch ? "'" + user.batch : "", "Item ID": p.id });
       return json_({ ok: true });
     }
+    if (req.action === "myGrades") {
+      return json_({ ok: true, grades: readRows_(GRADES_SHEET).filter(function (r) { return String(r.Email).toLowerCase() === user.email; }) });
+    }
     if (req.action === "adminData") {
       if (ADMIN_EMAILS.indexOf(user.email) === -1) throw new Error("not-admin");
       if (ADMIN_PASSCODE && p.passcode !== ADMIN_PASSCODE) throw new Error("passcode-required");

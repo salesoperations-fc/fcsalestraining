@@ -180,6 +180,9 @@ window.LMS_CONFIG = {
     },
 
     /** Admin only: fetch all grades and progress from the Sheet. Needs the admin passcode set in the Apps Script. */
+    /** Signed-in person's own grades (rows of the Grades tab for their email). */
+    myGrades(){ return send("myGrades", {}); },
+
     adminData(passcode){ return send("adminData", { passcode }); },
 
     signOut(){
