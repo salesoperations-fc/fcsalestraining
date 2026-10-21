@@ -476,47 +476,54 @@ table.res th{font-size:12px;color:var(--ink-2);font-weight:600}
 .crit{background:var(--red-soft);color:var(--red);border-radius:8px;padding:10px 12px;font-size:13px;margin:10px 0}
 .check{color:var(--green);font-weight:700} .cross{color:var(--red);font-weight:700}
 
-/* ===== Guided demo coach ===== */
-.chat{width:380px}
-.fn-tabs{display:flex;flex-wrap:wrap;gap:6px;padding:12px 14px;border-bottom:1px solid var(--line);background:#fff}
-.fn-tab{border:1px solid var(--line);background:#fff;border-radius:16px;padding:5px 11px;font:600 12px var(--font);cursor:pointer;color:var(--ink)}
-.fn-tab.on{background:var(--teal);color:#fff;border-color:var(--teal)}
-.fn-tab.fin::after{content:" ✓"}
-.coach{padding:14px 16px;overflow:auto;flex:1;background:#FAFBFB}
-.coach h3{margin:0 0 4px;font-size:16px}
-.coach .goal{font-size:13px;color:var(--ink-2);margin:0 0 10px;line-height:1.5}
-.cvals{background:var(--marigold-soft,#FFF4DA);border-radius:8px;padding:9px 12px;font-size:12.5px;line-height:1.7;margin-bottom:12px}
-.cvals b{font-weight:700}
-.cstep{display:flex;gap:10px;padding:9px 10px;border-radius:10px;font-size:13px;line-height:1.5;border:1px solid transparent}
-.cstep .n{flex:none;width:22px;height:22px;border-radius:50%;background:#E3EAEC;color:var(--ink-2);display:grid;place-items:center;font-size:11px;font-weight:700}
-.cstep.done{color:var(--ink-3)} .cstep.done .n{background:var(--green);color:#fff}
-.cstep.cur{background:#fff;border-color:var(--teal);box-shadow:0 2px 8px rgba(0,0,0,.06)} .cstep.cur .n{background:var(--teal);color:#fff}
-.cstep small{display:block;color:var(--ink-2);font-size:12px;margin-top:2px}
-.cwin{background:#E6F4EA;color:var(--green);border-radius:10px;padding:12px;font-size:13px;font-weight:600;margin:10px 0}
-.cfoot{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.coach-hl{outline:3px solid #F4B63F !important;outline-offset:3px;border-radius:8px;animation:chl 1.2s ease-in-out infinite;position:relative;z-index:5}
-@keyframes chl{50%{outline-color:rgba(244,182,63,.25)}}
-.chat-mini{border-top:1px solid var(--line);max-height:170px;display:flex;flex-direction:column}
-.chat-mini .t{font-size:11px;font-weight:700;color:var(--ink-2);padding:8px 14px 0;text-transform:uppercase;letter-spacing:.04em}
-.chat-mini .chat-body{padding:8px 14px 12px;gap:8px}
+.workspace{top:0}
+.hidden{display:none !important}
+#spot{position:fixed;z-index:9000;border-radius:10px;box-shadow:0 0 0 9999px rgba(12,30,38,.42);outline:3px solid #F4B63F;pointer-events:none;transition:left .25s,top .25s,width .25s,height .25s;animation:chl 1.2s ease-in-out infinite}
+@keyframes chl{50%{outline-color:rgba(244,182,63,.3)}}
+.bubble{position:fixed;z-index:9100;width:340px;max-width:calc(100vw - 16px);background:#fff;border-radius:14px;padding:14px 16px;box-shadow:0 10px 36px rgba(0,0,0,.3);font-size:14px;line-height:1.5;color:var(--ink)}
+.bubble .arrow{position:absolute;width:14px;height:14px;background:#fff;transform:rotate(45deg)}
+.bubble[data-side="right"] .arrow{left:-7px;margin-top:-7px}
+.bubble[data-side="left"] .arrow{right:-7px;margin-top:-7px}
+.bubble[data-side="bottom"] .arrow{top:-7px;margin-left:-7px}
+.bubble[data-side="top"] .arrow{bottom:-7px;margin-left:-7px}
+.bstep{font-size:11px;font-weight:700;color:var(--teal-dark);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.btext b{font-weight:700}
+.bsub{font-size:12.5px;color:var(--ink-2);margin-top:6px}
+.bvals{background:#FFF4DA;border-radius:8px;padding:8px 10px;margin-top:10px;font-size:13px;line-height:1.65}
+.bfoot{margin-top:10px;text-align:right}
+.blink{background:none;border:0;color:var(--ink-3);font:500 12px var(--font);text-decoration:underline;cursor:pointer;padding:0}
+.bubble.nudge{animation:nudge .4s}
+@keyframes nudge{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+#hud{position:fixed;top:12px;right:16px;z-index:9200;display:flex;flex-direction:column;align-items:flex-end;gap:8px;max-width:340px}
+.hud-row{display:flex;gap:8px;align-items:center}
+.pill{background:var(--deep,#0B3B45);color:#fff;border-radius:18px;padding:7px 14px;font:600 13px var(--font);box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.hbtn{background:#fff;border:1px solid var(--line);border-radius:18px;padding:6px 12px;font:600 12px var(--font);color:var(--ink);text-decoration:none;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.15)}
+.hud-task{background:#fff;border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.5;box-shadow:0 8px 28px rgba(0,0,0,.25)}
+.hud-task .hv{background:#FFF4DA;border-radius:8px;padding:7px 10px;margin-top:8px;line-height:1.65}
+#msgBox{position:fixed;left:16px;bottom:16px;z-index:9150;width:290px;background:#fff;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.28);border:1px solid var(--line)}
+#msgBox .mh{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-2);border-bottom:1px solid var(--line)}
+#msgBox .mx,#wrong .wx{background:none;border:0;font-size:18px;line-height:1;cursor:pointer;color:var(--ink-2)}
+#msgBox .m{padding:9px 12px;font-size:13px;line-height:1.5;border-bottom:1px solid var(--line)} #msgBox .m:first-child{background:#FFF4DA}
+#msgList{max-height:150px;overflow:auto}
+#wrong{position:fixed;z-index:9300;width:300px;background:#fff;border:2px solid var(--red);border-radius:12px;padding:12px 34px 12px 14px;font-size:13px;line-height:1.5;box-shadow:0 8px 28px rgba(0,0,0,.3)}
+#wrong .wx{position:absolute;top:6px;right:8px}
+#wrong .whint{margin-top:6px;color:var(--ink-2);font-size:12.5px}
+#endCard{position:fixed;inset:0;z-index:9400;background:rgba(12,30,38,.55);display:grid;place-items:center;padding:20px}
+.ecard{background:#fff;border-radius:16px;padding:26px 28px;max-width:560px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4);font-size:14px;line-height:1.55}
+.ecard h2{margin:0 0 6px;font-size:22px}
+.ebtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.ecard .nt{margin:14px 0 0;font-size:13px}
 </style>
 </head>
 <body>
 
-<header class="exam-bar" id="examBar">
-  <div class="eb-title">Connect Guided Demo</div>
-  <div class="eb-prog" style="flex:1"><span id="progText" style="font-size:13px;color:var(--ink-2)">Practice mode: nothing here is graded.</span></div>
-  <a class="btn" href="../dashboard.html?day=3" style="text-decoration:none">Back to dashboard</a>
-</header>
-
-<div class="workspace" id="workspace">
-  <div class="screen" id="screen"></div>
-  <aside class="chat">
-    <div class="fn-tabs" id="fnTabs"></div>
-    <div class="coach" id="coach"></div>
-    <div class="chat-mini"><div class="t">Messages from Maria (OTP codes show here)</div><div class="chat-body" id="chatBody"></div></div>
-  </aside>
-</div>
+<div class="workspace" id="workspace"><div class="screen" id="screen"></div></div>
+<div id="spot" class="hidden"></div>
+<div id="bubble" class="bubble hidden"></div>
+<div id="hud"></div>
+<div id="msgBox" class="hidden"><div class="mh"><span>📱 Text / email to the client</span><button class="mx" aria-label="Close">×</button></div><div id="msgList"></div></div>
+<div id="wrong" class="hidden"></div>
+<div id="endCard" class="hidden"></div>
 
 <script>
 /* ============================================================
@@ -525,7 +532,7 @@ table.res th{font-size:12px;color:var(--ink-2);font-weight:600}
 if(!LMS.requireSignIn()) throw new Error("not signed in");
 const EXAM_ID = "d3-demo";
 const ME = LMS.user(), MY_BATCH = LMS.batchOf(ME.email) || ME.batch || "";
-const COMPANY = "JJBP Corporation";
+const COMPANY = "SOS Inc.";
 const EXAM_MINUTES = 30;
 const PASS_MARK = 0.8;
 const newOtp = () => String(Math.floor(100000 + Math.random()*900000));
@@ -535,7 +542,7 @@ const TASKS = [];
 /* ============================================================
    STATE: what's saved in the fake Connect account
    ============================================================ */
-const START_USER = {first:"Maria", last:"Santos", email:"maria.santos@jjbpcorp.com", mobile:"9171234567"};
+const START_USER = {first:"Elizabeth", last:"Cruz", email:"elizabeth.cruz@sosinc.com", mobile:"9171234567"};
 let S; // app state
 function freshState(){
   return {
@@ -629,7 +636,7 @@ function loginView(){
     <div class="auth-card"><h2>Log in to your account</h2>
       <div class="field"><label>Email address</label><input value="${esc(S.user.email)}" readonly></div>
       <div class="field ${S.loginErr?"err":""}" style="margin-bottom:8px"><label>Password</label>
-        <div class="pw"><input type="${S.showPw?"text":"password"}" value="JJBPcorp2026!" readonly><button data-act="eye" aria-label="Show password">${S.showPw?ico("eyeoff",18):ico("eye",18)}</button></div></div>
+        <div class="pw"><input type="${S.showPw?"text":"password"}" value="SOSinc2026!" readonly><button data-act="eye" aria-label="Show password">${S.showPw?ico("eyeoff",18):ico("eye",18)}</button></div></div>
       <button class="auth-link" data-act="forgot">Forgot password?</button>
       ${S.loginErr?`<div class="err-msg">${S.loginErr}</div>`:""}
       <button class="btn primary" data-act="login">Log in</button>
@@ -655,7 +662,7 @@ function sidebar(){
     const amIni = EX.amName.split(/\s+/).map(w=>w[0]||"").join("").slice(0,2).toUpperCase();
     return `<aside class="side">
       <div class="logo-row">${LOGO}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B9CDD1" stroke-width="2"><path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/></svg></div>
-      <div class="org"><span class="org-av">JJBP</span><span>${COMPANY}</span></div>
+      <div class="org"><span class="org-av">SOS</span><span>${COMPANY}</span></div>
       <ul class="nav">${n2("docs",docIc,"Documents")}${n2("team",ico("team"),"Team Access")}${n2("settings",ico("gear"),"Settings")}</ul>
       <div class="side-foot"><span class="av">${esc(amIni)}</span>
         <div><span class="who">${esc(EX.amName)}</span><button class="out" data-act="logout">Log Out</button></div></div>
@@ -664,7 +671,7 @@ function sidebar(){
   const n = (id,icon,label) => `<li><button class="${S.page===id||(id==="credit"&&S.page==="dd")?"active":""}" data-nav="${id}">${ico(icon)}${label}</button></li>`;
   return `<aside class="side">
     <div class="logo-row">${LOGO}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B9CDD1" stroke-width="2"><path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/></svg></div>
-    <div class="org"><span class="org-av">JJBP</span><span>${COMPANY}</span></div>
+    <div class="org"><span class="org-av">SOS</span><span>${COMPANY}</span></div>
     <ul class="nav">${n("home","home","Home")}${n("credit","credit","Credit")}${n("biz","biz","Business Accounts")}</ul>
     <div class="nav-label">Company</div>
     <ul class="nav">${n("contacts","contacts","Contacts")}${n("team","team","Team Access")}${n("settings","gear","Settings")}</ul>
@@ -924,7 +931,7 @@ function openTransfer(contactId){
 }
 
 /* ---------- Credit + drawdown ---------- */
-const OWN_BANKS = [{id:"bdo", name:"JJBP Corporation ***4821", bank:"BDO Unibank"},{id:"bpi", name:"JJBP Corporation ***0917", bank:"Bank of the Philippine Islands"}];
+const OWN_BANKS = [{id:"bdo", name:"SOS Inc. ***4821", bank:"BDO Unibank"},{id:"bpi", name:"SOS Inc. ***0917", bank:"Bank of the Philippine Islands"}];
 const MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const fmtD = d => `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
 const DD_DAY = new Date(2026,8,29);
@@ -1303,7 +1310,7 @@ function modalView(){
       `<button class="btn" data-act="close">Cancel</button><button class="btn danger" data-act="remove-yes">Remove member</button>`);
   }
   if(m.type==="notbuilt"){
-    return wrap("Not available in this simulation",`<p class="hint" style="margin:0">This part of Connect isn't included in the simulation. Try another way to help Maria.</p>`,`<button class="btn primary" data-act="close">OK</button>`);
+    return wrap("Not available in this simulation",`<p class="hint" style="margin:0">This part of Connect isn't included in the simulation. Try another way.</p>`,`<button class="btn primary" data-act="close">OK</button>`);
   }
   return "";
 }
@@ -1349,8 +1356,8 @@ $("#screen").addEventListener("click", e=>{
   if(a!=="more") S.moreOpen=false;
   if(a!=="ba-menu") S.baMenu=null;
   switch(a){
-    case "login": S.auth="otp"; S.loginErr=""; S.loginOtp=newOtp(); render(); clientSays(`Oh, I got a text for logging in. The code is <b>${S.loginOtp}</b>.`, 1200); break;
-    case "resend-login": S.loginOtp=newOtp(); S.loginErr=""; render(); clientSays(`I got a new code. It's <b>${S.loginOtp}</b>.`, 900); break;
+    case "login": S.auth="otp"; S.loginErr=""; S.loginOtp=newOtp(); render(); clientSays(`Your login code is <b>${S.loginOtp}</b>.`, 1200); break;
+    case "resend-login": S.loginOtp=newOtp(); S.loginErr=""; render(); clientSays(`Your new code is <b>${S.loginOtp}</b>.`, 900); break;
     case "eye": S.showPw=!S.showPw; render(); break;
     case "forgot": case "signup": break;
     case "logout": {
@@ -1437,8 +1444,8 @@ $("#screen").addEventListener("click", e=>{
         d.amt=a; f.errs={}; f.step=2; render(); break; }
       break;
     }
-    case "tf-confirm": S.flow.step=3; S.flow.data.code=newOtp(); S.flow.errs={}; render(); clientSays(`I got a code for the transfer. It's <b>${S.flow.data.code}</b>.`, 1200); break;
-    case "tf-resend": S.flow.data.code=newOtp(); S.flow.errs={}; render(); clientSays(`New code came in: <b>${S.flow.data.code}</b>.`, 900); break;
+    case "tf-confirm": S.flow.step=3; S.flow.data.code=newOtp(); S.flow.errs={}; render(); clientSays(`Your transfer code is <b>${S.flow.data.code}</b>.`, 1200); break;
+    case "tf-resend": S.flow.data.code=newOtp(); S.flow.errs={}; render(); clientSays(`Your new code is <b>${S.flow.data.code}</b>.`, 900); break;
     case "tf-proof": toast("Proof of payment saved"); logAction("transfer","Saved proof of payment"); break;
     case "tf-another": openTransfer(); render(); break;
     case "open-dd": {
@@ -1656,12 +1663,14 @@ $("#screen").addEventListener("keydown", e=>{
 });
 
 /* ============================================================
-   GUIDED DEMO: coach panel (replaces the exam harness)
-   Nothing here is graded. Steps tick by themselves as the state in the fake Connect account changes.
+   GUIDED DEMO (replaces the exam harness)
+   Mode "guide": the screen is dimmed except for the next thing to click, with a bubble explaining it.
+   Mode "try":   same fake Connect, no hints. A wrong click shows a closable bubble. Nothing is graded.
+   Steps tick by themselves as the fake account's state changes.
    ============================================================ */
 const LOG = [];
-function logAction(task,what){ LOG.push({task, what}); if(typeof drawCoach==="function" && S && document.querySelector("#coach")) drawCoach(); }
-function addMsg(html, cls="msg"){ const d=document.createElement("div"); d.className=cls; d.innerHTML=html; $("#chatBody").appendChild(d); $("#chatBody").scrollTop=1e6; return d; }
+function logAction(task,what){ LOG.push({task, what}); tickSoon(); }
+function addMsg(html){ const b=$("#msgBox"); b.classList.remove("hidden"); const d=document.createElement("div"); d.className="m"; d.innerHTML=html; $("#msgList").prepend(d); }
 function clientSays(html, delay=0){ setTimeout(()=>addMsg(html), delay); }
 function showTask(){}
 
@@ -1672,111 +1681,227 @@ const NOTION = {
   transfer: "https://www.notion.so/firstcircle/Transfers-2001a5890448800b998cea9f027f8d8c",
   drawdown: "https://www.notion.so/firstcircle/Drawdown-2001a58904488098aed9e8b9f6cc47ce"
 };
-const fl = () => S.flow, fty = t => S.flow && S.flow.type===t, fstep = t => (S.flow && S.flow.type===t) ? S.flow.step : -1;
+const fty = t => !!(S.flow && S.flow.type===t), fstep = t => fty(t) ? S.flow.step : -1;
 const did = (task, start) => LOG.some(l=>l.task===task && l.what.startsWith(start));
+const inFlow = ".flow-content";
+const chk = (label, expected, actual, ok) => ({label, expected, actual, ok});
 
-/* Each function: goal, values to use, steps. done(): true once the step has happened (it stays ticked). sel: element to highlight. */
 const FUNCS = [
-  { id:"team", name:"Add a team member", doc:"How to add a new team member",
-    goal:"Maria's company just hired a new finance officer. Give him access to Connect.",
-    vals:["First name: <b>Paolo</b>","Last name: <b>Reyes</b>","Email: <b>paolo.reyes@jjbpcorp.com</b>","Mobile: <b>0919 876 5432</b>","Permissions: pick any, then see how each one shows in the Team Access table"],
+  { id:"login", name:"Log in to FC Connect", doc:null,
+    goal:"Sign in to the client's Connect account with the email, password and one-time code (OTP).",
+    vals:[], init(){ S.auth="login"; },
+    steps:[
+      { t:"This is the Connect login page. The email and password are already filled in. Click <b>Log in</b>.", sel:'[data-act="login"]', done:()=>S.auth!=="login" },
+      { t:"A 6-digit code was sent by text. Look at the <b>message card (bottom left)</b> and type the code into the boxes.", sub:"In real life the code goes to the client's phone and email. Never ask a client to read it out to you.", sel:'.otp', done:()=>S.auth==="in" },
+      { t:"You're in. Check the balance and credit on Home, then click <b>Log Out</b> (bottom left) to finish.", sel:'[data-act="logout"]', done:a=>a[1] && S.auth==="login" }
+    ], check:()=>[] },
+  { id:"team", name:"Add a new team member", doc:"Teams",
+    goal:"A new finance officer was hired at SOS Inc. Give him access to Connect.",
+    vals:["First name: <b>Paolo</b>","Last name: <b>Reyes</b>","Email: <b>paolo.reyes@sosinc.com</b>","Mobile: <b>0919 876 5432</b>","Permissions: <b>your choice</b>"],
     steps:[
       { t:"Open <b>Team Access</b> in the left menu.", sel:'[data-nav="team"]', done:()=>S.page==="team"||!!S.flow },
       { t:"Click <b>Add new member</b>.", sel:'[data-act="add-member"]', done:()=>fty("member")||S.members.some(m=>m.added) },
-      { t:"Type the member's details, then click <b>Next</b>.", sub:"Names take letters only. Mobile can start with 0 or +63.", sel:'[data-act="mem-next1"]', done:()=>fstep("member")>=1||S.members.some(m=>m.added) },
-      { t:"Assign permissions (General, Business account, Credit account), then <b>Next</b>.", sub:"Each dropdown limits what he can do. Editor can make changes. Viewer is read-only. (New members can\'t be made Admin.)", sel:'[data-act="mem-next2"]', done:()=>fstep("member")>=2||S.members.some(m=>m.added) },
+      { t:"Fill in the member's details, then click <b>Next</b>.", showVals:true, fill:inFlow, sel:'[data-act="mem-next1"]', done:()=>fstep("member")>=1||S.members.some(m=>m.added) },
+      { t:"Assign permissions, then <b>Next</b>.", sub:"Admin is full control. Viewer is read-only. Business and Credit have their own roles.", fill:inFlow, sel:'[data-act="mem-next2"]', done:()=>fstep("member")>=2||S.members.some(m=>m.added) },
       { t:"Review everything, then click <b>Confirm</b>.", sel:'[data-act="mem-confirm"]', done:()=>S.members.some(m=>m.added) },
-      { t:"Click <b>Go to Team Access</b>. Paolo shows with an <i>Invite sent</i> tag until he accepts the email.", sel:'[data-act="succ-go"]', done:()=>S.members.some(m=>m.added) && S.page==="team" && !S.success }
-    ]},
-  { id:"contact", name:"Add a contact (bank account)", doc:"How to add bank accounts (Contacts)",
-    goal:"Maria has a new supplier she wants to pay later. Save the supplier and its bank account as a Contact.",
-    vals:["Type: <b>Company</b>","Company name: <b>Davao Fresh Produce Trading</b>","Account name: <b>Davao Fresh Produce Trading</b>","Bank: <b>BPI</b>, account number <b>3012 9876 5432</b>","Contact person: <b>Liza Ramos</b>, <b>liza@davaofresh.ph</b>"],
+      { t:"Click <b>Go to Team Access</b>. Paolo shows an <i>Invite sent</i> tag until he accepts the email.", sel:'[data-act="succ-go"]', done:()=>S.members.some(m=>m.added) && S.page==="team" && !S.success }
+    ],
+    check:()=>{ const m=S.members.find(x=>x.added); return [
+      chk("Member added","Paolo Reyes",m?`${m.first} ${m.last}`:"Nobody added",!!m&&norm(m.first)==="paolo"&&norm(m.last)==="reyes"),
+      chk("Email","paolo.reyes@sosinc.com",m?m.email:"–",!!m&&norm(m.email)==="paolo.reyes@sosinc.com"),
+      chk("Mobile","+63 919 876 5432",m?fmtMobile(m.mobile):"–",!!m&&m.mobile==="9198765432")]; } },
+  { id:"contact", name:"Add bank accounts (Contacts)", doc:"Contacts",
+    goal:"A new supplier needs to be paid later. Save the supplier and its bank account as a Contact.",
+    vals:["Type: <b>Company</b>","Company name: <b>Davao Fresh Produce Trading</b>","Account name: <b>Davao Fresh Produce Trading</b>","Bank: <b>BPI</b>","Account number: <b>3012 9876 5432</b>","Contact person: <b>Liza Ramos</b>, <b>liza@davaofresh.ph</b>"],
     steps:[
       { t:"Open <b>Contacts</b> in the left menu.", sel:'[data-nav="contacts"]', done:()=>S.page==="contacts"||!!S.flow },
       { t:"Click <b>Add new contact</b>.", sel:'[data-act="add-contact"]', done:()=>fty("contact")||S.contacts.some(c=>c.added) },
-      { t:"Pick the contact type, type the name, then <b>Next</b>.", sub:"Company, Individual or Government. The nickname is only how it's saved for your team.", sel:'[data-act="ct-next"]', done:()=>fstep("contact")>=1||S.contacts.some(c=>c.added) },
-      { t:"Enter the bank account details, then <b>Next</b>.", sub:"Check the bank and 12-digit number twice. A wrong digit sends money to the wrong account.", sel:'[data-act="ct-next"]', done:()=>fstep("contact")>=2||S.contacts.some(c=>c.added) },
-      { t:"Enter the contact person, then <b>Next</b>.", sel:'[data-act="ct-next"]', done:()=>fstep("contact")>=3||S.contacts.some(c=>c.added) },
+      { t:"Choose the contact type and type the name, then <b>Next</b>.", sub:"The nickname is only how it's saved for your team.", showVals:true, fill:inFlow, sel:'[data-act="ct-next"]', done:()=>fstep("contact")>=1||S.contacts.some(c=>c.added) },
+      { t:"Enter the bank account details, then <b>Next</b>.", sub:"Check the bank and the 12-digit number twice. A wrong digit sends money to the wrong account.", showVals:true, fill:inFlow, sel:'[data-act="ct-next"]', done:()=>fstep("contact")>=2||S.contacts.some(c=>c.added) },
+      { t:"Enter the contact person, then <b>Next</b>.", showVals:true, fill:inFlow, sel:'[data-act="ct-next"]', done:()=>fstep("contact")>=3||S.contacts.some(c=>c.added) },
       { t:"Review the details, then click <b>Confirm</b>.", sel:'[data-act="ct-confirm"]', done:()=>S.contacts.some(c=>c.added) }
-    ]},
-  { id:"topup", name:"Top up the wallet", doc:"How to top up the wallet",
-    goal:"Maria asks where to deposit money into the FC account, and wants the QR code to send to her finance team.",
-    vals:["No typing needed. Just find the right page and share the details."],
+    ],
+    check:()=>{ const c=S.contacts.find(x=>x.added), b=c&&c.banks[0]; return [
+      chk("Contact name","Davao Fresh Produce Trading",c?c.name:"No contact added",!!c&&norm(c.name)==="davao fresh produce trading"),
+      chk("Bank","BPI",b?b.bank:"–",!!b&&b.bank==="BPI"),
+      chk("Account number","3012-9876-5432",b?fmtAcct(b.number):"–",!!b&&b.number==="301298765432")]; } },
+  { id:"topup", name:"Top up the wallet (Deposits)", doc:"Deposits",
+    goal:"The client asks where to deposit money into the FC account, and wants the QR code to send to the finance team.",
+    vals:[],
     steps:[
       { t:"On <b>Home</b>, click <b>Local bank deposit</b>.", sub:"You can also find it under Business Accounts.", sel:'[data-act="open-deposit"]', done:()=>S.depositOpened },
-      { t:"Read the account details. Note the <b>Transaction reference</b>: the client must enter it when transferring.", sub:"Without the reference, we can't match the deposit.", sel:'.dep-card', done:()=>S.depositOpened && (did("topup","Copied")||!!S.qrShared) },
-      { t:"Click <b>Copy all account details</b>.", sel:'[data-act="dep-copy"][data-k="all"]', done:()=>did("topup","Copied all") },
-      { t:"Click <b>Download image</b> (or Save as PDF) to get the QR code.", sel:'[data-act="dep-qr"][data-k="image"]', done:()=>!!S.qrShared },
-      { t:"Open <b>Making a local bank transfer</b> on the right to see what to tell the client.", sel:'[data-act="dep-acc"][data-k="a"]', done:()=>S.depAcc==="a"||S.depAcc==="b"||S.depAcc==="c" }
-    ]},
-  { id:"transfer", name:"Transfer funds", doc:"How to transfer funds",
-    goal:"Maria wants to pay a supplier that is already saved as a Contact.",
-    vals:["Contact: <b>Metro Office Rentals</b> (BPI account)","Amount: <b>25,000</b>","Notes (optional): <b>Invoice 1042</b>"],
+      { t:"Click <b>Copy all account details</b>.", sub:"Note the <b>Transaction reference</b>. The client must enter it when transferring, or we can't match the deposit.", sel:'[data-act="dep-copy"][data-k="all"]', done:()=>did("topup","Copied all") },
+      { t:"Click <b>Download image</b> to save the QR code (Save as PDF also works).", sel:'[data-act="dep-qr"][data-k="image"]', allow:'[data-act="dep-qr"]', done:()=>!!S.qrShared },
+      { t:"Open <b>Making a local bank transfer</b> to see what to tell the client.", sel:'[data-act="dep-acc"][data-k="a"]', allow:'[data-act="dep-acc"]', done:()=>!!S.depAcc },
+      { t:"Click the <b>×</b> at the top right to close the deposit page.", sel:'[data-act="dep-close"]', done:a=>a[3] && !fty("deposit") }
+    ],
+    check:()=>[chk("QR code downloaded","Image or PDF",S.qrShared?(S.qrShared==="pdf"?"PDF":"Image"):"Not downloaded",!!S.qrShared)] },
+  { id:"transfer", name:"Transfer funds", doc:"Transfers",
+    goal:"The client wants to pay a supplier that is already saved as a Contact.",
+    vals:["Contact: <b>Metro Office Rentals</b> (BPI)","Amount: <b>25,000</b>","Notes (optional): <b>Invoice 1042</b>"],
     steps:[
       { t:"On <b>Home</b>, click <b>Single transfer</b>.", sel:'[data-act="open-transfer"]', done:()=>fty("transfer")||S.transfers.length>0 },
-      { t:"Search and pick the contact, choose the bank account, then <b>Next</b>.", sub:"No contact yet? Use + Add new contact (see the Contacts demo).", sel:'#tfSearch', done:()=>fstep("transfer")>=1||S.transfers.length>0 },
-      { t:"Enter the amount (and a note if you like), then <b>Next</b>.", sub:"Check the balance shown. Transfers up to ₱50,000 go by InstaPay, bigger ones by PESONet.", sel:'[data-act="tf-next"]', done:()=>fstep("transfer")>=2||S.transfers.length>0 },
-      { t:"Review who and how much, then click <b>Confirm transfer</b>.", sub:"This is the last check before the money moves.", sel:'[data-act="tf-confirm"]', done:()=>fstep("transfer")>=3||S.transfers.length>0 },
-      { t:"Enter the 6-digit OTP. It appears in <b>Messages from Maria</b> (bottom right).", sub:"In real life the OTP goes to the client's phone and email. Never ask the client to read it out.", sel:'[data-otp="0"]', done:()=>S.transfers.length>0 },
+      { t:"Search and pick the contact, choose its bank account, then <b>Next</b>.", sub:"No contact yet? Use + Add new contact (see the Contacts demo).", showVals:true, fill:inFlow, sel:'[data-act="tf-next"]', allow:'[data-act="tf-pick"],[data-ddpick]', done:()=>fstep("transfer")>=1||S.transfers.length>0 },
+      { t:"Enter the amount (and a note if you like), then <b>Next</b>.", sub:"Up to ₱50,000 goes by InstaPay. Bigger amounts go by PESONet.", showVals:true, fill:inFlow, sel:'[data-act="tf-next"]', allow:'[data-act="tf-notes"]', done:()=>fstep("transfer")>=2||S.transfers.length>0 },
+      { t:"Check who is paid and how much, then click <b>Confirm transfer</b>.", sub:"This is the last check before the money moves.", sel:'[data-act="tf-confirm"]', done:()=>fstep("transfer")>=3||S.transfers.length>0 },
+      { t:"Type the 6-digit code from the <b>message card (bottom left)</b>.", sub:"In real life the OTP goes to the client's phone and email.", sel:'.otp', done:()=>S.transfers.length>0 },
       { t:"On the success page, click <b>Save proof of payment</b>.", sel:'[data-act="tf-proof"]', done:()=>did("transfer","Saved proof") }
-    ]},
-  { id:"drawdown", name:"Draw funds (credit line)", doc:"How to utilise the credit line",
-    goal:"Maria needs working capital. Request a drawdown from the Business Credit Line and complete it up to the check pickup.",
-    vals:["Product: <b>Business Credit Line</b>","Amount: <b>300,000</b>, term <b>3 months</b>, <b>Monthly</b>","Repayment: <b>Post-dated checks</b>","Disbursement: <b>JJBP Corporation ***4821</b> (BDO)","Uploads: any 3 image or PDF files (one per check)"],
+    ],
+    check:()=>{ const t=S.transfers[0]; return [
+      chk("Recipient","Metro Office Rentals",t?t.contact:"No transfer sent",!!t&&norm(t.contact)==="metro office rentals"),
+      chk("Amount",peso(25000),t?peso(t.amt):"–",!!t&&t.amt===25000)]; } },
+  { id:"drawdown", name:"Use the credit line (Drawdown)", doc:"Drawdown",
+    goal:"The client needs working capital. Request a drawdown from the Business Credit Line and take it up to the check pickup.",
+    vals:["Product: <b>Business Credit Line</b>","Amount: <b>300,000</b>","Term: <b>3 months</b>, <b>Monthly</b>","Repayment: <b>Post-dated checks</b>","Disbursement: <b>SOS Inc. ***4821</b> (BDO)","Uploads: any 3 image or PDF files"],
     steps:[
-      { t:"Open <b>Credit</b> in the left menu and see the available credit.", sel:'[data-nav="credit"]', done:()=>S.page==="credit"||S.page==="dd"||!!S.flow },
+      { t:"Open <b>Credit</b> in the left menu to see the available credit.", sel:'[data-nav="credit"]', done:()=>S.page==="credit"||S.page==="dd"||!!S.flow },
       { t:"Click <b>Draw funds</b>.", sel:'[data-act="open-dd"]', done:()=>fty("dd")||S.drawdowns.length>0 },
-      { t:"Choose <b>Business Credit Line</b>, then <b>Next</b>.", sub:"Express Business Loan is a one-month loan. The Credit Line can go up to 12 months.", sel:'[data-act="dd-next"]', done:()=>fstep("dd")>=1||S.drawdowns.length>0 },
-      { t:"Set amount, term and repayment frequency, then <b>Next</b>.", sub:"Watch the box on the right: what the client receives, the fee, interest and each repayment.", sel:'[data-act="dd-next"]', done:()=>fstep("dd")>=2||S.drawdowns.length>0 },
-      { t:"Review the loan details, then <b>Confirm loan details</b>.", sel:'[data-act="dd-next"]', done:()=>fstep("dd")>=3||S.drawdowns.length>0 },
-      { t:"Pick the repayment method and disbursement account, then <b>Submit drawdown request</b>.", sub:"These can't be changed after the contract is signed.", sel:'[data-act="dd-next"]', done:()=>S.drawdowns.length>0 },
-      { t:"Credit check takes about 30 minutes in real life. To skip ahead: <b>Log Out</b>.", sel:'[data-act="logout"]', done:()=>S.drawdowns.some(d=>d.reviewDone)||S.auth!=="in" },
-      { t:"Log back in (the OTP shows in Messages from Maria).", sel:'[data-act="login"]', done:()=>S.drawdowns.some(d=>d.reviewDone) && S.auth==="in" },
-      { t:"Go to <b>Credit</b>, click <b>View status</b> on the drawdown, then <b>Sign contract</b> and agree.", sel:'[data-act="dd-sign"], [data-act="view-dd"]', done:()=>S.drawdowns.some(d=>d.signed) },
-      { t:"Click <b>Upload checks</b> and add the check files (3 for this loan). Wait for them to be verified, then <b>Next</b>.", sel:'[data-act="dd-upload"], .drop', done:()=>S.drawdowns.some(d=>d.signed && d.files.length>0) },
-      { t:"Schedule the pickup, <b>Next</b>, then <b>Confirm</b>.", sel:'[data-act="up-next"], [data-act="up-confirm"]', done:()=>S.drawdowns.some(d=>d.pickup) }
-    ]}
+      { t:"Choose <b>Business Credit Line</b>, then <b>Next</b>.", sub:"Express Business Loan is one month only. The Credit Line goes up to 12 months.", sel:'[data-act="dd-next"]', allow:'[data-act="dd-prod"]', fill:inFlow, done:()=>fstep("dd")>=1||S.drawdowns.length>0 },
+      { t:"Set the amount, term and repayment frequency, then <b>Next</b>.", sub:"Watch the box on the right: what the client receives, the fee, the interest and each repayment.", showVals:true, sel:'[data-act="dd-next"]', allow:'[data-act="dd-freq"]', fill:inFlow, done:()=>fstep("dd")>=2||S.drawdowns.length>0 },
+      { t:"Review the loan details, then click <b>Confirm loan details</b>.", sel:'[data-act="dd-next"]', done:()=>fstep("dd")>=3||S.drawdowns.length>0 },
+      { t:"Pick the repayment method and the disbursement account, then <b>Submit drawdown request</b>.", sub:"These can't be changed after the contract is signed.", showVals:true, sel:'[data-act="dd-next"]', allow:'[data-act="dd-opt"]', fill:inFlow, done:()=>S.drawdowns.length>0 },
+      { t:"In real life RiskOps' credit check takes about 30 minutes. To skip ahead, click <b>Log Out</b>.", sel:'[data-act="logout"]', done:()=>S.drawdowns.some(d=>d.reviewDone)||S.auth!=="in" },
+      { t:"Click <b>Log in</b>, then type the code from the message card.", sel:'[data-act="login"]', allow:'[data-act="login"]', done:()=>S.drawdowns.some(d=>d.reviewDone) && S.auth==="in" },
+      { t:"Go to <b>Credit</b> and click <b>View status</b>, then <b>Sign contract</b>.", sel:'[data-act="dd-sign"],[data-act="view-dd"],[data-nav="credit"]', allow:'[data-act="dd-sign-yes"],[data-act="view-dd"],[data-act="dd-sign"]', done:()=>S.drawdowns.some(d=>d.signed) },
+      { t:"Click <b>Upload checks</b> and add the check files (one per repayment). Wait until they show as verified, then <b>Next</b>.", sel:'[data-act="dd-upload"],[data-act="up-next"]:not([disabled]),.drop', allow:'[data-act="dd-upload"],[data-act="up-next"],[data-act="dd-rmfile"]', done:()=>S.drawdowns.some(d=>d.signed && d.files.length>0) && (fstep("upload")>=1 || S.drawdowns.some(d=>d.pickup)) },
+      { t:"Pick the pickup address, date and time slot, then <b>Next</b> and <b>Confirm</b>.", sub:"Pickup must be within 2 business days.", sel:'[data-act="up-next"],[data-act="up-confirm"]', allow:'[data-act="pk-slot"],[data-act="up-next"],[data-act="up-confirm"],[data-act="up-back"]', fill:inFlow, done:()=>S.drawdowns.some(d=>d.pickup) }
+    ],
+    check:()=>{ const d=S.drawdowns.filter(x=>!x.cancelled)[0]; return [
+      chk("Amount",peso(300000),d?peso(d.amount):"No drawdown",!!d&&d.amount===300000),
+      chk("Term and frequency","3 months, Monthly",d?`${d.term} months, ${d.freq}`:"–",!!d&&d.term===3&&d.freq==="Monthly"),
+      chk("Repayment method","Post-dated checks",d?d.repay:"–",!!d&&d.repay==="Post-dated checks"),
+      chk("Disbursement account","SOS Inc. ***4821 (BDO)",d?disbLabel(d):"–",!!d&&d.disb==="bdo")]; } }
 ];
 
-let CUR = (new URLSearchParams(location.search).get("fn")) || FUNCS[0].id;
-if(!FUNCS.some(f=>f.id===CUR)) CUR = FUNCS[0].id;
-const LATCH = {};            // fn id -> array of booleans, ticks stay once earned
-const FINISHED = {};
-function stepsDone(f){ const a = LATCH[f.id] || (LATCH[f.id]=f.steps.map(()=>false)); f.steps.forEach((s,i)=>{ if(!a[i]){ try{ if(s.done()) a[i]=true; }catch(e){} } }); return a; }
+const QS = new URLSearchParams(location.search);
+let CUR = QS.get("fn"); if(!FUNCS.some(f=>f.id===CUR)) CUR = FUNCS[0].id;
+let MODE = QS.get("mode")==="try" ? "try" : "guide";
+let LATCH = [], ENDED = false, stepIdx = -1, scrolledFor = null, wrongTimer = null;
+const FN = () => FUNCS.find(f=>f.id===CUR);
 
 function newSession(){
   S=freshState();
   S.phase="ver"; S.auth="in"; S.page="home";
   S.members=[{id:"me", me:true, since:"Sep 29, 2026", general:"Admin", biz:"Approver", credit:"Approver"}];
   S.timeSkip=false; S.flow=null; S.success=null; S.modal=null;
-  Object.keys(LATCH).forEach(k=>delete LATCH[k]);
-  LOG.length=0; $("#chatBody").innerHTML="";
-  render(); drawCoach();
+  const f=FN(); if(f.init) f.init();
+  LATCH=f.steps.map(()=>false); LOG.length=0; ENDED=false; scrolledFor=null;
+  $("#msgList").innerHTML=""; $("#msgBox").classList.add("hidden"); $("#endCard").classList.add("hidden"); closeWrong();
+  render(); refresh();
 }
-function drawCoach(){
-  const f=FUNCS.find(x=>x.id===CUR), a=stepsDone(f);
-  const doneAll=a.every(Boolean), cur=a.findIndex(x=>!x);
-  if(doneAll) FINISHED[f.id]=true;
-  $("#fnTabs").innerHTML=FUNCS.map(x=>`<button class="fn-tab ${x.id===CUR?"on":""} ${FINISHED[x.id]?"fin":""}" data-fn="${x.id}">${x.name}</button>`).join("");
-  $("#coach").innerHTML=`<h3>${f.name}</h3><p class="goal">${f.goal}</p>
-    <div class="cvals"><div><b>Use these details</b></div>${f.vals.map(v=>`<div>${v}</div>`).join("")}</div>
-    ${f.steps.map((s,i)=>`<div class="cstep ${a[i]?"done":i===cur?"cur":""}"><span class="n">${a[i]?"✓":i+1}</span><div>${s.t}${s.sub&&i===cur?`<small>${s.sub}</small>`:""}</div></div>`).join("")}
-    ${doneAll?`<div class="cwin">Done! You've walked through "${f.name}". Try it again on your own, or pick another function above.</div>`:""}
-    <div class="cfoot"><a class="btn sm primary" href="${NOTION[f.id]}" target="_blank" rel="noopener" style="text-decoration:none">Further reading: ${f.doc} ↗</a><button class="btn sm" id="resetBtn">Reset the demo account</button></div>`;
-  $("#progText").textContent = `${FUNCS.filter(x=>FINISHED[x.id]).length} of ${FUNCS.length} guided demos finished. Practice mode: nothing here is graded.`;
-  highlight(f, cur);
-}
-function highlight(f, cur){
-  document.querySelectorAll(".coach-hl").forEach(e=>e.classList.remove("coach-hl"));
-  if(cur<0) return;
-  const el=document.querySelector(f.steps[cur].sel); if(el) el.classList.add("coach-hl");
-}
-$("#fnTabs").addEventListener("click", e=>{ const b=e.target.closest("[data-fn]"); if(!b) return; CUR=b.dataset.fn; S.flow=null; S.success=null; S.modal=null; S.page="home"; render(); drawCoach(); });
-$("#coach").addEventListener("click", e=>{ if(e.target.id==="resetBtn"){ newSession(); } });
 
-/* Keep the coach in sync after every redraw of the fake Connect screen */
+/* ---------- step tracking ---------- */
+function updateLatch(){ const f=FN(); f.steps.forEach((s,i)=>{ if(!LATCH[i]){ try{ if(s.done(LATCH)) LATCH[i]=true; }catch(e){} } }); }
+let tickT=null; function tickSoon(){ clearTimeout(tickT); tickT=setTimeout(refresh,0); }
+function refresh(){
+  updateLatch();
+  const f=FN(), cur=LATCH.findIndex(x=>!x);
+  if(cur!==stepIdx){ stepIdx=cur; scrolledFor=null; }
+  if(cur<0 && !ENDED){ ENDED=true; setTimeout(showEnd, 700); }
+  drawHud(); place();
+}
+
+/* ---------- geometry: spotlight + bubble ---------- */
+function rectOf(sel){ if(!sel) return null; for(const part of sel.split(/,(?![^\[]*\])/)){ const el=document.querySelector("#screen "+part.trim()); if(!el) continue; const r=el.getBoundingClientRect(); if(r.width&&r.height) return {el, l:r.left, t:r.top, r:r.right, b:r.bottom}; } return null; }
+function union(a,b){ return !a?b:!b?a:{el:a.el, l:Math.min(a.l,b.l), t:Math.min(a.t,b.t), r:Math.max(a.r,b.r), b:Math.max(a.b,b.b)}; }
+function place(){
+  const spot=$("#spot"), bub=$("#bubble");
+  if(MODE!=="guide" || ENDED || stepIdx<0){ spot.classList.add("hidden"); bub.classList.add("hidden"); return; }
+  const f=FN(), s=f.steps[stepIdx];
+  const tgt=rectOf(s.sel), reg=s.fill?rectOf(s.fill):null, R=union(tgt,reg);
+  if(R && tgt && scrolledFor!==stepIdx){ scrolledFor=stepIdx; const vh=innerHeight; if(tgt.t<60||tgt.b>vh-40) tgt.el.scrollIntoView({block:"center",behavior:"smooth"}); }
+  const vals = s.showVals && f.vals.length ? `<div class="bvals">${f.vals.map(v=>`<div>${v}</div>`).join("")}</div>` : "";
+  const html=`<div class="bstep">Step ${stepIdx+1} of ${f.steps.length}</div><div class="btext">${s.t}</div>${s.sub?`<div class="bsub">${s.sub}</div>`:""}${vals}<div class="bfoot"><button class="blink" id="skipGuide">Skip, let me try it myself</button></div>`;
+  if(bub.dataset.k!==stepIdx+"|"+f.id){ bub.innerHTML=html; bub.dataset.k=stepIdx+"|"+f.id; }
+  bub.classList.remove("hidden");
+  if(!R){ spot.classList.add("hidden"); bub.style.left=""; bub.style.top="76px"; bub.style.right="24px"; bub.dataset.side="none"; return; }
+  const pad=s.fill?10:6;
+  spot.classList.remove("hidden");
+  Object.assign(spot.style,{left:(R.l-pad)+"px", top:(R.t-pad)+"px", width:(R.r-R.l+pad*2)+"px", height:(R.b-R.t+pad*2)+"px"});
+  const W=Math.min(340, innerWidth-24), bw=bub.offsetWidth||W, bh=bub.offsetHeight||140, gap=16, vw=innerWidth, vh=innerHeight;
+  let side, x, y;
+  const cx=(R.l+R.r)/2, cy=(R.t+R.b)/2;
+  if(R.r+gap+bw<=vw-8){ side="right"; x=R.r+pad+gap; y=cy-bh/2; }
+  else if(R.l-gap-bw>=8){ side="left"; x=R.l-pad-gap-bw; y=cy-bh/2; }
+  else if(R.b+gap+bh<=vh-8){ side="bottom"; x=cx-bw/2; y=R.b+pad+gap; }
+  else if(R.t-gap-bh>=8){ side="top"; x=cx-bw/2; y=R.t-pad-gap-bh; }
+  else { side="none"; x=vw-bw-24; y=76; }
+  x=Math.max(8,Math.min(vw-bw-8,x)); y=Math.max(8,Math.min(vh-bh-8,y));
+  bub.style.left=x+"px"; bub.style.top=y+"px"; bub.style.right="auto"; bub.dataset.side=side;
+  const ar=bub.querySelector(".arrow")||bub.appendChild(Object.assign(document.createElement("i"),{className:"arrow"}));
+  if(side==="right"||side==="left") ar.style.cssText=`top:${Math.max(14,Math.min(bh-14,cy-y))}px`;
+  else if(side==="top"||side==="bottom") ar.style.cssText=`left:${Math.max(14,Math.min(bw-14,cx-x))}px`;
+  else ar.style.cssText="display:none";
+}
+setInterval(()=>{ if(S) place(); }, 160);
+addEventListener("resize", place);
+
+/* ---------- click policing ---------- */
+const NAVLIKE='[data-act],[data-nav],[data-rowmenu],[data-remove],[data-cremove],[data-stab],[data-done]';
+const BACKS='[data-act="mem-back"],[data-act="ct-back"],[data-act="tf-back"],[data-act="dd-back"],[data-act="up-back"],[data-act="flow-exit"],[data-act="flow-close"]';
+function allowedClick(el){
+  const f=FN(); if(stepIdx<0) return true;
+  const n=el.closest(NAVLIKE); if(!n) return true;           // fields, dropdowns, plain text: always fine
+  const s=f.steps[stepIdx];
+  if(s.sel && n.matches(s.sel)) return true;
+  if(s.allow && n.matches(s.allow)) return true;
+  if(s.fill){ const reg=el.closest(s.fill); if(reg && !n.matches(BACKS)) return true; }
+  return false;
+}
+document.addEventListener("click", e=>{
+  if(ENDED || !e.target.closest("#screen")) return;
+  if(allowedClick(e.target)) return;
+  if(MODE==="guide"){ e.preventDefault(); e.stopPropagation(); const b=$("#bubble"); b.classList.remove("nudge"); void b.offsetWidth; b.classList.add("nudge"); return; }
+  showWrong(e.clientX, e.clientY);
+}, true);
+function showWrong(x,y){
+  const f=FN(), s=f.steps[stepIdx], w=$("#wrong");
+  w.innerHTML=`<button class="wx" aria-label="Close">×</button><b>Not quite.</b> That's not the next step.<div class="whint">Hint: ${s.t}</div>`;
+  w.classList.remove("hidden");
+  const ww=300, wh=w.offsetHeight||90;
+  w.style.left=Math.max(8,Math.min(innerWidth-ww-8,x-ww/2))+"px"; w.style.top=Math.max(8,Math.min(innerHeight-wh-8,y+18))+"px";
+  clearTimeout(wrongTimer); wrongTimer=setTimeout(closeWrong, 9000);
+}
+function closeWrong(){ $("#wrong").classList.add("hidden"); }
+$("#wrong").addEventListener("click", e=>{ if(e.target.closest(".wx")) closeWrong(); });
+$("#msgBox").addEventListener("click", e=>{ if(e.target.closest(".mx")) $("#msgBox").classList.add("hidden"); });
+
+/* ---------- HUD + end card ---------- */
+function drawHud(){
+  const f=FN();
+  const task = MODE==="try" ? `<div class="hud-task ${$("#hud").dataset.open==="0"?"hidden":""}"><b>Your task</b><div>${f.goal}</div>${f.vals.length?`<div class="hv">${f.vals.map(v=>`<div>${v}</div>`).join("")}</div>`:""}</div>` : "";
+  $("#hud").innerHTML=`<div class="hud-row"><span class="pill">${MODE==="guide"?"Guided demo":"Your turn"}: ${f.name}</span>
+    ${MODE==="try"?`<button class="hbtn" id="taskBtn">${$("#hud").dataset.open==="0"?"Show task":"Hide task"}</button>`:""}
+    <a class="hbtn" href="../dashboard.html?day=3">Exit</a></div>${task}`;
+}
+$("#hud").addEventListener("click", e=>{ if(e.target.id==="taskBtn"){ $("#hud").dataset.open = $("#hud").dataset.open==="0"?"1":"0"; drawHud(); } });
+document.addEventListener("click", e=>{
+  if(e.target.id==="skipGuide") startTry();
+});
+function startTry(){ MODE="try"; $("#hud").dataset.open="1"; newSession(); }
+function startGuide(){ MODE="guide"; newSession(); }
+function showEnd(){
+  const f=FN(), card=$("#endCard"); closeWrong();
+  const rd=document.querySelector("#screen");
+  let inner;
+  if(MODE==="guide"){
+    inner=`<h2>Guided run complete 🎉</h2><p>That's <b>${f.name}</b>. Now try it yourself, without hints. The task and details stay in the corner.</p>
+      <div class="ebtns"><button class="btn primary" id="goTry">Try it myself</button><button class="btn" id="goReplay">Replay the guide</button></div>
+      ${NOTION[f.id]?`<p class="nt"><a href="${NOTION[f.id]}" target="_blank" rel="noopener">Further reading: Notion ↗</a></p>`:""}`;
+  } else {
+    const items=f.check(), all=items.every(i=>i.ok);
+    inner=`<h2>${all?"Nice work 🎉":"Finished, with a few differences"}</h2><p>You completed <b>${f.name}</b>. Practice only, nothing is graded.</p>
+      ${items.length?`<table class="res"><thead><tr><th></th><th>Expected</th><th>You saved</th></tr></thead><tbody>${items.map(i=>`<tr><td>${i.ok?'<span class="check">✓</span>':'<span class="cross">✗</span>'} ${i.label}</td><td>${i.expected}</td><td>${i.actual}</td></tr>`).join("")}</tbody></table>`:""}
+      <div class="ebtns"><button class="btn primary" id="goTry">Practice again</button><button class="btn" id="goReplay">Replay the guide</button><a class="btn" href="../dashboard.html?day=3" style="text-decoration:none">Back to dashboard</a></div>
+      ${NOTION[f.id]?`<p class="nt"><a href="${NOTION[f.id]}" target="_blank" rel="noopener">Further reading: Notion ↗</a></p>`:""}`;
+  }
+  card.innerHTML=`<div class="ecard">${inner}</div>`; card.classList.remove("hidden");
+  $("#goTry").onclick=startTry; $("#goReplay").onclick=startGuide;
+}
+
+/* Keep the overlay in sync after every redraw of the fake Connect screen */
 const _render = render;
-render = function(){ _render(); if(S && $("#coach")) drawCoach(); };
+render = function(){ _render(); if(S && $("#hud")) refresh(); };
 
 EX.amName = ME.name;
 newSession();

@@ -62,6 +62,8 @@
   .mats a:hover{text-decoration:underline}
   .mats a.dl{color:var(--ink);text-decoration:underline;font-weight:500;display:inline-flex;gap:8px;align-items:center}
   .mats a.dl::before{content:"";width:16px;height:16px;flex:none;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3v12M7 10l5 5 5-5M4 17v3h16v-3'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3v12M7 10l5 5 5-5M4 17v3h16v-3'/%3E%3C/svg%3E") center/contain no-repeat}
+  .mats a.lk{color:var(--ink);text-decoration:underline;font-weight:500;display:inline-flex;gap:8px;align-items:center}
+  .mats a.lk::before{content:"";width:16px;height:16px;flex:none;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1'/%3E%3C/svg%3E") center/contain no-repeat}
   .mats .soon{font-size:12px;color:var(--ink-3);white-space:nowrap}
   .exam{margin-top:22px;border-radius:12px;padding:16px 18px;background:var(--marigold-soft);display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
   .exam.ok{background:var(--green-soft)}
@@ -163,7 +165,7 @@ function dropdown(sel, P){
       ${t.href ? `<a class="open" href="${esc(t.href)}" ${/^https?:/.test(t.href)?'target="_blank" rel="noopener"':""} data-open="${t.id}">Open</a>` : ""}</label></li>`;
   }).join("");
   const mats = (sel.materials||[]).length ? `<ul class="mats">${sel.materials.map(m => m.href
-      ? `<li><a ${m.dl?'class="dl"':""} href="${esc(m.href)}" ${m.download?`download="${esc(m.download)}"`:""} target="${(m.dl||/^https?:/.test(m.href))?"_blank":"_self"}" rel="noopener">${esc(m.label)}</a></li>`
+      ? `<li><a ${m.dl?'class="dl"':m.link?'class="lk"':""} href="${esc(m.href)}" ${m.download?`download="${esc(m.download)}"`:""} target="${(m.dl||/^https?:/.test(m.href))?"_blank":"_self"}" rel="noopener">${esc(m.label)}</a></li>`
       : `<li><span>${esc(m.label)}</span><span class="soon">Link coming soon</span></li>`).join("")}</ul>` : "";
   let examHtml = "";
   if (sel.exam){
@@ -176,7 +178,7 @@ function dropdown(sel, P){
         <div style="display:flex;gap:8px;flex-wrap:wrap">${open}${e.kind==="lms"||e.kind==="sim"?"":`<button class="btn sm primary" data-submit="${e.id}">${e.kind==="trainer"?"Mark completed":"I've submitted it"}</button>`}</div></div>`;
     }
   }
-  const body = (tasks || mats) ? `<div class="two">${tasks?`<div><h3>Tasks (${sel.tasksDone} of ${sel.tasks.length})</h3><ul class="tasks">${tasks}</ul></div>`:"<div></div>"}${mats?`<div><h3>Materials</h3>${mats}</div>`:""}</div>` : "";
+  const body = (tasks || mats) ? `<div class="two">${tasks?`<div><h3>${esc(sel.tasksTitle||"Tasks")} (${sel.tasksDone} of ${sel.tasks.length})</h3><ul class="tasks">${tasks}</ul></div>`:"<div></div>"}${mats?`<div><h3>${esc(sel.materialsTitle||"Materials")}</h3>${mats}</div>`:""}</div>` : "";
   return `<div class="drop">${body}${examHtml}${sel.status==="complete"?`<div class="daydone">${ico("check",16)} Day ${sel.day} complete</div>`:""}${catchBtn(sel)}</div>`;
 }
 
