@@ -9,7 +9,7 @@ LMS_DAY_DEFS[3] = {
   tasks: [
     { id: "d3-demo-login",        group: "Guided Demos (Onboarding)", label: "Log in to FC Connect (AM)",                          href: "sims/connect-demo.html?fn=login" },
     { id: "d3-demo-authrep",      group: "Guided Demos (Onboarding)", label: "Add the authorized representative",                  href: "sims/connect-demo.html?fn=authrep" },
-    { id: "d3-demo-settings",     group: "Guided Demos (Onboarding)", label: "Change the representative's email and number",       href: "sims/connect-demo.html?fn=settings" },
+    { id: "d3-demo-settings",     group: "Guided Demos (Onboarding)", label: "Change the representative's name and number",       href: "sims/connect-demo.html?fn=settings" },
     { id: "d3-demo-contact",      group: "Guided Demos (Open BCL)",   label: "Add bank accounts (Contacts)",                       href: "sims/connect-demo.html?fn=contact" },
     { id: "d3-demo-topup",        group: "Guided Demos (Open BCL)",   label: "Top up the wallet (Deposits)",                       href: "sims/connect-demo.html?fn=topup" },
     { id: "d3-demo-transfer",     group: "Guided Demos (Open BCL)",   label: "Transfer funds",                                     href: "sims/connect-demo.html?fn=transfer" },

@@ -1698,6 +1698,8 @@ const POV_AM = "the <b>Account Manager (AM)</b> from First Circle, working in th
 const POV_CLIENT = "the <b>authorized representative (the client)</b>. These are the screens your client sees in their own Connect account, so you can walk them through it on a call.";
 const PEOPLE = ["Sophia","Hanna","Reyster","Nice"];
 let PERSON = PEOPLE[0];
+const SECOND_NAMES = ["Ingrid","Jo","Carlene"];
+let SECOND = SECOND_NAMES[0];
 const personEmail = () => PERSON.toLowerCase()+"@davaofresh.ph";
 const AM_FIRST = (ME.name||"AM").split(/\s+/)[0], AM_LAST = (ME.name||"").split(/\s+/).slice(1).join(" ");
 const verifiedStart = () => { S.phase="ver"; S.auth="in"; S.page="home"; S.members=[{id:"me", me:true, since:"Sep 29, 2026", general:"Admin", biz:"Approver", credit:"Approver"}]; };
@@ -1732,21 +1734,22 @@ const FUNCS = [
       chk("Email","elizabeth.cruz@sosinc.com",m?m.email:"–",!!m&&norm(m.email)==="elizabeth.cruz@sosinc.com"),
       chk("Mobile","+63 917 123 4567",m?fmtMobile(m.mobile):"–",!!m&&m.mobile==="9171234567"),
       chk("Permission","Applicant",m?m.general:"–",!!m&&m.general==="Applicant")]; } },
-  { id:"settings", group:"Onboarding", pov:"client", name:"Change the representative's email and number", doc:null,
-    goal:"The authorized representative's account is now active. They changed phone and email, so update both in Settings.",
-    vals:["New mobile: <b>0917 555 0123</b>","New email: <b>liz.cruz@sosinc.com</b>"],
-    init(){ verifiedStart(); },
+  { id:"settings", group:"Onboarding", pov:"client", name:"Change the representative's name and number", doc:null,
+    goal:"The authorized representative's account is now active. They changed their phone number and want a second name added to their name, so update both in Settings.",
+    vals:[],
+    init(){ verifiedStart(); SECOND=SECOND_NAMES[Math.floor(Math.random()*SECOND_NAMES.length)];
+      FN().vals=["New mobile: <b>0917 555 0123</b>",`Full name: add <b>${SECOND}</b> after Elizabeth, so first name is <b>Elizabeth ${SECOND}</b>, last name stays <b>Cruz</b>`]; },
     steps:[
       { t:"Open <b>Settings</b> in the left menu.", sel:'[data-nav="settings"]', done:()=>S.page==="settings" },
       { t:"Click <b>Change</b> next to <b>Mobile number</b>.", sel:'[data-act="m-mobile"]', done:()=>!!(S.modal&&(S.modal.type==="mobile"||S.modal.type==="otp"))||S.mobileVerified },
       { t:"Type the new number, then click <b>Update mobile number</b>.", showVals:true, fill:'.modal', sel:'[data-act="send-otp"]', done:()=>!!(S.modal&&S.modal.type==="otp")||S.mobileVerified },
       { t:"A code was sent to the <b>new</b> number. Type it from the <b>message card (bottom left)</b>.", sub:"The new number must be verified before it is saved.", fill:'.modal', sel:'.otp', done:()=>S.mobileVerified },
-      { t:"Now click <b>Change</b> next to <b>Email address</b>.", sel:'[data-act="m-email"]', done:()=>!!(S.modal&&S.modal.type==="email")||did("settings","Changed email") },
-      { t:"Type the new email, then click <b>Update email address</b>.", showVals:true, fill:'.modal', sel:'[data-act="save-email"]', done:()=>did("settings","Changed email") }
+      { t:"Now click <b>Change</b> next to <b>Full name</b>.", sel:'[data-act="m-name"]', done:()=>!!(S.modal&&S.modal.type==="name")||did("settings","Changed full name") },
+      { t:"Add the second name after Elizabeth in the <b>First name</b> box (keep the last name), then click <b>Update full name</b>.", sub:"A second name goes in the first name field, e.g. first name \"Elizabeth Ingrid\", last name \"Cruz\".", showVals:true, fill:'.modal', sel:'[data-act="save-name"]', done:()=>did("settings","Changed full name") }
     ],
     check:()=>[
       chk("Mobile number","+63 917 555 0123",S.mobileVerified?fmtMobile(S.user.mobile):"Not changed",S.mobileVerified&&S.user.mobile==="9175550123"),
-      chk("Email address","liz.cruz@sosinc.com",S.user.email,norm(S.user.email)==="liz.cruz@sosinc.com")] },
+      chk("Full name",`Elizabeth ${SECOND} Cruz`,fullName(S.user),norm(S.user.first)===norm("Elizabeth "+SECOND)&&norm(S.user.last)==="cruz")] },
 
   /* ================= Guided Demos (Open BCL) ================= */
   { id:"contact", group:"Open BCL", pov:"client", name:"Add bank accounts (Contacts)", doc:"Contacts",
