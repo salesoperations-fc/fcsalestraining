@@ -5,13 +5,16 @@ LMS_DAY_DEFS[3] = {
   tasksTitle: "Guided demos",
   materialsTitle: "Further Reading (Notion)",
   // Each demo opens sims/connect-demo.html on that function: a guided run first, then "try it yourself". Practice only, nothing is graded.
+  // group = heading on the dashboard (dashboard.html groups tasks that share a group).
   tasks: [
-    { id: "d3-demo-login",    label: "Log in to FC Connect",                      href: "sims/connect-demo.html?fn=login" },
-    { id: "d3-demo-team",     label: "Add a new team member",                     href: "sims/connect-demo.html?fn=team" },
-    { id: "d3-demo-contact",  label: "Add bank accounts (Contacts)",              href: "sims/connect-demo.html?fn=contact" },
-    { id: "d3-demo-topup",    label: "Top up the wallet (Deposits)",              href: "sims/connect-demo.html?fn=topup" },
-    { id: "d3-demo-transfer", label: "Transfer funds",                            href: "sims/connect-demo.html?fn=transfer" },
-    { id: "d3-demo-drawdown", label: "Use the credit line (Drawdown)",            href: "sims/connect-demo.html?fn=drawdown" }
+    { id: "d3-demo-login",        group: "Guided Demos (Onboarding)", label: "Log in to FC Connect (AM)",                          href: "sims/connect-demo.html?fn=login" },
+    { id: "d3-demo-authrep",      group: "Guided Demos (Onboarding)", label: "Add the authorized representative",                  href: "sims/connect-demo.html?fn=authrep" },
+    { id: "d3-demo-settings",     group: "Guided Demos (Onboarding)", label: "Change the representative's email and number",       href: "sims/connect-demo.html?fn=settings" },
+    { id: "d3-demo-contact",      group: "Guided Demos (Open BCL)",   label: "Add bank accounts (Contacts)",                       href: "sims/connect-demo.html?fn=contact" },
+    { id: "d3-demo-topup",        group: "Guided Demos (Open BCL)",   label: "Top up the wallet (Deposits)",                       href: "sims/connect-demo.html?fn=topup" },
+    { id: "d3-demo-transfer",     group: "Guided Demos (Open BCL)",   label: "Transfer funds",                                     href: "sims/connect-demo.html?fn=transfer" },
+    { id: "d3-demo-drawdown",     group: "Guided Demos (Open BCL)",   label: "Use the credit line (Drawdown)",                     href: "sims/connect-demo.html?fn=drawdown" },
+    { id: "d3-demo-uploadchecks", group: "Guided Demos (Open BCL)",   label: "Sign the contract and upload cheques",               href: "sims/connect-demo.html?fn=uploadchecks" }
   ],
   // link:true = link icon bullet (dark, not teal)
   materials: [

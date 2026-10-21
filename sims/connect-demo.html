@@ -508,6 +508,12 @@ table.res th{font-size:12px;color:var(--ink-2);font-weight:600}
 #wrong{position:fixed;z-index:9300;width:300px;background:#fff;border:2px solid var(--red);border-radius:12px;padding:12px 34px 12px 14px;font-size:13px;line-height:1.5;box-shadow:0 8px 28px rgba(0,0,0,.3)}
 #wrong .wx{position:absolute;top:6px;right:8px}
 #wrong .whint{margin-top:6px;color:var(--ink-2);font-size:12.5px}
+#note{position:fixed;inset:0;z-index:9500;background:rgba(12,30,38,.5);display:grid;place-items:center;padding:20px}
+.ncard{position:relative;background:#fff;border-radius:16px;padding:24px 28px;max-width:480px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4);font-size:15px;line-height:1.6;border-top:6px solid #F4B63F}
+.ncard .nh{font-weight:800;letter-spacing:.08em;font-size:12px;color:#B7791F;margin-bottom:6px}
+.ncard p{margin:0 0 16px}
+.ncard .nx{position:absolute;top:10px;right:14px;background:none;border:0;font-size:22px;cursor:pointer;color:var(--ink-2)}
+.pov{background:#FFF4DA;color:#7A4E00;border-radius:18px;padding:6px 11px;font:700 12px var(--font);box-shadow:0 4px 14px rgba(0,0,0,.15)}
 #endCard{position:fixed;inset:0;z-index:9400;background:rgba(12,30,38,.55);display:grid;place-items:center;padding:20px}
 .ecard{background:#fff;border-radius:16px;padding:26px 28px;max-width:560px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4);font-size:14px;line-height:1.55}
 .ecard h2{margin:0 0 6px;font-size:22px}
@@ -521,9 +527,10 @@ table.res th{font-size:12px;color:var(--ink-2);font-weight:600}
 <div id="spot" class="hidden"></div>
 <div id="bubble" class="bubble hidden"></div>
 <div id="hud"></div>
-<div id="msgBox" class="hidden"><div class="mh"><span>📱 Text / email to the client</span><button class="mx" aria-label="Close">×</button></div><div id="msgList"></div></div>
+<div id="msgBox" class="hidden"><div class="mh"><span>📱 Code by text / email</span><button class="mx" aria-label="Close">×</button></div><div id="msgList"></div></div>
 <div id="wrong" class="hidden"></div>
 <div id="endCard" class="hidden"></div>
+<div id="note" class="hidden"><div class="ncard"><button class="nx" aria-label="Close">×</button><div class="nh">NOTE</div><p id="noteTxt"></p><button class="btn primary" id="noteOk">Got it</button></div></div>
 
 <script>
 /* ============================================================
@@ -780,7 +787,7 @@ function docsView(){
           ${[["You uploaded <b>SEC Certificate of Registration</b>","Sep 8 · 2:57 PM"],["✓ First Circle has verified <b>Articles of Incorporation</b>","Sep 8 · 2:50 PM"],["You uploaded <b>Articles of Incorporation</b>","Sep 8 · 2:30 PM"]].map(a=>`<div style="padding:12px 0;border-bottom:1px solid var(--line);font-size:13px">${a[0]}<div style="font-size:11px;color:var(--ink-3);margin-top:4px">${a[1]}</div></div>`).join("")}</div></div></div></div>`;
 }
 function amSettingsView(){
-  const n=EX.amName, em=n.toLowerCase().replace(/[^a-z\s]/g,"").trim().replace(/\s+/g,".")+"@firstcircle.ph";
+  const n=EX.amName, em=ME.email;
   const ini=n.split(/\s+/).map(w=>w[0]||"").join("").slice(0,2).toUpperCase();
   return `<div class="page"><h2>Profile &amp; Settings</h2><div class="tabs"><span class="tab active">Account Profile</span></div>
     <div class="prof-head"><span class="prof-av">${esc(ini)}</span><b>${esc(n)}</b></div>
@@ -1384,9 +1391,9 @@ $("#screen").addEventListener("click", e=>{
       let v=digits($("#fMobile").value); if(v.startsWith("63")) v=v.slice(2); if(v.startsWith("0")) v=v.slice(1);
       if(!/^9\d{9}$/.test(v)){ S.modal={type:"mobile",val:$("#fMobile").value,err:"Enter a valid mobile number, like 917 123 4567."}; render(); break; }
       if(v===S.user.mobile){ S.modal={type:"mobile",val:$("#fMobile").value,err:"This is already your mobile number."}; render(); break; }
-      S.modal={type:"otp", pending:v, code:newOtp()}; render(); clientSays(`Oh, I just got a text on my new number. The code is <b>${S.modal.code}</b>.`, 1200); break;
+      S.modal={type:"otp", pending:v, code:newOtp()}; render(); clientSays(`Code for the new number: <b>${S.modal.code}</b>.`, 1200); break;
     }
-    case "resend": S.modal={...S.modal, code:newOtp(), err:""}; render(); clientSays(`I got another text. The new code is <b>${S.modal.code}</b>.`, 900); break;
+    case "resend": S.modal={...S.modal, code:newOtp(), err:""}; render(); clientSays(`New code: <b>${S.modal.code}</b>.`, 900); break;
     case "save-email": {
       const v=$("#fEmail").value.trim();
       if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){ S.modal={type:"email",val:v,err:"Enter a valid email address."}; render(); break; }
@@ -1625,7 +1632,7 @@ $("#screen").addEventListener("input", e=>{
     render(); return;
   }
   if(code.length===6 && box.dataset.otpfor==="login"){
-    if(code===S.loginOtp){ S.auth="in"; S.page="home"; S.timeSkip=false; S.loginErr=""; logAction("general","Logged in");
+    if(code===S.loginOtp){ S.auth="in"; S.page=(S.phase==="onb"?"docs":"home"); S.timeSkip=false; S.loginErr=""; logAction("general","Logged in");
       if(S.skipPending){ const d=S.drawdowns.find(x=>x.id===S.skipPending); if(d && !d.cancelled){ d.reviewDone=true; logAction("drawdown",`Credit check done for ${d.ref} (30 minutes later)`); clientSays("Oh! I got an email. It says our loan contract is ready to sign.", 1500); } S.skipPending=null; }
       render();
       if(EX.awaitLogin){ EX.awaitLogin=false; setTimeout(()=>showTask(EX.taskIdx), 600); } }
@@ -1681,53 +1688,88 @@ const NOTION = {
   transfer: "https://www.notion.so/firstcircle/Transfers-2001a5890448800b998cea9f027f8d8c",
   drawdown: "https://www.notion.so/firstcircle/Drawdown-2001a58904488098aed9e8b9f6cc47ce"
 };
+NOTION.authrep = NOTION.team; NOTION.uploadchecks = NOTION.drawdown;
 const fty = t => !!(S.flow && S.flow.type===t), fstep = t => fty(t) ? S.flow.step : -1;
 const did = (task, start) => LOG.some(l=>l.task===task && l.what.startsWith(start));
 const inFlow = ".flow-content";
 const chk = (label, expected, actual, ok) => ({label, expected, actual, ok});
 
+const POV_AM = "the <b>Account Manager (AM)</b> from First Circle, working in the client's account while onboarding them.";
+const POV_CLIENT = "the <b>authorized representative (the client)</b>. These are the screens your client sees in their own Connect account, so you can walk them through it on a call.";
+const PEOPLE = ["Sophia","Hanna","Reyster","Nice"];
+let PERSON = PEOPLE[0];
+const personEmail = () => PERSON.toLowerCase()+"@davaofresh.ph";
+const AM_FIRST = (ME.name||"AM").split(/\s+/)[0], AM_LAST = (ME.name||"").split(/\s+/).slice(1).join(" ");
+const verifiedStart = () => { S.phase="ver"; S.auth="in"; S.page="home"; S.members=[{id:"me", me:true, since:"Sep 29, 2026", general:"Admin", biz:"Approver", credit:"Approver"}]; };
+const onbStart = () => { S.phase="onb"; S.auth="in"; S.page="docs"; S.members=[]; S.user={first:AM_FIRST, last:AM_LAST, email:ME.email, mobile:"9170000000"}; };
+/* the shared steps for signing + uploading checks */
+const dd_flow_ids = true;
+
 const FUNCS = [
-  { id:"login", name:"Log in to FC Connect", doc:null,
-    goal:"Sign in to the client's Connect account with the email, password and one-time code (OTP).",
-    vals:[], init(){ S.auth="login"; },
+  /* ================= Guided Demos (Onboarding) ================= */
+  { id:"login", group:"Onboarding", pov:"am", name:"Log in to FC Connect", doc:null,
+    goal:"Sign in to the client's Connect account (onboarding view) with your own email, then the one-time code (OTP).",
+    vals:[], init(){ onbStart(); S.auth="login"; },
     steps:[
-      { t:"This is the Connect login page. The email and password are already filled in. Click <b>Log in</b>.", sel:'[data-act="login"]', done:()=>S.auth!=="login" },
-      { t:"A 6-digit code was sent by text. Look at the <b>message card (bottom left)</b> and type the code into the boxes.", sub:"In real life the code goes to the client's phone and email. Never ask a client to read it out to you.", sel:'.otp', done:()=>S.auth==="in" },
-      { t:"You're in. Check the balance and credit on Home, then click <b>Log Out</b> (bottom left) to finish.", sel:'[data-act="logout"]', done:a=>a[1] && S.auth==="login" }
+      { t:"This is the Connect login page. Your email and the password are already filled in. Click <b>Log in</b>.", sel:'[data-act="login"]', done:()=>S.auth!=="login" },
+      { t:"A 6-digit code was sent by text. Look at the <b>message card (bottom left)</b> and type the code into the boxes.", sub:"In real life the code goes to your phone and email.", sel:'.otp', done:()=>S.auth==="in" },
+      { t:"You're in the client's onboarding view: <b>Documents</b> (what the client must submit), <b>Team Access</b> and <b>Settings</b>. Click <b>Team Access</b> to continue.", sel:'[data-nav="team"]', done:()=>S.page==="team" }
     ], check:()=>[] },
-  { id:"team", name:"Add a new team member", doc:"Teams",
-    goal:"A new finance officer was hired at SOS Inc. Give him access to Connect.",
-    vals:["First name: <b>Paolo</b>","Last name: <b>Reyes</b>","Email: <b>paolo.reyes@sosinc.com</b>","Mobile: <b>0919 876 5432</b>","Permissions: <b>your choice</b>"],
+  { id:"authrep", group:"Onboarding", pov:"am", name:"Add the authorized representative", doc:"Teams",
+    goal:"The client just signed up. Add their authorized representative to the Connect account so they can finish onboarding.",
+    vals:["First name: <b>Elizabeth</b>","Last name: <b>Cruz</b>","Email: <b>elizabeth.cruz@sosinc.com</b>","Mobile: <b>0917 123 4567</b>","Permission: <b>Applicant</b>"],
+    init(){ onbStart(); },
     steps:[
       { t:"Open <b>Team Access</b> in the left menu.", sel:'[data-nav="team"]', done:()=>S.page==="team"||!!S.flow },
       { t:"Click <b>Add new member</b>.", sel:'[data-act="add-member"]', done:()=>fty("member")||S.members.some(m=>m.added) },
-      { t:"Fill in the member's details, then click <b>Next</b>.", showVals:true, fill:inFlow, sel:'[data-act="mem-next1"]', done:()=>fstep("member")>=1||S.members.some(m=>m.added) },
-      { t:"Assign permissions, then <b>Next</b>.", sub:"Admin is full control. Viewer is read-only. Business and Credit have their own roles.", fill:inFlow, sel:'[data-act="mem-next2"]', done:()=>fstep("member")>=2||S.members.some(m=>m.added) },
+      { t:"Fill in the representative's details, then click <b>Next</b>.", sub:"Use the exact name and email the client gave you. The invite goes to that email.", showVals:true, fill:inFlow, sel:'[data-act="mem-next1"]', done:()=>fstep("member")>=1||S.members.some(m=>m.added) },
+      { t:"Choose <b>Applicant</b> as the permission, then <b>Next</b>.", sub:"During onboarding, Applicant is the only role. Full roles come after the account is verified.", fill:inFlow, sel:'[data-act="mem-next2"]', done:()=>fstep("member")>=2||S.members.some(m=>m.added) },
       { t:"Review everything, then click <b>Confirm</b>.", sel:'[data-act="mem-confirm"]', done:()=>S.members.some(m=>m.added) },
-      { t:"Click <b>Go to Team Access</b>. Paolo shows an <i>Invite sent</i> tag until he accepts the email.", sel:'[data-act="succ-go"]', done:()=>S.members.some(m=>m.added) && S.page==="team" && !S.success }
+      { t:"Click <b>Go to Team Access</b>. The representative shows <i>Invite sent</i> until they accept the email.", sel:'[data-act="succ-go"]', done:()=>S.members.some(m=>m.added) && S.page==="team" && !S.success }
     ],
     check:()=>{ const m=S.members.find(x=>x.added); return [
-      chk("Member added","Paolo Reyes",m?`${m.first} ${m.last}`:"Nobody added",!!m&&norm(m.first)==="paolo"&&norm(m.last)==="reyes"),
-      chk("Email","paolo.reyes@sosinc.com",m?m.email:"–",!!m&&norm(m.email)==="paolo.reyes@sosinc.com"),
-      chk("Mobile","+63 919 876 5432",m?fmtMobile(m.mobile):"–",!!m&&m.mobile==="9198765432")]; } },
-  { id:"contact", name:"Add bank accounts (Contacts)", doc:"Contacts",
-    goal:"A new supplier needs to be paid later. Save the supplier and its bank account as a Contact.",
-    vals:["Type: <b>Company</b>","Company name: <b>Davao Fresh Produce Trading</b>","Account name: <b>Davao Fresh Produce Trading</b>","Bank: <b>BPI</b>","Account number: <b>3012 9876 5432</b>","Contact person: <b>Liza Ramos</b>, <b>liza@davaofresh.ph</b>"],
+      chk("Member added","Elizabeth Cruz",m?`${m.first} ${m.last}`:"Nobody added",!!m&&norm(m.first)==="elizabeth"&&norm(m.last)==="cruz"),
+      chk("Email","elizabeth.cruz@sosinc.com",m?m.email:"–",!!m&&norm(m.email)==="elizabeth.cruz@sosinc.com"),
+      chk("Mobile","+63 917 123 4567",m?fmtMobile(m.mobile):"–",!!m&&m.mobile==="9171234567"),
+      chk("Permission","Applicant",m?m.general:"–",!!m&&m.general==="Applicant")]; } },
+  { id:"settings", group:"Onboarding", pov:"client", name:"Change the representative's email and number", doc:null,
+    goal:"The authorized representative's account is now active. They changed phone and email, so update both in Settings.",
+    vals:["New mobile: <b>0917 555 0123</b>","New email: <b>liz.cruz@sosinc.com</b>"],
+    init(){ verifiedStart(); },
+    steps:[
+      { t:"Open <b>Settings</b> in the left menu.", sel:'[data-nav="settings"]', done:()=>S.page==="settings" },
+      { t:"Click <b>Change</b> next to <b>Mobile number</b>.", sel:'[data-act="m-mobile"]', done:()=>!!(S.modal&&(S.modal.type==="mobile"||S.modal.type==="otp"))||S.mobileVerified },
+      { t:"Type the new number, then click <b>Update mobile number</b>.", showVals:true, fill:'.modal', sel:'[data-act="send-otp"]', done:()=>!!(S.modal&&S.modal.type==="otp")||S.mobileVerified },
+      { t:"A code was sent to the <b>new</b> number. Type it from the <b>message card (bottom left)</b>.", sub:"The new number must be verified before it is saved.", fill:'.modal', sel:'.otp', done:()=>S.mobileVerified },
+      { t:"Now click <b>Change</b> next to <b>Email address</b>.", sel:'[data-act="m-email"]', done:()=>!!(S.modal&&S.modal.type==="email")||did("settings","Changed email") },
+      { t:"Type the new email, then click <b>Update email address</b>.", showVals:true, fill:'.modal', sel:'[data-act="save-email"]', done:()=>did("settings","Changed email") }
+    ],
+    check:()=>[
+      chk("Mobile number","+63 917 555 0123",S.mobileVerified?fmtMobile(S.user.mobile):"Not changed",S.mobileVerified&&S.user.mobile==="9175550123"),
+      chk("Email address","liz.cruz@sosinc.com",S.user.email,norm(S.user.email)==="liz.cruz@sosinc.com")] },
+
+  /* ================= Guided Demos (Open BCL) ================= */
+  { id:"contact", group:"Open BCL", pov:"client", name:"Add bank accounts (Contacts)", doc:"Contacts",
+    goal:"A new supplier needs to be paid later. Save the supplier, its bank account and a contact person.",
+    vals:[], init(){ verifiedStart(); PERSON=PEOPLE[Math.floor(Math.random()*PEOPLE.length)];
+      FN().vals=["Type: <b>Company</b>","Company name: <b>Davao Fresh Produce Trading</b>","Account name: <b>Davao Fresh Produce Trading</b>","Bank: <b>BPI</b>","Account number: <b>3012 9876 5432</b>",`Contact person: <b>${PERSON}</b>, <b>${personEmail()}</b>`]; },
     steps:[
       { t:"Open <b>Contacts</b> in the left menu.", sel:'[data-nav="contacts"]', done:()=>S.page==="contacts"||!!S.flow },
       { t:"Click <b>Add new contact</b>.", sel:'[data-act="add-contact"]', done:()=>fty("contact")||S.contacts.some(c=>c.added) },
       { t:"Choose the contact type and type the name, then <b>Next</b>.", sub:"The nickname is only how it's saved for your team.", showVals:true, fill:inFlow, sel:'[data-act="ct-next"]', done:()=>fstep("contact")>=1||S.contacts.some(c=>c.added) },
       { t:"Enter the bank account details, then <b>Next</b>.", sub:"Check the bank and the 12-digit number twice. A wrong digit sends money to the wrong account.", showVals:true, fill:inFlow, sel:'[data-act="ct-next"]', done:()=>fstep("contact")>=2||S.contacts.some(c=>c.added) },
-      { t:"Enter the contact person, then <b>Next</b>.", showVals:true, fill:inFlow, sel:'[data-act="ct-next"]', done:()=>fstep("contact")>=3||S.contacts.some(c=>c.added) },
+      { t:"Enter the contact person's name and email, then <b>Next</b>.", showVals:true, fill:inFlow, sel:'[data-act="ct-next"]', done:()=>fstep("contact")>=3||S.contacts.some(c=>c.added) },
       { t:"Review the details, then click <b>Confirm</b>.", sel:'[data-act="ct-confirm"]', done:()=>S.contacts.some(c=>c.added) }
     ],
-    check:()=>{ const c=S.contacts.find(x=>x.added), b=c&&c.banks[0]; return [
+    check:()=>{ const c=S.contacts.find(x=>x.added), b=c&&c.banks[0], p=c&&c.persons[0]; return [
       chk("Contact name","Davao Fresh Produce Trading",c?c.name:"No contact added",!!c&&norm(c.name)==="davao fresh produce trading"),
       chk("Bank","BPI",b?b.bank:"–",!!b&&b.bank==="BPI"),
-      chk("Account number","3012-9876-5432",b?fmtAcct(b.number):"–",!!b&&b.number==="301298765432")]; } },
-  { id:"topup", name:"Top up the wallet (Deposits)", doc:"Deposits",
+      chk("Account number","3012-9876-5432",b?fmtAcct(b.number):"–",!!b&&b.number==="301298765432"),
+      chk("Contact person",PERSON,p?p.name:"–",!!p&&norm(p.name)===norm(PERSON)),
+      chk("Contact person's email",personEmail(),p?p.email:"–",!!p&&norm(p.email)===personEmail())]; } },
+  { id:"topup", group:"Open BCL", pov:"client", name:"Top up the wallet (Deposits)", doc:"Deposits",
     goal:"The client asks where to deposit money into the FC account, and wants the QR code to send to the finance team.",
-    vals:[],
+    vals:[], init(){ verifiedStart(); },
     steps:[
       { t:"On <b>Home</b>, click <b>Local bank deposit</b>.", sub:"You can also find it under Business Accounts.", sel:'[data-act="open-deposit"]', done:()=>S.depositOpened },
       { t:"Click <b>Copy all account details</b>.", sub:"Note the <b>Transaction reference</b>. The client must enter it when transferring, or we can't match the deposit.", sel:'[data-act="dep-copy"][data-k="all"]', done:()=>did("topup","Copied all") },
@@ -1736,9 +1778,9 @@ const FUNCS = [
       { t:"Click the <b>×</b> at the top right to close the deposit page.", sel:'[data-act="dep-close"]', done:a=>a[3] && !fty("deposit") }
     ],
     check:()=>[chk("QR code downloaded","Image or PDF",S.qrShared?(S.qrShared==="pdf"?"PDF":"Image"):"Not downloaded",!!S.qrShared)] },
-  { id:"transfer", name:"Transfer funds", doc:"Transfers",
+  { id:"transfer", group:"Open BCL", pov:"client", name:"Transfer funds", doc:"Transfers",
     goal:"The client wants to pay a supplier that is already saved as a Contact.",
-    vals:["Contact: <b>Metro Office Rentals</b> (BPI)","Amount: <b>25,000</b>","Notes (optional): <b>Invoice 1042</b>"],
+    vals:["Contact: <b>Metro Office Rentals</b> (BPI)","Amount: <b>25,000</b>","Notes (optional): <b>Invoice 1042</b>"], init(){ verifiedStart(); },
     steps:[
       { t:"On <b>Home</b>, click <b>Single transfer</b>.", sel:'[data-act="open-transfer"]', done:()=>fty("transfer")||S.transfers.length>0 },
       { t:"Search and pick the contact, choose its bank account, then <b>Next</b>.", sub:"No contact yet? Use + Add new contact (see the Contacts demo).", showVals:true, fill:inFlow, sel:'[data-act="tf-next"]', allow:'[data-act="tf-pick"],[data-ddpick]', done:()=>fstep("transfer")>=1||S.transfers.length>0 },
@@ -1750,9 +1792,9 @@ const FUNCS = [
     check:()=>{ const t=S.transfers[0]; return [
       chk("Recipient","Metro Office Rentals",t?t.contact:"No transfer sent",!!t&&norm(t.contact)==="metro office rentals"),
       chk("Amount",peso(25000),t?peso(t.amt):"–",!!t&&t.amt===25000)]; } },
-  { id:"drawdown", name:"Use the credit line (Drawdown)", doc:"Drawdown",
-    goal:"The client needs working capital. Request a drawdown from the Business Credit Line and take it up to the check pickup.",
-    vals:["Product: <b>Business Credit Line</b>","Amount: <b>300,000</b>","Term: <b>3 months</b>, <b>Monthly</b>","Repayment: <b>Post-dated checks</b>","Disbursement: <b>SOS Inc. ***4821</b> (BDO)","Uploads: any 3 image or PDF files"],
+  { id:"drawdown", group:"Open BCL", pov:"client", name:"Use the credit line (Drawdown)", doc:"Drawdown", next:"uploadchecks", nextLabel:"Next demo: Upload cheques",
+    goal:"The client needs working capital. Request a drawdown from the Business Credit Line.",
+    vals:["Product: <b>Business Credit Line</b>","Amount: <b>300,000</b>","Term: <b>3 months</b>, <b>Monthly</b>","Repayment: <b>Post-dated checks</b>","Disbursement: <b>SOS Inc. ***4821</b> (BDO)"], init(){ verifiedStart(); },
     steps:[
       { t:"Open <b>Credit</b> in the left menu to see the available credit.", sel:'[data-nav="credit"]', done:()=>S.page==="credit"||S.page==="dd"||!!S.flow },
       { t:"Click <b>Draw funds</b>.", sel:'[data-act="open-dd"]', done:()=>fty("dd")||S.drawdowns.length>0 },
@@ -1760,17 +1802,29 @@ const FUNCS = [
       { t:"Set the amount, term and repayment frequency, then <b>Next</b>.", sub:"Watch the box on the right: what the client receives, the fee, the interest and each repayment.", showVals:true, sel:'[data-act="dd-next"]', allow:'[data-act="dd-freq"]', fill:inFlow, done:()=>fstep("dd")>=2||S.drawdowns.length>0 },
       { t:"Review the loan details, then click <b>Confirm loan details</b>.", sel:'[data-act="dd-next"]', done:()=>fstep("dd")>=3||S.drawdowns.length>0 },
       { t:"Pick the repayment method and the disbursement account, then <b>Submit drawdown request</b>.", sub:"These can't be changed after the contract is signed.", showVals:true, sel:'[data-act="dd-next"]', allow:'[data-act="dd-opt"]', fill:inFlow, done:()=>S.drawdowns.length>0 },
-      { t:"In real life RiskOps' credit check takes about 30 minutes. To skip ahead, click <b>Log Out</b>.", sel:'[data-act="logout"]', done:()=>S.drawdowns.some(d=>d.reviewDone)||S.auth!=="in" },
-      { t:"Click <b>Log in</b>, then type the code from the message card.", sel:'[data-act="login"]', allow:'[data-act="login"]', done:()=>S.drawdowns.some(d=>d.reviewDone) && S.auth==="in" },
-      { t:"Go to <b>Credit</b> and click <b>View status</b>, then <b>Sign contract</b>.", sel:'[data-act="dd-sign"],[data-act="view-dd"],[data-nav="credit"]', allow:'[data-act="dd-sign-yes"],[data-act="view-dd"],[data-act="dd-sign"]', done:()=>S.drawdowns.some(d=>d.signed) },
-      { t:"Click <b>Upload checks</b> and add the check files (one per repayment). Wait until they show as verified, then <b>Next</b>.", sel:'[data-act="dd-upload"],[data-act="up-next"]:not([disabled]),.drop', allow:'[data-act="dd-upload"],[data-act="up-next"],[data-act="dd-rmfile"]', done:()=>S.drawdowns.some(d=>d.signed && d.files.length>0) && (fstep("upload")>=1 || S.drawdowns.some(d=>d.pickup)) },
-      { t:"Pick the pickup address, date and time slot, then <b>Next</b> and <b>Confirm</b>.", sub:"Pickup must be within 2 business days.", sel:'[data-act="up-next"],[data-act="up-confirm"]', allow:'[data-act="pk-slot"],[data-act="up-next"],[data-act="up-confirm"],[data-act="up-back"]', fill:inFlow, done:()=>S.drawdowns.some(d=>d.pickup) }
+      { t:"Request sent! First Circle now runs a <b>credit check, about 30 minutes</b>. Only after that can the client sign the contract and upload the cheques (next demo). Click <b>Return to Credit</b>.", sel:'[data-act="succ-go"]', done:()=>S.drawdowns.length>0 && !S.success && S.page==="credit" }
     ],
     check:()=>{ const d=S.drawdowns.filter(x=>!x.cancelled)[0]; return [
       chk("Amount",peso(300000),d?peso(d.amount):"No drawdown",!!d&&d.amount===300000),
       chk("Term and frequency","3 months, Monthly",d?`${d.term} months, ${d.freq}`:"–",!!d&&d.term===3&&d.freq==="Monthly"),
       chk("Repayment method","Post-dated checks",d?d.repay:"–",!!d&&d.repay==="Post-dated checks"),
-      chk("Disbursement account","SOS Inc. ***4821 (BDO)",d?disbLabel(d):"–",!!d&&d.disb==="bdo")]; } }
+      chk("Disbursement account","SOS Inc. ***4821 (BDO)",d?disbLabel(d):"–",!!d&&d.disb==="bdo")]; } },
+  { id:"uploadchecks", group:"Open BCL", pov:"client", name:"Sign the contract and upload cheques", doc:"Drawdown",
+    goal:"The drawdown from the last demo is waiting for review. Wait for the credit check, sign the loan contract, then upload the post-dated cheques and book the pickup.",
+    vals:["Uploads: any 3 image or PDF files (one per repayment)","Pickup: any address, date and time slot","Point of contact and mobile: <b>your choice</b>"],
+    init(){ verifiedStart(); S.page="credit";
+      S.drawdowns.push({id:"dprev", ref:"BCL-2609-101", product:"BCL", amount:300000, term:3, freq:"Monthly", repay:"Post-dated checks", disb:"bdo", reviewDone:false, signed:false, files:[], pickup:null, cancelled:false}); },
+    steps:[
+      { t:"Your drawdown is <b>Under review</b>. In real life the credit check takes about 30 minutes, and you'd refresh later. To skip ahead, click <b>Log Out</b>.", sel:'[data-act="logout"]', done:()=>S.drawdowns.some(d=>d.reviewDone)||S.auth!=="in" },
+      { t:"Click <b>Log in</b>, then type the code from the message card.", sel:'[data-act="login"]', allow:'[data-act="login"]', done:()=>S.drawdowns.some(d=>d.reviewDone) && S.auth==="in" },
+      { t:"The review is done. Click <b>View status</b> on the drawdown, then <b>Sign contract</b>.", sub:"Read the contract, tick the agreement box, then click Sign contract.", sel:'[data-act="dd-sign"],[data-act="view-dd"],[data-nav="credit"]', allow:'[data-act="dd-sign-yes"],[data-act="view-dd"],[data-act="dd-sign"]', done:()=>S.drawdowns.some(d=>d.signed) },
+      { t:"Click <b>Upload checks</b>, add the check files (one per repayment), wait until each shows verified, then <b>Next</b>.", sub:"Cheques are made payable to FIRST CIRCLE GROWTH FINANCE CORP.", sel:'[data-act="dd-upload"],[data-act="up-next"]:not([disabled]),.drop', allow:'[data-act="dd-upload"],[data-act="up-next"],[data-act="dd-rmfile"]', done:()=>S.drawdowns.some(d=>d.signed && d.files.length>0) && (fstep("upload")>=1 || S.drawdowns.some(d=>d.pickup)) },
+      { t:"Pick the pickup address, date and time slot, then <b>Next</b> and <b>Confirm</b>.", sub:"Pickup must be within 2 business days. Funds are released after the cheques are received.", sel:'[data-act="up-next"],[data-act="up-confirm"]', allow:'[data-act="pk-slot"],[data-act="up-next"],[data-act="up-confirm"],[data-act="up-back"]', fill:inFlow, done:()=>S.drawdowns.some(d=>d.pickup) }
+    ],
+    check:()=>{ const d=S.drawdowns[0]; return [
+      chk("Contract signed","Yes",d&&d.signed?"Yes":"No",!!d&&d.signed),
+      chk("Cheques uploaded","3 of 3",d?`${d.files.filter(f=>f.ok).length} of 3`:"–",!!d&&d.files.filter(f=>f.ok).length===3),
+      chk("Pickup booked","Scheduled",d&&d.pickup?`${d.pickup.date}, ${d.pickup.slot}`:"Not scheduled",!!d&&!!d.pickup)]; } }
 ];
 
 const QS = new URLSearchParams(location.search);
@@ -1781,13 +1835,13 @@ const FN = () => FUNCS.find(f=>f.id===CUR);
 
 function newSession(){
   S=freshState();
-  S.phase="ver"; S.auth="in"; S.page="home";
-  S.members=[{id:"me", me:true, since:"Sep 29, 2026", general:"Admin", biz:"Approver", credit:"Approver"}];
+  verifiedStart();
   S.timeSkip=false; S.flow=null; S.success=null; S.modal=null;
   const f=FN(); if(f.init) f.init();
   LATCH=f.steps.map(()=>false); LOG.length=0; ENDED=false; scrolledFor=null;
   $("#msgList").innerHTML=""; $("#msgBox").classList.add("hidden"); $("#endCard").classList.add("hidden"); closeWrong();
   render(); refresh();
+  if(MODE==="guide") showNote(); else $("#note").classList.add("hidden");
 }
 
 /* ---------- step tracking ---------- */
@@ -1867,10 +1921,15 @@ $("#wrong").addEventListener("click", e=>{ if(e.target.closest(".wx")) closeWron
 $("#msgBox").addEventListener("click", e=>{ if(e.target.closest(".mx")) $("#msgBox").classList.add("hidden"); });
 
 /* ---------- HUD + end card ---------- */
+function showNote(){
+  const f=FN(); $("#noteTxt").innerHTML=`In this demo you are simulating ${f.pov==="am"?POV_AM:POV_CLIENT}`;
+  $("#note").classList.remove("hidden");
+}
+$("#note").addEventListener("click", e=>{ if(e.target.closest(".nx")||e.target.id==="noteOk"||e.target.id==="note") $("#note").classList.add("hidden"); });
 function drawHud(){
   const f=FN();
   const task = MODE==="try" ? `<div class="hud-task ${$("#hud").dataset.open==="0"?"hidden":""}"><b>Your task</b><div>${f.goal}</div>${f.vals.length?`<div class="hv">${f.vals.map(v=>`<div>${v}</div>`).join("")}</div>`:""}</div>` : "";
-  $("#hud").innerHTML=`<div class="hud-row"><span class="pill">${MODE==="guide"?"Guided demo":"Your turn"}: ${f.name}</span>
+  $("#hud").innerHTML=`<div class="hud-row"><span class="pill">${MODE==="guide"?"Guided demo":"Your turn"}: ${f.name}</span><span class="pov" title="Whose screen you are simulating">${f.pov==="am"?"POV: AM":"POV: Client"}</span>
     ${MODE==="try"?`<button class="hbtn" id="taskBtn">${$("#hud").dataset.open==="0"?"Show task":"Hide task"}</button>`:""}
     <a class="hbtn" href="../dashboard.html?day=3">Exit</a></div>${task}`;
 }
@@ -1887,16 +1946,18 @@ function showEnd(){
   if(MODE==="guide"){
     inner=`<h2>Guided run complete 🎉</h2><p>That's <b>${f.name}</b>. Now try it yourself, without hints. The task and details stay in the corner.</p>
       <div class="ebtns"><button class="btn primary" id="goTry">Try it myself</button><button class="btn" id="goReplay">Replay the guide</button></div>
+      ${f.next?`<div class="ebtns"><button class="btn primary" id="goNext">${f.nextLabel||"Next demo"} →</button></div>`:""}
       ${NOTION[f.id]?`<p class="nt"><a href="${NOTION[f.id]}" target="_blank" rel="noopener">Further reading: Notion ↗</a></p>`:""}`;
   } else {
     const items=f.check(), all=items.every(i=>i.ok);
     inner=`<h2>${all?"Nice work 🎉":"Finished, with a few differences"}</h2><p>You completed <b>${f.name}</b>. Practice only, nothing is graded.</p>
       ${items.length?`<table class="res"><thead><tr><th></th><th>Expected</th><th>You saved</th></tr></thead><tbody>${items.map(i=>`<tr><td>${i.ok?'<span class="check">✓</span>':'<span class="cross">✗</span>'} ${i.label}</td><td>${i.expected}</td><td>${i.actual}</td></tr>`).join("")}</tbody></table>`:""}
-      <div class="ebtns"><button class="btn primary" id="goTry">Practice again</button><button class="btn" id="goReplay">Replay the guide</button><a class="btn" href="../dashboard.html?day=3" style="text-decoration:none">Back to dashboard</a></div>
+      <div class="ebtns"><button class="btn primary" id="goTry">Practice again</button><button class="btn" id="goReplay">Replay the guide</button><a class="btn" href="../dashboard.html?day=3" style="text-decoration:none">Back to dashboard</a>${f.next?`<button class="btn" id="goNext">${f.nextLabel||"Next demo"} →</button>`:""}</div>
       ${NOTION[f.id]?`<p class="nt"><a href="${NOTION[f.id]}" target="_blank" rel="noopener">Further reading: Notion ↗</a></p>`:""}`;
   }
   card.innerHTML=`<div class="ecard">${inner}</div>`; card.classList.remove("hidden");
   $("#goTry").onclick=startTry; $("#goReplay").onclick=startGuide;
+  if($("#goNext")) $("#goNext").onclick=()=>{ CUR=f.next; startGuide(); };
 }
 
 /* Keep the overlay in sync after every redraw of the fake Connect screen */
