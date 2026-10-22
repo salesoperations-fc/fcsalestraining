@@ -1981,7 +1981,7 @@ function finish(timeUp){
     <p><b>${esc(nt.head)}</b></p>
     <ul>${nt.notes.map(n=>`<li>${esc(n)}</li>`).join("")}</ul>
     <div style="display:flex;gap:8px;flex-wrap:wrap" id="resBtns"><button class="btn primary" id="dlRes">Download results</button><a class="btn" href="../dashboard.html?day=4" style="text-decoration:none">Back to dashboard</a></div>`;
-  try{ const h=$("#resPanel").innerHTML; localStorage.setItem("amacademy.d4last."+ME.email, JSON.stringify({total,max,pass,when:new Date().toLocaleString("en-PH",{dateStyle:"medium",timeStyle:"short"}),html:h.slice(0,h.indexOf('<div style="display:flex;gap:8px;flex-wrap:wrap" id="resBtns">'))})); }catch(e){}
+  try{ if(LMS.preview()) throw 0; const h=$("#resPanel").innerHTML; localStorage.setItem("amacademy.d4last."+ME.email, JSON.stringify({total,max,pass,when:new Date().toLocaleString("en-PH",{dateStyle:"medium",timeStyle:"short"}),html:h.slice(0,h.indexOf('<div style="display:flex;gap:8px;flex-wrap:wrap" id="resBtns">'))})); }catch(e){}
   $("#resOv").classList.remove("hidden");
   $("#dlRes").onclick=downloadResults;
 }
@@ -2037,7 +2037,7 @@ $("#finishNo").onclick=()=>$("#finishOv").classList.add("hidden");
 $("#finishYes").onclick=()=>finish(false);
 $("#whoAmI").textContent=ME.name+(MY_BATCH?" · Batch "+MY_BATCH:"")+" ("+ME.email+")";
 (function oneAttempt(){      // everyone except batches in LMS.config.multiAttempt gets a single attempt
- const sb=$("#startBtn"), sbText=sb.textContent; if(!LMS.canRetake()){ sb.disabled=true; sb.textContent="Checking…"; }   // retake batches never need the check   // wait (at most 8s) until we know if it was already taken
+ const sb=$("#startBtn"), sbText=sb.textContent; if(!LMS.canRetake() && !LMS.preview()){ sb.disabled=true; sb.textContent="Checking…"; }   // retake batches never need the check   // wait (at most 8s) until we know if it was already taken
  let blocked=false;
  function apply(){
   if(blocked) return;
@@ -2047,8 +2047,7 @@ $("#whoAmI").textContent=ME.name+(MY_BATCH?" · Batch "+MY_BATCH:"")+" ("+ME.ema
     sb.insertAdjacentHTML("afterend",'<span class="hint" style="align-self:center">You have already taken this exam. Ask Salesops if you need another attempt.</span>');
   } else { sb.disabled=false; sb.textContent=sbText; }
  }
- LMS.ready.then(apply);
- LMS.syncDone.then(apply);     // if the Sheet answers after the 8s cut-off
+ if(!LMS.preview()){ LMS.ready.then(apply); LMS.syncDone.then(apply); }     // if the Sheet answers after the 8s cut-off
 })();
 (function showLast(){
   let r=null; try{ r=JSON.parse(localStorage.getItem("amacademy.d4last."+ME.email)||"null"); }catch(e){}

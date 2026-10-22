@@ -25,6 +25,8 @@ function renderSide(active){
 
       ${C.calendar.link ? link(C.calendar.link,"cal","Training calendar","cal",true) : ""}
       ${link("grades.html","grades","Grades","grades")}
+      ${link("department.html","session","Our Department","department")}
+      ${LMS.isAdmin() ? `<li class="nav-label">Trainers</li>${link("exams.html","exam","Exams","exams")}` : ""}
     </ul>
     <div class="side-foot"><span class="av">${esc(LMS.initials(u.name))}</span><div><b>${esc(u.name)}</b>${LMS.batchOf(u.email) ? `<small style="display:block;color:#8FB0B6;font-size:11px;line-height:1.3">Batch ${esc(LMS.batchOf(u.email))}</small>` : ""}<button id="signOut">Sign out</button></div></div>`;
   document.getElementById("signOut").onclick = () => LMS.signOut();

@@ -60,14 +60,15 @@ function upd(){
 document.addEventListener("change",upd);
 $("submit").onclick=async()=>{
   if($("submit").disabled) return; $("submit").disabled=true; $("submit").textContent="Submitting…";
-  try{ await LMS.saveResult(EXAM_ID,{score:100,max:100,passed:true,details:"Agreed to all "+N+" statements"}); }catch(e){}
-  showSubmitted(LMS.progress()[EXAM_ID]);
+  let rec=null; try{ rec=await LMS.saveResult(EXAM_ID,{score:100,max:100,passed:true,details:"Agreed to all "+N+" statements"}); }catch(e){}
+  showSubmitted(rec||LMS.progress()[EXAM_ID]);
 };
 upd();
 // Decide as soon as we can: from this browser's saved progress right away, otherwise once the Sheet answers.
 let decided=false;
 function decide(){
   if(decided) return;
+  if(LMS.preview()){ decided=true; document.body.classList.remove("checking"); return; }   // admin preview: always a fresh exam
   const q=LMS.progress()[EXAM_ID], retake=LMS.canRetake()&&/[?&]retake=1/.test(location.search);
   if(q&&q.status==="done"&&!retake){ decided=true; document.body.classList.remove("checking"); showSubmitted(q); }
 }

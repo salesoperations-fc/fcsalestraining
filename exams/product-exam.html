@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Product Exam | AM Onboarding Hub</title>
+<link rel="stylesheet" href="../shared/theme.css">
+<script src="../shared/lms.js"></script>
+<script src="questions.js"></script>
+<style>
+  body{background:var(--mist);min-height:100vh}
+  .pg{max-width:720px;margin:0 auto;padding:28px 20px 64px}
+  .back{display:inline-block;margin-bottom:14px;font-size:14px;font-weight:600;text-decoration:none}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:28px}
+  h1{font-size:26px}
+  .meta{color:var(--ink-2);font-size:14px;margin:6px 0 0}
+  .bar{height:6px;background:#E3E9EA;border-radius:4px;margin:18px 0 22px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--teal);transition:width .2s}
+  .qn{font-size:13px;font-weight:600;color:var(--ink-3)}
+  .qt{font-size:20px;font-weight:600;line-height:1.35;margin:6px 0 18px}
+  .opts{display:grid;gap:10px}
+  .opt{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:12px;align-items:center;padding:13px 16px;border:1.5px solid var(--line);border-radius:12px;font-size:15px;background:#fff}
+  .opt:hover{border-color:#B9CDD1}
+  .opt .k{flex:none;width:26px;height:26px;border-radius:50%;border:1.5px solid #9FB1B5;display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--ink-2)}
+  .opt[aria-checked="true"]{border-color:var(--teal);background:var(--teal-soft)}
+  .opt[aria-checked="true"] .k{background:var(--teal);border-color:var(--teal);color:#fff}
+  .nav{display:flex;justify-content:space-between;gap:10px;margin-top:24px;flex-wrap:wrap}
+  .big{font-size:46px;font-weight:700;color:var(--teal-dark);line-height:1}
+  .verdict{display:inline-block;margin-left:12px;padding:3px 12px;border-radius:20px;font-size:13px;font-weight:700;vertical-align:middle}
+  .verdict.pass{background:var(--green-soft);color:var(--green)} .verdict.fail{background:var(--coral-soft);color:var(--coral)}
+  .note{background:var(--mist);border-radius:12px;padding:14px 16px;margin:18px 0;font-size:14px;line-height:1.55}
+  table.res{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px}
+  table.res td,table.res th{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  table.res th{font-size:12px;color:var(--ink-2)}
+  .ok{color:var(--green);font-weight:700} .no{color:var(--coral);font-weight:700}
+  .why{display:block;font-size:12px;color:var(--ink-3);margin-top:2px}
+  .rev li{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .rev{list-style:none;margin:10px 0 0;padding:0}
+  .rev a{font-weight:600;text-decoration:none}
+  .warn{color:#8A5A00;font-size:13px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="pg">
+  <a class="back" id="back" href="../dashboard.html">← Back</a>
+  <div class="card" id="card"></div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+if (!LMS.requireSignIn()) throw 0;
+
+const key = new URLSearchParams(location.search).get("e") || "1", EX = (window.LMS_EXAMS || {})[key];
+const PREVIEW = LMS.preview();
+if (PREVIEW) $("back").href = "../exams.html", $("back").textContent = "← Back to Exams";
+if (!EX) { $("card").innerHTML = "<h1>Exam not found</h1><p class='meta'>Check the link and try again.</p>"; throw 0; }
+document.title = EX.title + " | AM Onboarding Hub";
+
+const N = EX.questions.length, LET = ["A","B","C","D","E","F"];
+let answers = Array(N).fill(null), cur = 0, started = false;
+
+function intro(blockedMsg){
+  const retakeOk = PREVIEW || LMS.canRetake();
+  $("card").innerHTML = `<h1>${esc(EX.title)}</h1>
+    <p class="meta">${N} multiple-choice questions. Pass mark ${EX.passing}%. Pick one answer for each question.</p>
+    ${blockedMsg ? `<div class="note">${blockedMsg}</div>` : ""}
+    <div class="nav" style="justify-content:flex-start"><button class="btn primary" id="go" ${blockedMsg ? "disabled" : ""}>${blockedMsg ? "Already taken" : "Start exam"}</button></div>`;
+  if (!blockedMsg) $("go").onclick = () => { started = true; cur = 0; question(); };
+}
+
+function question(){
+  const q = EX.questions[cur];
+  $("card").innerHTML = `<div class="qn">Question ${cur + 1} of ${N}</div>
+    <div class="bar"><i style="width:${Math.round((cur) / N * 100)}%"></i></div>
+    <div class="qt">${esc(q.q)}</div>
+    <div class="opts" role="radiogroup" aria-label="Answer choices">${q.options.map((o, i) =>
+      `<button class="opt" role="radio" aria-checked="${answers[cur] === i}" data-i="${i}"><span class="k">${LET[i]}</span><span>${esc(o)}</span></button>`).join("")}</div>
+    <div class="nav"><button class="btn" id="prev" ${cur === 0 ? "disabled" : ""}>Previous</button>
+      <button class="btn primary" id="next" ${answers[cur] === null ? "disabled" : ""}>${cur === N - 1 ? "Review answers" : "Next"}</button></div>`;
+  document.querySelectorAll(".opt").forEach(b => b.onclick = () => { answers[cur] = +b.dataset.i; question(); });
+  $("prev").onclick = () => { cur--; question(); };
+  $("next").onclick = () => { if (cur === N - 1) review(); else { cur++; question(); } };
+}
+
+function review(){
+  const missing = answers.map((a, i) => a === null ? i : -1).filter(i => i >= 0);
+  $("card").innerHTML = `<h1>Review your answers</h1>
+    <p class="meta">${missing.length ? `<span class="warn">${missing.length} unanswered.</span> Click a question to answer it.` : "All questions answered. Submit when you are ready."}</p>
+    <ul class="rev">${EX.questions.map((q, i) => `<li><a href="#" data-q="${i}">${i + 1}. ${esc(q.q)}</a><span>${answers[i] === null ? '<span class="warn">Not answered</span>' : LET[answers[i]]}</span></li>`).join("")}</ul>
+    <div class="nav"><button class="btn" id="backQ">Back to questions</button><button class="btn primary" id="submit" ${missing.length ? "disabled" : ""}>Submit exam</button></div>`;
+  document.querySelectorAll("[data-q]").forEach(a => a.onclick = e => { e.preventDefault(); cur = +a.dataset.q; question(); });
+  $("backQ").onclick = () => { cur = N - 1; question(); };
+  $("submit").onclick = submit;
+}
+
+function grade(){
+  const rows = EX.questions.map((q, i) => ({ n: i + 1, q: q.q, mine: q.options[answers[i]], right: q.options[q.answer], ok: answers[i] === q.answer, why: q.why }));
+  const score = rows.filter(r => r.ok).length, pct = Math.round(score / N * 100), passed = pct >= EX.passing;
+  const missed = rows.filter(r => !r.ok).map(r => r.n);
+  const notes = score === N ? "All answers correct."
+    : `${score} of ${N} correct (${pct}%). ${passed ? "Passed" : "Below the " + EX.passing + "% pass mark"}. Missed question${missed.length > 1 ? "s" : ""}: ${missed.join(", ")}.`;
+  return { rows, score, pct, passed, missed, notes };
+}
+
+async function submit(){
+  $("submit").disabled = true; $("submit").textContent = "Submitting…";
+  const g = grade();
+  const breakdown = g.rows.map(r => `Q${r.n} ${r.ok ? "correct" : "wrong (answered: " + r.mine + "; correct: " + r.right + ")"}`).join("\n");
+  try { await LMS.saveResult(EX.id, { score: g.score, max: N, passed: g.passed, details: g.notes, breakdown, notes: g.notes }); } catch (e) {}
+  results(g);
+}
+
+function results(g){
+  $("card").innerHTML = `<h1>${esc(EX.title)}</h1>
+    <div style="margin-top:14px"><span class="big">${g.score}/${N}</span><span class="verdict ${g.passed ? "pass" : "fail"}">${g.passed ? "PASS" : "NOT YET"}</span></div>
+    <p class="meta">${g.pct}% · pass mark ${EX.passing}%${PREVIEW ? " · <b>preview, not recorded</b>" : ""}</p>
+    <div class="note"><b>Score and notes</b><br>${esc(g.notes)}</div>
+    <table class="res"><thead><tr><th></th><th>Question</th><th>Your answer</th><th>Correct answer</th></tr></thead><tbody>
+      ${g.rows.map(r => `<tr><td class="${r.ok ? "ok" : "no"}">${r.ok ? "✓" : "✗"}</td><td>${r.n}. ${esc(r.q)}${r.why ? `<span class="why">${esc(r.why)}</span>` : ""}</td><td>${esc(r.mine)}</td><td>${esc(r.right)}</td></tr>`).join("")}
+    </tbody></table>
+    <div class="nav" style="justify-content:flex-start">${PREVIEW || LMS.canRetake() ? '<button class="btn" id="again">Try again</button>' : ""}<a class="btn" href="${PREVIEW ? "../exams.html" : "../dashboard.html"}">${PREVIEW ? "Back to Exams" : "Back to dashboard"}</a></div>`;
+  const ag = $("again"); if (ag) ag.onclick = () => { answers = Array(N).fill(null); cur = 0; intro(); };
+}
+
+// Start: preview and retake accounts go straight in; everyone else waits (briefly) for the Sheet to say if it was already taken.
+function alreadyTaken(){
+  const rec = LMS.progress()[EX.id];
+  return rec && rec.status === "done" && !LMS.canRetake() && !PREVIEW ? rec : null;
+}
+function showTaken(rec){ intro(`You already took this exam: <b>${rec.score}/${rec.max}</b>. Ask Salesops if you need another attempt.`); }
+if (PREVIEW || LMS.canRetake()) intro();
+else {
+  $("card").innerHTML = `<h1>${esc(EX.title)}</h1><p class="meta">Checking your progress…</p>`;
+  const decide = () => { if (started) return; const rec = alreadyTaken(); rec ? showTaken(rec) : intro(); };
+  decide.once = false;
+  LMS.ready.then(decide);
+  LMS.syncDone.then(() => { if (!started) { const rec = alreadyTaken(); if (rec) showTaken(rec); } });
+}
+</script>
+</body>
+</html>

@@ -27,6 +27,11 @@ Static site on GitHub Pages (`salesoperations-fc/fcsalestraining`), no build ste
 - `sims/connect-exam.html`: Connect simulation exam. Kept in the repo but not linked from any day. Reports its score as `exam-connect-sim`.
 - `apps-script/Code.gs`: backend. Deployed as a web app (Execute as owner, access Anyone). `backendUrl` in lms.js points to it. Writes to the `Grades` and `Progress` tabs BY COLUMN NAME (columns can be reordered or added). `ADMIN_PASSCODE` is "" (no extra passcode; admins are identified by email only). Set a value to require one. After editing Code.gs, redeploy as a New version.
 
+## Exams, preview and extra tabs
+- `exams/product-exam.html?e=1|2|3`: generic multiple-choice exam engine, questions in `exams/questions.js` (currently silly PLACEHOLDER questions, 10 each, ids `exam-product-1..3`, not attached to any day yet; attach by adding `exam:{ id:"exam-product-1", label:"Product Exam 1", href:"exams/product-exam.html?e=1", kind:"lms", passing:80 }` to a day file).
+- `exams.html` (admins only, "Trainers > Exams" in the sidebar) lists every exam from `exams/registry.js` (add new exams there) and opens them with `?preview=1`. Preview mode (`LMS.preview()`, admins only; ignored for everyone else) records nothing (no localStorage, no Sheet) but `saveResult` still returns the record so the score shows at the end; a banner shows on the page. New exam pages should use `LMS.preview()` to skip any "already taken" logic and any private storage.
+- `department.html`: visible to everyone, "Coming soon" (internal jargon, team directory, ways of working).
+
 ## Progress storage
 - The Google Sheet is the source of truth for progress and grades; the browser copy (localStorage `amacademy`) is a cache. On every page load `LMS.ready = sync()` calls the script's `myProgress` action and merges the result in (so progress follows a person to any browser). Pages that decide on "already taken" wait on `LMS.ready`.
 - Completions go to the `Progress` tab; unticks are logged as a row whose Item ID is `UNDO:<id>` (latest row per item wins). Scored attempts go to `Grades` (and per-exam tabs).

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Our Department | AM Onboarding Hub</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 2a10 10 0 0 1 10 10h-7a3 3 0 0 0-3-3z' fill='%23F0605D'/><path d='M22 12a10 10 0 0 1-10 10v-7a3 3 0 0 0 3-3z' fill='%232BB3A8'/><path d='M12 22A10 10 0 0 1 2 12h7a3 3 0 0 0 3 3z' fill='%23F5B83D'/><path d='M2 12A10 10 0 0 1 12 2v7a3 3 0 0 0-3 3z' fill='%238FD3E0'/></svg>">
+<link rel="stylesheet" href="shared/theme.css">
+<script src="shared/lms.js"></script>
+<script src="shared/shell.js"></script>
+<style>
+  .soon{display:inline-block;margin-top:10px;padding:4px 12px;border-radius:20px;background:var(--marigold-soft);color:#8A5A00;font-size:13px;font-weight:700}
+  .lead{margin:14px 0 26px;color:var(--ink-2);font-size:15px;max-width:620px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+  .tile{border:1px dashed #CFD9DB;background:var(--mist);border-radius:14px;padding:20px}
+  .tile h3{font-size:16px;margin:8px 0 4px}
+  .tile p{margin:0;font-size:14px;color:var(--ink-2)}
+  .tile svg{color:var(--ink-3)}
+</style>
+</head>
+<body>
+<div id="strip"></div>
+<div class="shell">
+  <aside class="side" id="side"></aside>
+  <main class="main"><div class="wrap" id="app"></div></main>
+</div>
+<script>
+if (LMS.requireSignIn()) {
+  renderSide("department");
+  document.getElementById("app").innerHTML = `<h1>Our Department</h1><span class="soon">Coming soon</span>
+    <p class="lead">Everything about how our team works, in one place. We're still putting it together.</p>
+    <div class="grid">
+      <div class="tile">${ico("lesson",22)}<h3>Internal jargon</h3><p>A plain-English glossary of the terms and acronyms you'll hear every day.</p></div>
+      <div class="tile">${ico("session",22)}<h3>Team directory</h3><p>Who's who in the department, what they do, and who to ask for what.</p></div>
+      <div class="tile">${ico("cal",22)}<h3>Ways of working</h3><p>Team rituals, meeting rhythms and how we hand work over.</p></div>
+    </div>`;
+}
+</script>
+</body>
+</html>

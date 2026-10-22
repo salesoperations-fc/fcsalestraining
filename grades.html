@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="shared/theme.css">
 <script src="shared/lms.js"></script>
 <script src="modules.js"></script>
+<script src="exams/registry.js"></script>
 <script src="shared/shell.js"></script>
 <style>
   .bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:18px 0}
@@ -38,6 +39,7 @@ const $ = id => document.getElementById(id);
 const examLabel = {};
 (window.LMS_DAYS||[]).forEach(d => { if (d.exam) examLabel[d.exam.id] = d.exam.label; });
 examLabel["exam-connect-sim"] = "Connect Simulation";
+(window.LMS_EXAM_LIST||[]).forEach(e => { examLabel[e.id] = e.title; });
 const taskLabel = {};
 (window.LMS_DAYS||[]).forEach(d => (d.tasks||[]).forEach(t => taskLabel[t.id] = t.label));
 const nice = id => examLabel[id] || taskLabel[id] || id;

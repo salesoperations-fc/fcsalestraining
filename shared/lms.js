@@ -117,6 +117,9 @@ window.LMS_CONFIG = {
       return changed;
     }).catch(() => false);
   }
+  /* Preview mode: an admin opening an exam with ?preview=1 can take it for real but nothing is saved or sent.
+     The page still gets its result back, so the score shows at the end. */
+  function isPreview(){ try { return new URLSearchParams(location.search).get("preview") === "1" && window.LMS.isAdmin(); } catch(e){ return false; } }
   function progressKey(){ const u = currentUser(); return `progress.${u ? u.email : "anon"}`; }
 
   const LMS = {
@@ -177,13 +180,18 @@ window.LMS_CONFIG = {
     progress(){ return read(progressKey(), {}); },
 
     /** Mark a module as opened (only if not already further along). */
+    /** True when an admin is previewing an exam (?preview=1): nothing is recorded. */
+    preview: isPreview,
+
     start(id){
+      if (isPreview()) return;
       const p = LMS.progress();
       if (!p[id]) { p[id] = { status:"started", attempts:0, updated:Date.now() }; write(progressKey(), p); }
     },
 
     /** Mark a lesson as done (no score). */
     complete(id){
+      if (isPreview()) return Promise.resolve({ status:"done" });
       const p = LMS.progress(), prev = p[id] || {};
       p[id] = { ...prev, status:"done", updated:Date.now() };
       write(progressKey(), p);
@@ -193,6 +201,7 @@ window.LMS_CONFIG = {
 
     /** Undo a tick (task unchecked, exam submission undone). */
     undo(id){
+      if (isPreview()) return Promise.resolve(null);
       const p = LMS.progress();
       if (p[id] && !p[id].max) { delete p[id]; write(progressKey(), p); send("undo", { id }); }
       return Promise.resolve(null);
@@ -204,7 +213,9 @@ window.LMS_CONFIG = {
       const attempt = { score:result.score, max:result.max, passed:!!result.passed, at:Date.now() };
       const history = [...(prev.history||[]), attempt];
       const best = history.reduce((a,b)=> (b.score/b.max) > (a.score/a.max) ? b : a);
-      p[id] = { status:"done", score:best.score, max:best.max, passed:best.passed, attempts:history.length, history, updated:Date.now() };
+      const rec = { status:"done", score:best.score, max:best.max, passed:best.passed, attempts:history.length, history, updated:Date.now() };
+      if (isPreview()) return Promise.resolve(rec);                 // admin preview: not recorded
+      p[id] = rec;
       write(progressKey(), p);
       send("saveResult", { id, score:result.score, max:result.max, passed:!!result.passed, attempt:history.length, details:result.details || "", breakdown:result.breakdown || "", notes:result.notes || "" });
       return Promise.resolve(p[id]);
@@ -230,6 +241,13 @@ window.LMS_CONFIG = {
 
   window.LMS = LMS;
   LMS.sync = sync;
+  document.addEventListener("DOMContentLoaded", () => {      // banner on preview pages
+    if (!isPreview()) return;
+    const b = document.createElement("div");
+    b.style.cssText = "position:sticky;top:0;z-index:60;background:#FFF4DC;color:#6B4E00;font:600 13px/1.4 system-ui,sans-serif;padding:8px 16px;border-bottom:1px solid #F3E2B5;text-align:center";
+    b.textContent = "Preview mode: nothing here is recorded. You still see your score at the end.";
+    document.body.prepend(b);
+  });
   LMS.syncDone = sync();    // resolves (true if anything changed) whenever the Sheet answers, however long it takes
   LMS.ready = Promise.race([LMS.syncDone, new Promise(r => setTimeout(() => r(false), 8000))]);   // pages that must wait on the Sheet wait at most 8s
 })();
