@@ -17,7 +17,7 @@ const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">
 
 function renderSide(active){
   const u = LMS.user(), C = LMS.config;
-  const link = (href,icon,label,key,ext) => `<li><a href="${href}" ${active===key?'aria-current="page"':""} ${ext?'target="_blank" rel="noopener"':""}>${ico(icon)}${label}</a></li>`;
+  const link = (href,icon,label,key,ext,badge) => `<li><a href="${href}" ${active===key?'aria-current="page"':""} ${ext?'target="_blank" rel="noopener"':""}>${ico(icon)}${label}${badge?`<span class="nav-badge">${badge}</span>`:""}</a></li>`;
   document.getElementById("side").innerHTML = `
     <div class="brand">${LOGO}<div><b>${esc(C.appName)}</b><small>${esc(C.company)}</small></div></div>
     <ul class="nav">
@@ -25,7 +25,7 @@ function renderSide(active){
 
       ${C.calendar.link ? link(C.calendar.link,"cal","Training calendar","cal",true) : ""}
       ${link("grades.html","grades","Grades","grades")}
-      ${link("department.html","session","Our Department","department")}
+      ${link("department.html","session","Department","department",false,"Soon")}
       ${LMS.isAdmin() ? `<li class="nav-label">Trainers</li>${link("exams.html","exam","Exams","exams")}` : ""}
     </ul>
     <div class="side-foot"><span class="av">${esc(LMS.initials(u.name))}</span><div><b>${esc(u.name)}</b>${LMS.batchOf(u.email) ? `<small style="display:block;color:#8FB0B6;font-size:11px;line-height:1.3">Batch ${esc(LMS.batchOf(u.email))}</small>` : ""}<button id="signOut">Sign out</button></div></div>`;
