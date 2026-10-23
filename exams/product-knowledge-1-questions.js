@@ -97,7 +97,7 @@ window.LMS_PK1 = {
             "There's no maintaining balance that needs to be met to continue using SBA."], answer:3,
           why:"It's free (for now) to use SBA. Businesses just need to submit the required documents." }
       ] },
-    { title: "Flexible Salary Advance (FSA)",
+    { title: "Future Salary Advance (FSA)",
       desc: "How well do you know FSA?",
       questions: [
         { type:"text", q:"What's the minimum number of employees a business must have to be eligible for FSA? Write only the number (ex: 10).", answer:"20", fmt:"plain",
