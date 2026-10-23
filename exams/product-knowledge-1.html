@@ -9,7 +9,7 @@
 <script src="product-knowledge-1-questions.js"></script>
 <style>
   body{background:var(--mist);min-height:100vh}
-  .pg{max-width:720px;margin:0 auto;padding:28px 20px 64px}
+  .pg{max-width:980px;margin:0 auto;padding:28px 20px 64px}
   .back{display:inline-block;margin-bottom:14px;font-size:14px;font-weight:600;text-decoration:none}
   .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:28px}
   h1{font-size:26px}
@@ -44,6 +44,22 @@
   .opt .k.sq{border-radius:6px}
   .txt{width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:13px 16px;border:1.5px solid var(--line);border-radius:12px}
   .txt:focus{outline:none;border-color:var(--teal)}
+  .card.narrow{max-width:720px;margin:0 auto}
+  .qwrap{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:28px;align-items:start}
+  .qside{position:sticky;top:16px;border-left:1px solid var(--line);padding-left:20px}
+  .qside h4{margin:0 0 8px;font-size:13px}
+  .qside .sn{font-size:12px;color:var(--ink-3);margin:0 0 6px;line-height:1.35}
+  .qside .cnt{font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:14px}
+  .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:16px}
+  .gq{all:unset;box-sizing:border-box;cursor:pointer;height:34px;border-radius:8px;border:1.5px solid var(--line);display:grid;place-items:center;font-size:13px;font-weight:600;color:var(--ink-2);background:#fff}
+  .gq:hover{border-color:#B9CDD1}
+  .gq.a{background:var(--green-soft);border-color:#9AD2AE;color:var(--green)}
+  .gq.c{border-color:var(--teal);box-shadow:0 0 0 2px var(--teal-soft);color:var(--teal-dark)}
+  .gq.a.c{background:var(--green-soft)}
+  .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--ink-3);margin:0 0 14px}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;border:1.5px solid var(--line);margin-right:4px;vertical-align:-1px}
+  .legend .la{background:var(--green-soft);border-color:#9AD2AE} .legend .lc{border-color:var(--teal)}
+  @media(max-width:780px){.qwrap{grid-template-columns:1fr}.qside{position:static;border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:16px}}
   .gray{color:var(--ink-3);font-weight:600}
 </style>
 </head>
@@ -92,7 +108,23 @@ const mine = i => { const q = Q[i], a = answers[i]; return q.type === "multi" ? 
 const right = i => { const q = Q[i]; return !scored(q) ? "Not set yet" : q.type === "multi" ? q.answer.map(x => q.options[x]).join("; ") : q.type === "text" ? "P" + Number(q.answer).toLocaleString("en-PH") : q.options[q.answer]; };
 const nScored = () => Q.reduce((n, q) => n + maxPts(q), 0);
 
+function sideHtml(){
+  const done = Q.filter((_, i) => answered(i)).length;
+  const secs = EX.sections.map((s, si) => {
+    const idx = Q.map((q, i) => q.si === si ? i : -1).filter(i => i >= 0);
+    return `<h4>Section ${si + 1}</h4><div class="sn">${esc(s.title)}</div>
+      <div class="grid">${idx.map(i => `<button class="gq ${answered(i) ? "a" : ""} ${i === cur ? "c" : ""}" data-g="${i}" title="Question ${i + 1}${answered(i) ? " (answered)" : ""}" aria-label="Question ${i + 1}${answered(i) ? ", answered" : ", not answered"}">${answered(i) ? "✓" : i + 1}</button>`).join("")}</div>`;
+  }).join("");
+  return `<div class="cnt">${done} of ${Q.length} answered</div>
+    <div class="legend"><span><i class="la"></i>Answered</span><span><i></i>Not yet</span><span><i class="lc"></i>You are here</span></div>
+    ${secs}<button class="btn" id="toReview" style="width:100%">Review &amp; submit</button>`;
+}
+function wireSide(){
+  document.querySelectorAll("[data-g]").forEach(b => b.onclick = () => { cur = +b.dataset.g; question(); window.scrollTo(0, 0); });
+  const r = $("toReview"); if (r) r.onclick = review;
+}
 function intro(blockedMsg){
+  $("card").classList.add("narrow");
   const total = EX.sections.reduce((n, s) => n + s.questions.length, 0);
   $("card").innerHTML = `<h1>${esc(EX.title)}</h1>
     <p class="meta">${total} questions in ${EX.sections.length} sections. Pass mark ${EX.passing}%. Questions and answer choices are shuffled for each attempt.</p>
@@ -103,6 +135,7 @@ function intro(blockedMsg){
 }
 
 function question(){
+  $("card").classList.remove("narrow");
   const q = Q[cur], N = Q.length, s = EX.sections[q.si], firstOfSection = cur === 0 || Q[cur - 1].si !== q.si;
   let body = "";
   if (q.type === "text") body = `<input class="txt" id="txt" type="text" inputmode="numeric" autocomplete="off" placeholder="₱0" value="${esc(answers[cur])}"><p class="hint" style="margin:8px 0 0">Just type the numbers. The ₱ sign and commas are added for you.</p>`;
@@ -110,14 +143,16 @@ function question(){
       `<button class="opt" role="checkbox" aria-checked="${answers[cur].includes(oi)}" data-i="${oi}"><span class="k sq">${answers[cur].includes(oi) ? "✓" : ""}</span><span>${esc(q.options[oi])}</span></button>`).join("")}</div>`;
   else body = `<div class="opts" role="radiogroup">${q.order.map((oi, k) =>
       `<button class="opt" role="radio" aria-checked="${answers[cur] === oi}" data-i="${oi}"><span class="k">${LET[k]}</span><span>${esc(q.options[oi])}</span></button>`).join("")}</div>`;
-  $("card").innerHTML = `<div class="chip">Section ${q.si + 1}: ${esc(s.title)}</div>
+  $("card").innerHTML = `<div class="qwrap"><div class="qmain"><div class="chip">Section ${q.si + 1}: ${esc(s.title)}</div>
     ${firstOfSection ? `<div class="sdesc">${esc(s.desc)}</div>` : ""}
     <div class="qn">Question ${cur + 1} of ${N}</div>
     <div class="bar"><i style="width:${Math.round(cur / N * 100)}%"></i></div>
     <div class="qt">${esc(q.q)}</div>${body}
     <div class="nav"><button class="btn" id="prev" ${cur === 0 ? "disabled" : ""}>Previous</button>
-      <button class="btn primary" id="next" ${answered(cur) ? "" : "disabled"}>${cur === N - 1 ? "Review answers" : "Next"}</button></div>`;
-  if (q.type === "text") { const t = $("txt"); t.oninput = () => { const d = digitsOf(t.value).replace(/^0+/, ""); t.value = d ? "₱" + Number(d).toLocaleString("en-PH") : ""; answers[cur] = t.value; $("next").disabled = !answered(cur); }; t.onkeydown = e => { if (e.key === "Enter" && answered(cur)) $("next").click(); }; }
+      <button class="btn primary" id="next">${cur === N - 1 ? "Review answers" : answered(cur) ? "Next" : "Skip"}</button></div></div>
+    <aside class="qside" id="qside">${sideHtml()}</aside></div>`;
+  wireSide();
+  if (q.type === "text") { const t = $("txt"); t.oninput = () => { const d = digitsOf(t.value).replace(/^0+/, ""); t.value = d ? "₱" + Number(d).toLocaleString("en-PH") : ""; answers[cur] = t.value; $("next").textContent = cur === N - 1 ? "Review answers" : answered(cur) ? "Next" : "Skip"; $("qside").innerHTML = sideHtml(); wireSide(); }; t.onkeydown = e => { if (e.key === "Enter") $("next").click(); }; }
   else document.querySelectorAll(".opt").forEach(b => b.onclick = () => {
     const oi = +b.dataset.i;
     if (q.type === "multi") { const a = answers[cur]; a.includes(oi) ? a.splice(a.indexOf(oi), 1) : a.push(oi); } else answers[cur] = oi;
@@ -128,6 +163,7 @@ function question(){
 }
 
 function review(){
+  $("card").classList.add("narrow");
   const missing = Q.map((_, i) => answered(i) ? -1 : i).filter(i => i >= 0);
   $("card").innerHTML = `<h1>Review your answers</h1>
     <p class="meta">${missing.length ? `<span class="warn">${missing.length} unanswered.</span> Click a question to answer it.` : "All questions answered. Submit when you are ready."}</p>
@@ -156,6 +192,7 @@ async function submit(){
 }
 
 function results(g){
+  $("card").classList.add("narrow");
   $("card").innerHTML = `<h1>${esc(EX.title)}</h1>
     <div style="margin-top:14px"><span class="big">${fmt(g.score)}/${fmt(g.max)}</span><span class="verdict ${g.passed ? "pass" : "fail"}">${g.passed ? "PASS" : "NOT YET"}</span></div>
     <p class="meta">${g.pct}% · pass mark ${EX.passing}%${PREVIEW ? " · <b>preview, not recorded</b>" : ""}</p>
