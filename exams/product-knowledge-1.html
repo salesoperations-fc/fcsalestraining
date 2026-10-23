@@ -105,7 +105,7 @@ function earned(i){
 const fmt = n => Number.isInteger(n) ? String(n) : n.toFixed(1);
 function correct(i){ const e = earned(i); return e === null ? null : e >= maxPts(Q[i]); }
 const mine = i => { const q = Q[i], a = answers[i]; return q.type === "multi" ? a.slice().sort((x, y) => x - y).map(x => q.options[x]).join("; ") : q.type === "text" ? a.trim() : q.options[a]; };
-const right = i => { const q = Q[i]; return !scored(q) ? "Not set yet" : q.type === "multi" ? q.answer.map(x => q.options[x]).join("; ") : q.type === "text" ? "P" + Number(q.answer).toLocaleString("en-PH") : q.options[q.answer]; };
+const right = i => { const q = Q[i]; return !scored(q) ? "Not set yet" : q.type === "multi" ? q.answer.map(x => q.options[x]).join("; ") : q.type === "text" ? (q.fmt === "peso" ? "₱" : "") + Number(q.answer).toLocaleString("en-PH") : q.options[q.answer]; };
 const nScored = () => Q.reduce((n, q) => n + maxPts(q), 0);
 
 function sideHtml(){
@@ -138,7 +138,7 @@ function question(){
   $("card").classList.remove("narrow");
   const q = Q[cur], N = Q.length, s = EX.sections[q.si], firstOfSection = cur === 0 || Q[cur - 1].si !== q.si;
   let body = "";
-  if (q.type === "text") body = `<input class="txt" id="txt" type="text" inputmode="numeric" autocomplete="off" placeholder="₱0" value="${esc(answers[cur])}"><p class="hint" style="margin:8px 0 0">Just type the numbers. The ₱ sign and commas are added for you.</p>`;
+  if (q.type === "text") body = `<input class="txt" id="txt" type="text" inputmode="numeric" autocomplete="off" placeholder="${q.fmt === "peso" ? "₱0" : "0"}" value="${esc(answers[cur])}"><p class="hint" style="margin:8px 0 0">${q.fmt === "peso" ? "Just type the numbers. The ₱ sign and commas are added for you." : "Type only the number."}</p>`;
   else if (q.type === "multi") body = `<p class="hint">Select all that apply. Wrong picks take points off, so only tick what is required.</p><div class="opts" role="group">${q.order.map((oi, k) =>
       `<button class="opt" role="checkbox" aria-checked="${answers[cur].includes(oi)}" data-i="${oi}"><span class="k sq">${answers[cur].includes(oi) ? "✓" : ""}</span><span>${esc(q.options[oi])}</span></button>`).join("")}</div>`;
   else body = `<div class="opts" role="radiogroup">${q.order.map((oi, k) =>
@@ -152,7 +152,7 @@ function question(){
       <button class="btn primary" id="next">${cur === N - 1 ? "Review answers" : answered(cur) ? "Next" : "Skip"}</button></div></div>
     <aside class="qside" id="qside">${sideHtml()}</aside></div>`;
   wireSide();
-  if (q.type === "text") { const t = $("txt"); t.oninput = () => { const d = digitsOf(t.value).replace(/^0+/, ""); t.value = d ? "₱" + Number(d).toLocaleString("en-PH") : ""; answers[cur] = t.value; $("next").textContent = cur === N - 1 ? "Review answers" : answered(cur) ? "Next" : "Skip"; $("qside").innerHTML = sideHtml(); wireSide(); }; t.onkeydown = e => { if (e.key === "Enter") $("next").click(); }; }
+  if (q.type === "text") { const t = $("txt"); t.oninput = () => { const d = digitsOf(t.value).replace(/^0+/, ""); t.value = !d ? "" : q.fmt === "peso" ? "₱" + Number(d).toLocaleString("en-PH") : d; answers[cur] = t.value; $("next").textContent = cur === N - 1 ? "Review answers" : answered(cur) ? "Next" : "Skip"; $("qside").innerHTML = sideHtml(); wireSide(); }; t.onkeydown = e => { if (e.key === "Enter") $("next").click(); }; }
   else document.querySelectorAll(".opt").forEach(b => b.onclick = () => {
     const oi = +b.dataset.i;
     if (q.type === "multi") { const a = answers[cur]; a.includes(oi) ? a.splice(a.indexOf(oi), 1) : a.push(oi); } else answers[cur] = oi;

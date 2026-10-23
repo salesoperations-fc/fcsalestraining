@@ -3,7 +3,7 @@
    Question types:
      single  options[], answer = index of the right option (options are shuffled for each attempt)
      tf      True/False, answer = 0 (True) or 1 (False); not shuffled
-     text    typed answer, answer = the digits to match (e.g. "199500" accepts P199,500 / 199500 / ₱199,500)
+     text    typed answer. fmt:"peso" shows a ₱ sign and commas as you type; fmt:"plain" is digits only. answer = the digits to match (e.g. "199500" accepts P199,500 / 199500 / ₱199,500)
      multi   tick all that apply, options[], answer = array of right indices (all-or-nothing)
    multi scoring: 0.5 for each right item ticked, minus 0.5 for each wrong item ticked (never below 0). The question is worth
      0.5 x the number of right items.
@@ -24,7 +24,7 @@ window.LMS_PK1 = {
           why:"A revolving credit line (like First Circle's BCL) lets SMEs withdraw, repay, and withdraw again up to their approved limit, similar to a credit card but designed for businesses. Term loans are usually one-time." },
         { type:"single", q:"Your client got granted a credit limit with a 0.79% interest rate. They want to do a bi-weekly (2x a month) repayment scheme. What would be their new monthly interest rate?", options:["0.69%","0.79%","1.99%"], answer:1,
           why:"The rate stays at 0.79%. Choosing a bi-weekly repayment scheme doesn't change the monthly interest rate." },
-        { type:"text", q:"What is the annual subscription fee of a ₱5,000,000 revolving credit line? Type the amount in pesos (ex: ₱87,500)", answer:"199500", placeholder:"Pxxx,xxx",
+        { type:"text", q:"What is the annual subscription fee of a ₱5,000,000 revolving credit line? Type the amount in pesos (ex: ₱87,500)", answer:"199500", fmt:"peso",
           why:"The annual subscription fee of a ₱5,000,000 line is P199,500." },
         { type:"single", q:"Your client just got granted a credit line and wants to drawdown. You need to ask them what's their preferred convenience fee. What's the best pitch to them knowing they only want to utilize their credit line once a year?", options:[
             "\"I recommend the annual subscription fee as it's the cheaper option vs. the processing fee if you only plan on using it once a year.\"",
@@ -96,6 +96,22 @@ window.LMS_PK1 = {
             "It's 10% of the daily transaction volume.",
             "There's no maintaining balance that needs to be met to continue using SBA."], answer:3,
           why:"It's free (for now) to use SBA. Businesses just need to submit the required documents." }
+      ] },
+    { title: "Flexible Salary Advance (FSA)",
+      desc: "How well do you know FSA?",
+      questions: [
+        { type:"text", q:"What's the minimum number of employees a business must have to be eligible for FSA? Write only the number (ex: 10).", answer:"20", fmt:"plain",
+          why:"A business needs at least 20 employees to be eligible for FSA." },
+        { type:"tf", q:"Flexible Salary Advance is cheaper than Asenso Advance.", options:["True","False"], answer:1,
+          why:"Asenso Advance is cheaper than Flexible Salary Advance." },
+        { type:"tf", q:"FSA only charges a monthly interest fee.", options:["True","False"], answer:1,
+          why:"FSA only charges a one-time convenience fee. There are no monthly payments." },
+        { type:"single", q:"When do we issue the SOA that contains the amount the business needs to repay to us?", options:[
+            "5 days before the payroll date.","10 days before the payroll date.","On the payroll date."], answer:1,
+          why:"We send the SOA 10 days before the payroll date." },
+        { type:"single", q:"What's the overdue penalty cost incurred by the employers?", options:[
+            "2% per week of the current SOA balance.","2% per month of the SOA balance at the last day of the month.","2% per week of the base salaries of the borrowers."], answer:0,
+          why:"When the employer doesn't remit the payment on time, they incur an additional 2% per week of the outstanding SOA balance." }
       ] }
   ]
 };
