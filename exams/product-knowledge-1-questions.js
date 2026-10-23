@@ -26,7 +26,7 @@ window.LMS_PK1 = {
           why:"The rate stays at 0.79%. Choosing a bi-weekly repayment scheme doesn't change the monthly interest rate." },
         { type:"text", q:"What is the annual subscription fee of a ₱5,000,000 revolving credit line? Type the amount in pesos (ex: ₱87,500)", answer:"199500", placeholder:"Pxxx,xxx",
           why:"The annual subscription fee of a ₱5,000,000 line is P199,500." },
-        { type:"single", q:"Your client just got granted a credit line and wants to drawdown. You need to ask them what's their preferred convenience fee. What's the best pitch to them knowing they only want to utilise their credit line once a year?", options:[
+        { type:"single", q:"Your client just got granted a credit line and wants to drawdown. You need to ask them what's their preferred convenience fee. What's the best pitch to them knowing they only want to utilize their credit line once a year?", options:[
             "\"I recommend the annual subscription fee as it's the cheaper option vs. the processing fee if you only plan on using it once a year.\"",
             "\"I recommend the processing fee since a one-time fee due 10 days after your drawdown will make it easier to repay.\"",
             "\"I recommend the processing fee as it's the cheaper option vs. the subscription fee if you only plan on using it once a year.\""], answer:2,
@@ -51,7 +51,7 @@ window.LMS_PK1 = {
         { type:"single", q:"If the annual revenue of a business is around P62M, what would be the estimated credit line value?", options:["P10M","P5M","P6M"], answer:1,
           why:"The estimated credit line is P5M. Note that it's only an estimate, not the actual value." },
         { type:"tf", q:"Your client got granted a P7.5M credit line. They used P5.5M of their line. Based on the principal paydown policy, is their credit limit locked?", options:["Yes","No"], answer:1,
-          why:"Not locked yet. Utilisation is about 73% (P5.5M of P7.5M), below the 75% mark." },
+          why:"Not locked yet. Utilization is about 73% (P5.5M of P7.5M), below the 75% mark." },
         { type:"single", q:"It's 2 days before the due date of the client's loan. Can they still reschedule?", options:[
             "Yes, since we can accommodate up until 1 day before the due date.",
             "Yes, since we can accommodate up until 2 days before the due date.",
@@ -67,11 +67,11 @@ window.LMS_PK1 = {
             "No, they can submit fulfilled purchase orders instead.",
             "No, paid invoices aren't valid since they've been paid already."], answer:2,
           why:"Paid invoices aren't valid because they've already been paid. They are no longer proof of future income." },
-        { type:"multi", q:"Please select the requirements B2B corporate applicants need to submit to apply for a revolving credit line and maximise its credit limit.",
+        { type:"multi", q:"Please select the requirements B2B corporate applicants need to submit to apply for a revolving credit line and maximize its credit limit.",
           options:["Latest DTI Certificate","Secretary's Certificate","SEC Certificate of Registration","Latest General Information Sheet","Latest Audited Financial Statements","BIR 2303","Latest Income Tax Return","Articles of Incorporation","Latest 3-6 month bank statements","Future Revenue","Trading Relationship","Updated Valid ID","Latest Articles of Partnership"],
           answer:[1,2,3,4,7,8,9,10,11],
-          why:"Corporate applicants submit: Secretary's Certificate, SEC Certificate of Registration, Latest General Information Sheet, Latest Audited Financial Statements, Articles of Incorporation, Latest 3-6 month bank statements, Future Revenue, Trading Relationship and an Updated Valid ID. Best to memorise this, since you can meet a lead at an event or social gathering." },
-        { type:"multi", q:"Please select the requirements B2B sole proprietor applicants need to submit to apply for a revolving credit line and maximise its credit limit.",
+          why:"Corporate applicants submit: Secretary's Certificate, SEC Certificate of Registration, Latest General Information Sheet, Latest Audited Financial Statements, Articles of Incorporation, Latest 3-6 month bank statements, Future Revenue, Trading Relationship and an Updated Valid ID. Best to memorize this, since you can meet a lead at an event or social gathering." },
+        { type:"multi", q:"Please select the requirements B2B sole proprietor applicants need to submit to apply for a revolving credit line and maximize its credit limit.",
           options:["Latest DTI Certificate","Secretary's Certificate","SEC Certificate of Registration","Latest General Information Sheet","Latest Audited Financial Statements","BIR 2303","Latest Income Tax Return","Articles of Incorporation","Latest 3-6 month bank statements","Future Revenue","Trading Relationship","Updated Valid ID","Latest Articles of Partnership"],
           answer:[0,5,6,8,9,10,11],
           why:"Sole proprietors submit: Latest DTI Certificate, BIR 2303 (BIR COR), Latest Income Tax Return, Latest 3-6 month bank statements, Future Revenue, Trading Relationship and an Updated Valid ID." }

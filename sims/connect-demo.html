@@ -955,7 +955,7 @@ function calcLoan(amount, term, freq){
   return {n, fee, interest, total, each, receive:amount-fee, dates};
 }
 const activeDD = () => S.drawdowns.find(d=>!d.cancelled && !d.pickup);
-const ddStatus = d => d.cancelled?["Cancelled","bad"]:!d.reviewDone?["Under review","warn"]:!d.signed?["Ready to sign","warn"]:(d.repay==="Post-dated checks"&&!d.pickup)?["Upload checks","warn"]:["Processing disbursement","ok"];
+const ddStatus = d => d.cancelled?["Canceled","bad"]:!d.reviewDone?["Under review","warn"]:!d.signed?["Ready to sign","warn"]:(d.repay==="Post-dated checks"&&!d.pickup)?["Upload checks","warn"]:["Processing disbursement","ok"];
 const usedCredit = () => S.drawdowns.filter(d=>!d.cancelled).reduce((a,d)=>a+d.amount,0);
 const disbLabel = d => d.disb==="payments" ? "Payments Account" : (OWN_BANKS.find(b=>b.id===d.disb)||{}).name+" · "+(OWN_BANKS.find(b=>b.id===d.disb)||{}).bank;
 
@@ -1048,7 +1048,7 @@ function ddDetailView(){
   return `<div class="page"><button class="icon-btn" data-nav="credit" aria-label="Back">←</button>
     <div class="ddh"><span class="ic">${ico("draw",26,1.6)}</span><div style="flex:1"><span class="type-tag" style="margin:0">Business Credit Line</span><h2>${d.ref}</h2><small>Requested on Sep 29, 2026 · <span class="st ${sc}">${st}</span></small></div>
       ${!d.cancelled&&!d.signed?`<div style="position:relative"><button class="dots" data-act="dd-menu" aria-label="More options">⋮</button>${S.rowMenu==="dd"?`<div class="row-menu"><button data-act="dd-cancel">Cancel drawdown request</button></div>`:""}</div>`:""}</div>
-    ${d.cancelled?`<div class="banner" style="background:var(--red-soft);border-color:#F2C6CC;color:var(--red)">This drawdown request was cancelled.</div>`
+    ${d.cancelled?`<div class="banner" style="background:var(--red-soft);border-color:#F2C6CC;color:var(--red)">This drawdown request was canceled.</div>`
       :done?`<div class="banner ok">✓ All set! We're processing your disbursement to ${esc(disbLabel(d))}.</div>`
       :`<div class="banner">⚠ <div><b>Complete your drawdown request</b><br>You must sign the loan contract${pdc?" and upload checks":""} for us to disburse the funds into your designated disbursement account.</div></div>`}
     <div class="dd-cards">${card("ok","Assign disbursement account",`Disburse to<br><b style="font-size:12px;margin:4px 0 0">${esc(disbLabel(d))}</b>`)}${signCard}${upCard}</div>
@@ -1502,7 +1502,7 @@ $("#screen").addEventListener("click", e=>{
     case "loans-tab": S.loansTab=act.dataset.t; render(); break;
     case "dd-menu": S.rowMenu = S.rowMenu==="dd"?null:"dd"; render(); break;
     case "dd-cancel": { const d=S.drawdowns.find(x=>x.id===S.ddView); S.rowMenu=null; S.modal={type:"dd-cancel", amount:d.amount}; render(); break; }
-    case "dd-cancel-yes": { const d=S.drawdowns.find(x=>x.id===S.ddView); d.cancelled=true; S.modal=null; logAction("drawdown",`Cancelled drawdown ${d.ref}`); toast("Drawdown request cancelled"); break; }
+    case "dd-cancel-yes": { const d=S.drawdowns.find(x=>x.id===S.ddView); d.cancelled=true; S.modal=null; logAction("drawdown",`Cancelled drawdown ${d.ref}`); toast("Drawdown request canceled"); break; }
     case "dd-sign": S.flow={type:"sign", id:S.ddView, agree:false, errs:{}}; render(); break;
     case "dd-sign-yes": {
       const f=S.flow; f.agree=$("#ddAgree").checked;
@@ -1811,7 +1811,7 @@ const FUNCS = [
     check:()=>{ const t=S.transfers[0]; return [
       chk("Recipient","Metro Office Rentals",t?t.contact:"No transfer sent",!!t&&norm(t.contact)==="metro office rentals"),
       chk("Amount",peso(25000),t?peso(t.amt):"–",!!t&&t.amt===25000)]; } },
-  { id:"drawdown", group:"Open BCL", pov:"client", name:"Use the credit line (Drawdown)", doc:"Drawdown", next:"uploadchecks", nextLabel:"Next demo: Upload cheques",
+  { id:"drawdown", group:"Open BCL", pov:"client", name:"Use the credit line (Drawdown)", doc:"Drawdown", next:"uploadchecks", nextLabel:"Next demo: Upload checks",
     goal:"The client needs working capital. Request a drawdown from the Business Credit Line.",
     vals:["Product: <b>Business Credit Line</b>","Amount: <b>300,000</b>","Term: <b>3 months</b>, <b>Monthly</b>","Repayment: <b>Post-dated checks</b>","Disbursement: <b>SOS Inc. ***4821</b> (BDO)"], init(){ verifiedStart(); },
     steps:[
@@ -1825,18 +1825,18 @@ const FUNCS = [
       { t:"Pick the repayment method and the disbursement account, then <b>Submit drawdown request</b>.", sub:"These can't be changed after the contract is signed.", showVals:true, sel:'[data-act="dd-next"]', allow:'[data-act="dd-opt"]', fill:inFlow, done:()=>S.drawdowns.length>0,
         verify:()=>{ const d=D(), e=[]; if(d.repay!=="Post-dated checks") e.push("Repayment method should be <b>Post-dated checks</b>"); if(d.disb!=="bdo") e.push("Disbursement account should be <b>SOS Inc. ***4821 (BDO)</b>"); return e; },
         watch:n=>{ if(!n.matches('[data-act="dd-opt"]')) return null; const g=n.dataset.g, v=n.dataset.v;
-          if(g==="repay"&&v!=="Post-dated checks") return "Direct debit is a real option, but this demo continues with cheques. Choose <b>Post-dated checks</b> so you can practise the cheque upload next.";
+          if(g==="repay"&&v!=="Post-dated checks") return "Direct debit is a real option, but this demo continues with checks. Choose <b>Post-dated checks</b> so you can practice the check upload next.";
           if(g==="disb"&&v!=="bdo") return "For this demo choose <b>SOS Inc. ***4821 (BDO)</b>. Disbursing to the Payments Account would release the funds instantly, with no bank wait.";
           return null; } },
-      { t:"Request sent! First Circle now runs a <b>credit check, about 30 minutes</b>. Only after that can the client sign the contract and upload the cheques (next demo). Click <b>Return to Credit</b>.", sel:'[data-act="succ-go"]', done:()=>S.drawdowns.length>0 && !S.success && S.page==="credit" }
+      { t:"Request sent! First Circle now runs a <b>credit check, about 30 minutes</b>. Only after that can the client sign the contract and upload the checks (next demo). Click <b>Return to Credit</b>.", sel:'[data-act="succ-go"]', done:()=>S.drawdowns.length>0 && !S.success && S.page==="credit" }
     ],
     check:()=>{ const d=S.drawdowns.filter(x=>!x.cancelled)[0]; return [
       chk("Amount",peso(300000),d?peso(d.amount):"No drawdown",!!d&&d.amount===300000),
       chk("Term and frequency","3 months, Monthly",d?`${d.term} months, ${d.freq}`:"–",!!d&&d.term===3&&d.freq==="Monthly"),
       chk("Repayment method","Post-dated checks",d?d.repay:"–",!!d&&d.repay==="Post-dated checks"),
       chk("Disbursement account","SOS Inc. ***4821 (BDO)",d?disbLabel(d):"–",!!d&&d.disb==="bdo")]; } },
-  { id:"uploadchecks", group:"Open BCL", pov:"client", name:"Sign the contract and upload cheques", doc:"Drawdown",
-    goal:"The drawdown from the last demo has been reviewed (about 30 minutes in real life). Log back in, sign the loan contract, then upload the post-dated cheques and book the pickup.",
+  { id:"uploadchecks", group:"Open BCL", pov:"client", name:"Sign the contract and upload checks", doc:"Drawdown",
+    goal:"The drawdown from the last demo has been reviewed (about 30 minutes in real life). Log back in, sign the loan contract, then upload the post-dated checks and book the pickup.",
     vals:["Uploads: one file per repayment. Any image or PDF works, nobody checks it in this demo","Pickup: any address, date and time slot","Point of contact and mobile: <b>your choice</b>"],
     init(){ verifiedStart();
       S.drawdowns.push({id:"dprev", ref:"BCL-2609-101", product:"BCL", amount:300000, term:3, freq:"Monthly", repay:"Post-dated checks", disb:"bdo", reviewDone:false, signed:false, files:[], pickup:null, cancelled:false});
@@ -1848,12 +1848,12 @@ const FUNCS = [
       { t:"The review is done. Click <b>Sign contract</b>.", sel:'[data-act="dd-sign"]', done:()=>fty("sign")||S.drawdowns.some(d=>d.signed) },
       { t:"<b>Scroll down</b> to read the contract, tick the agreement box, then click <b>Sign contract</b> at the bottom.", loose:true, sel:'[data-act="dd-sign-yes"]', allow:'[data-act="dd-sign-yes"]', fill:inFlow, done:()=>S.drawdowns.some(d=>d.signed) },
       { t:"Click <b>Upload checks</b>.", sel:'[data-act="dd-upload"]', done:()=>fty("upload")||S.drawdowns.some(d=>d.pickup) },
-      { t:()=>`Add the cheque files: <b>one per repayment</b>. This loan has <b>${ddN()}</b>, so add ${ddN()} files (a 12-month loan needs 12). Wait until each shows verified, then click <b>Next</b>.`, sub:"For this demo it doesn't matter which file you pick. Any image or PDF works. We only test the flow and nothing is verified for real.", loose:true, sel:'.drop,[data-act="up-next"]:not([disabled])', allow:'[data-act="up-next"],[data-act="dd-rmfile"]', done:()=>fstep("upload")>=1||S.drawdowns.some(d=>d.pickup) },
-      { t:"Pick the pickup address, date and time slot, then <b>Next</b> and <b>Confirm</b>.", sub:"Pickup must be within 2 business days. Funds are released after the cheques are received.", sel:'[data-act="up-next"],[data-act="up-confirm"]', allow:'[data-act="pk-slot"],[data-act="up-next"],[data-act="up-confirm"],[data-act="up-back"]', fill:inFlow, done:()=>S.drawdowns.some(d=>d.pickup) }
+      { t:()=>`Add the check files: <b>one per repayment</b>. This loan has <b>${ddN()}</b>, so add ${ddN()} files (a 12-month loan needs 12). Wait until each shows verified, then click <b>Next</b>.`, sub:"For this demo it doesn't matter which file you pick. Any image or PDF works. We only test the flow and nothing is verified for real.", loose:true, sel:'.drop,[data-act="up-next"]:not([disabled])', allow:'[data-act="up-next"],[data-act="dd-rmfile"]', done:()=>fstep("upload")>=1||S.drawdowns.some(d=>d.pickup) },
+      { t:"Pick the pickup address, date and time slot, then <b>Next</b> and <b>Confirm</b>.", sub:"Pickup must be within 2 business days. Funds are released after the checks are received.", sel:'[data-act="up-next"],[data-act="up-confirm"]', allow:'[data-act="pk-slot"],[data-act="up-next"],[data-act="up-confirm"],[data-act="up-back"]', fill:inFlow, done:()=>S.drawdowns.some(d=>d.pickup) }
     ],
     check:()=>{ const d=S.drawdowns[0], n=ddN(); return [
       chk("Contract signed","Yes",d&&d.signed?"Yes":"No",!!d&&d.signed),
-      chk("Cheques uploaded",`${n} of ${n}`,d?`${d.files.filter(f=>f.ok).length} of ${n}`:"–",!!d&&d.files.filter(f=>f.ok).length===n),
+      chk("Checks uploaded",`${n} of ${n}`,d?`${d.files.filter(f=>f.ok).length} of ${n}`:"–",!!d&&d.files.filter(f=>f.ok).length===n),
       chk("Pickup booked","Scheduled",d&&d.pickup?`${d.pickup.date}, ${d.pickup.slot}`:"Not scheduled",!!d&&!!d.pickup)]; } }
 ];
 

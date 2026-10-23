@@ -14,7 +14,7 @@ LMS_DAY_DEFS[3] = {
     { id: "d3-demo-topup",        group: "Guided Demos (Open BCL)",   label: "Top up the wallet (Deposits)",                       href: "sims/connect-demo.html?fn=topup" },
     { id: "d3-demo-transfer",     group: "Guided Demos (Open BCL)",   label: "Transfer funds",                                     href: "sims/connect-demo.html?fn=transfer" },
     { id: "d3-demo-drawdown",     group: "Guided Demos (Open BCL)",   label: "Use the credit line (Drawdown)",                     href: "sims/connect-demo.html?fn=drawdown" },
-    { id: "d3-demo-uploadchecks", group: "Guided Demos (Open BCL)",   label: "Sign the contract and upload cheques",               href: "sims/connect-demo.html?fn=uploadchecks" }
+    { id: "d3-demo-uploadchecks", group: "Guided Demos (Open BCL)",   label: "Sign the contract and upload checks",               href: "sims/connect-demo.html?fn=uploadchecks" }
   ],
   // link:true = link icon bullet (dark, not teal)
   materials: [
