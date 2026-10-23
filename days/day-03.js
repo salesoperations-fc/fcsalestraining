@@ -23,5 +23,7 @@ LMS_DAY_DEFS[3] = {
     { label: "Top up the wallet (Deposits)",      href: "https://www.notion.so/firstcircle/Deposits-2001a5890448806c82e6c36e99011fc7", link: true },
     { label: "Transfer funds (Transfers)",        href: "https://www.notion.so/firstcircle/Transfers-2001a5890448800b998cea9f027f8d8c", link: true },
     { label: "Use the credit line (Drawdown)",    href: "https://www.notion.so/firstcircle/Drawdown-2001a58904488098aed9e8b9f6cc47ce", link: true }
-  ]
+  ],
+  // Product Knowledge Exam 1 (2 sections). Questions and answer keys: exams/product-knowledge-1-questions.js
+  exam: { id: "d3-exam-product-knowledge-1", label: "Product Knowledge Examination 1", href: "exams/product-knowledge-1.html", kind: "lms", passing: 80 }
 };

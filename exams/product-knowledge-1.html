@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Product Knowledge Exam | AM Onboarding Hub</title>
+<link rel="stylesheet" href="../shared/theme.css">
+<script src="../shared/lms.js"></script>
+<script src="product-knowledge-1-questions.js"></script>
+<style>
+  body{background:var(--mist);min-height:100vh}
+  .pg{max-width:720px;margin:0 auto;padding:28px 20px 64px}
+  .back{display:inline-block;margin-bottom:14px;font-size:14px;font-weight:600;text-decoration:none}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:28px}
+  h1{font-size:26px}
+  .meta{color:var(--ink-2);font-size:14px;margin:6px 0 0}
+  .bar{height:6px;background:#E3E9EA;border-radius:4px;margin:18px 0 22px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--teal);transition:width .2s}
+  .qn{font-size:13px;font-weight:600;color:var(--ink-3)}
+  .qt{font-size:20px;font-weight:600;line-height:1.35;margin:6px 0 18px}
+  .opts{display:grid;gap:10px}
+  .opt{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:12px;align-items:center;padding:13px 16px;border:1.5px solid var(--line);border-radius:12px;font-size:15px;background:#fff}
+  .opt:hover{border-color:#B9CDD1}
+  .opt .k{flex:none;width:26px;height:26px;border-radius:50%;border:1.5px solid #9FB1B5;display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--ink-2)}
+  .opt[aria-checked="true"]{border-color:var(--teal);background:var(--teal-soft)}
+  .opt[aria-checked="true"] .k{background:var(--teal);border-color:var(--teal);color:#fff}
+  .nav{display:flex;justify-content:space-between;gap:10px;margin-top:24px;flex-wrap:wrap}
+  .big{font-size:46px;font-weight:700;color:var(--teal-dark);line-height:1}
+  .verdict{display:inline-block;margin-left:12px;padding:3px 12px;border-radius:20px;font-size:13px;font-weight:700;vertical-align:middle}
+  .verdict.pass{background:var(--green-soft);color:var(--green)} .verdict.fail{background:var(--coral-soft);color:var(--coral)}
+  .note{background:var(--mist);border-radius:12px;padding:14px 16px;margin:18px 0;font-size:14px;line-height:1.55}
+  table.res{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px}
+  table.res td,table.res th{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  table.res th{font-size:12px;color:var(--ink-2)}
+  .ok{color:var(--green);font-weight:700} .no{color:var(--coral);font-weight:700}
+  .why{display:block;font-size:12px;color:var(--ink-3);margin-top:2px}
+  .rev li{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .rev{list-style:none;margin:10px 0 0;padding:0}
+  .rev a{font-weight:600;text-decoration:none}
+  .warn{color:#8A5A00;font-size:13px;font-weight:600}
+  .chip{display:inline-block;background:var(--teal-soft);color:var(--teal-dark);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:700;margin-bottom:8px}
+  .sdesc{background:var(--mist);border-radius:12px;padding:12px 14px;margin:0 0 16px;font-size:14px;color:var(--ink-2)}
+  .hint{font-size:13px;color:var(--ink-3);margin:-8px 0 14px}
+  .opt .k.sq{border-radius:6px}
+  .txt{width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:13px 16px;border:1.5px solid var(--line);border-radius:12px}
+  .txt:focus{outline:none;border-color:var(--teal)}
+  .gray{color:var(--ink-3);font-weight:600}
+</style>
+</head>
+<body>
+<div class="pg">
+  <a class="back" id="back" href="../dashboard.html?day=3">← Back</a>
+  <div class="card" id="card"></div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+if (!LMS.requireSignIn()) throw 0;
+
+const EX = window.LMS_PK1, PREVIEW = LMS.preview(), LET = ["A","B","C","D","E","F","G","H","I","J","K","L","M"];
+if (PREVIEW) $("back").href = "../exams.html", $("back").textContent = "← Back to Exams";
+document.title = EX.title + " | AM Onboarding Hub";
+
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const digitsOf = s => String(s || "").replace(/[^0-9]/g, "");
+const scored = q => q.answer !== null && q.answer !== undefined;
+
+let Q = [], answers = [], cur = 0, started = false;
+
+/* New attempt: shuffle the questions inside each section (sections stay in order) and the answer order of every question. */
+function build(){
+  Q = [];
+  EX.sections.forEach((s, si) => shuffle(s.questions).forEach(q => Q.push({ ...q, si, order: (q.type === "single" || q.type === "multi") ? shuffle(q.options.map((_, i) => i)) : (q.options || []).map((_, i) => i) })));
+  answers = Q.map(q => q.type === "multi" ? [] : q.type === "text" ? "" : null);
+  cur = 0;
+}
+const answered = i => { const q = Q[i], a = answers[i]; return q.type === "multi" ? a.length > 0 : q.type === "text" ? a.trim() !== "" : a !== null; };
+const maxPts = q => !scored(q) ? 0 : q.type === "multi" ? q.answer.length * 0.5 : (q.points || 1);
+/* points earned for question i (multi: +0.5 per right item, -0.5 per wrong item) */
+function earned(i){
+  const q = Q[i], a = answers[i]; if (!scored(q)) return null;
+  if (q.type === "multi") {
+    const right = a.filter(x => q.answer.includes(x)).length, wrong = a.length - right;
+    return Math.max(0, (right - wrong) * 0.5);
+  }
+  if (q.type === "text") return digitsOf(a) === q.answer ? 1 : 0;
+  return a === q.answer ? 1 : 0;
+}
+const fmt = n => Number.isInteger(n) ? String(n) : n.toFixed(1);
+function correct(i){ const e = earned(i); return e === null ? null : e >= maxPts(Q[i]); }
+const mine = i => { const q = Q[i], a = answers[i]; return q.type === "multi" ? a.slice().sort((x, y) => x - y).map(x => q.options[x]).join("; ") : q.type === "text" ? a.trim() : q.options[a]; };
+const right = i => { const q = Q[i]; return !scored(q) ? "Not set yet" : q.type === "multi" ? q.answer.map(x => q.options[x]).join("; ") : q.type === "text" ? "P" + Number(q.answer).toLocaleString("en-PH") : q.options[q.answer]; };
+const nScored = () => Q.reduce((n, q) => n + maxPts(q), 0);
+
+function intro(blockedMsg){
+  const total = EX.sections.reduce((n, s) => n + s.questions.length, 0);
+  $("card").innerHTML = `<h1>${esc(EX.title)}</h1>
+    <p class="meta">${total} questions in ${EX.sections.length} sections. Pass mark ${EX.passing}%. Questions and answer choices are shuffled for each attempt.</p>
+    <div class="note">${EX.sections.map((s, i) => `<b>Section ${i + 1}: ${esc(s.title)}</b><br>${esc(s.desc)}`).join("<br><br>")}</div>
+    ${blockedMsg ? `<div class="note">${blockedMsg}</div>` : ""}
+    <div class="nav" style="justify-content:flex-start"><button class="btn primary" id="go" ${blockedMsg ? "disabled" : ""}>${blockedMsg ? "Already taken" : "Start exam"}</button></div>`;
+  if (!blockedMsg) $("go").onclick = () => { started = true; build(); question(); };
+}
+
+function question(){
+  const q = Q[cur], N = Q.length, s = EX.sections[q.si], firstOfSection = cur === 0 || Q[cur - 1].si !== q.si;
+  let body = "";
+  if (q.type === "text") body = `<input class="txt" id="txt" type="text" inputmode="numeric" autocomplete="off" placeholder="₱0" value="${esc(answers[cur])}"><p class="hint" style="margin:8px 0 0">Just type the numbers. The ₱ sign and commas are added for you.</p>`;
+  else if (q.type === "multi") body = `<p class="hint">Select all that apply. Wrong picks take points off, so only tick what is required.</p><div class="opts" role="group">${q.order.map((oi, k) =>
+      `<button class="opt" role="checkbox" aria-checked="${answers[cur].includes(oi)}" data-i="${oi}"><span class="k sq">${answers[cur].includes(oi) ? "✓" : ""}</span><span>${esc(q.options[oi])}</span></button>`).join("")}</div>`;
+  else body = `<div class="opts" role="radiogroup">${q.order.map((oi, k) =>
+      `<button class="opt" role="radio" aria-checked="${answers[cur] === oi}" data-i="${oi}"><span class="k">${LET[k]}</span><span>${esc(q.options[oi])}</span></button>`).join("")}</div>`;
+  $("card").innerHTML = `<div class="chip">Section ${q.si + 1}: ${esc(s.title)}</div>
+    ${firstOfSection ? `<div class="sdesc">${esc(s.desc)}</div>` : ""}
+    <div class="qn">Question ${cur + 1} of ${N}</div>
+    <div class="bar"><i style="width:${Math.round(cur / N * 100)}%"></i></div>
+    <div class="qt">${esc(q.q)}</div>${body}
+    <div class="nav"><button class="btn" id="prev" ${cur === 0 ? "disabled" : ""}>Previous</button>
+      <button class="btn primary" id="next" ${answered(cur) ? "" : "disabled"}>${cur === N - 1 ? "Review answers" : "Next"}</button></div>`;
+  if (q.type === "text") { const t = $("txt"); t.oninput = () => { const d = digitsOf(t.value).replace(/^0+/, ""); t.value = d ? "₱" + Number(d).toLocaleString("en-PH") : ""; answers[cur] = t.value; $("next").disabled = !answered(cur); }; t.onkeydown = e => { if (e.key === "Enter" && answered(cur)) $("next").click(); }; }
+  else document.querySelectorAll(".opt").forEach(b => b.onclick = () => {
+    const oi = +b.dataset.i;
+    if (q.type === "multi") { const a = answers[cur]; a.includes(oi) ? a.splice(a.indexOf(oi), 1) : a.push(oi); } else answers[cur] = oi;
+    question();
+  });
+  $("prev").onclick = () => { cur--; question(); };
+  $("next").onclick = () => { if (cur === N - 1) review(); else { cur++; question(); } };
+}
+
+function review(){
+  const missing = Q.map((_, i) => answered(i) ? -1 : i).filter(i => i >= 0);
+  $("card").innerHTML = `<h1>Review your answers</h1>
+    <p class="meta">${missing.length ? `<span class="warn">${missing.length} unanswered.</span> Click a question to answer it.` : "All questions answered. Submit when you are ready."}</p>
+    <ul class="rev">${Q.map((q, i) => `<li><a href="#" data-q="${i}">${i + 1}. ${esc(q.q)}</a><span>${answered(i) ? "Answered" : '<span class="warn">Not answered</span>'}</span></li>`).join("")}</ul>
+    <div class="nav"><button class="btn" id="backQ">Back to questions</button><button class="btn primary" id="submit" ${missing.length ? "disabled" : ""}>Submit exam</button></div>`;
+  document.querySelectorAll("[data-q]").forEach(a => a.onclick = e => { e.preventDefault(); cur = +a.dataset.q; question(); });
+  $("backQ").onclick = () => { cur = Q.length - 1; question(); };
+  $("submit").onclick = submit;
+}
+
+function grade(){
+  const rows = Q.map((q, i) => ({ n: i + 1, q: q.q, sec: q.si + 1, mine: mine(i), right: right(i), ok: correct(i), pts: earned(i), max: maxPts(q), why: q.why }));
+  const max = nScored(), score = Math.round(rows.reduce((n, r) => n + (r.pts || 0), 0) * 10) / 10, pct = max ? Math.round(score / max * 100) : 0, passed = pct >= EX.passing;
+  const missed = rows.filter(r => r.ok === false).map(r => r.n);
+  const bySec = EX.sections.map((s, si) => { const r = rows.filter(x => x.sec === si + 1 && x.ok !== null); return `Section ${si + 1}: ${fmt(Math.round(r.reduce((n, x) => n + x.pts, 0) * 10) / 10)}/${fmt(r.reduce((n, x) => n + x.max, 0))}`; }).join(", ");
+  const notes = (score === max ? "All answers correct. " : `${fmt(score)} of ${fmt(max)} points (${pct}%). ${passed ? "Passed" : "Below the " + EX.passing + "% pass mark"}. Not full marks on question${missed.length > 1 ? "s" : ""}: ${missed.join(", ")}. `) + bySec + ".";
+  return { rows, score, max, pct, passed, missed, notes };
+}
+
+async function submit(){
+  $("submit").disabled = true; $("submit").textContent = "Submitting…";
+  const g = grade();
+  const breakdown = g.rows.map(r => `Q${r.n} (S${r.sec}) ${r.ok === null ? "not scored" : r.ok ? "correct" : fmt(r.pts) + "/" + fmt(r.max) + " (answered: " + r.mine + "; correct: " + r.right + ")"}`).join("\n");
+  try { await LMS.saveResult(EX.id, { score: g.score, max: g.max, passed: g.passed, details: g.notes, breakdown, notes: g.notes }); } catch (e) {}
+  results(g);
+}
+
+function results(g){
+  $("card").innerHTML = `<h1>${esc(EX.title)}</h1>
+    <div style="margin-top:14px"><span class="big">${fmt(g.score)}/${fmt(g.max)}</span><span class="verdict ${g.passed ? "pass" : "fail"}">${g.passed ? "PASS" : "NOT YET"}</span></div>
+    <p class="meta">${g.pct}% · pass mark ${EX.passing}%${PREVIEW ? " · <b>preview, not recorded</b>" : ""}</p>
+    <div class="note"><b>Score and notes</b><br>${esc(g.notes)}</div>
+    <table class="res"><thead><tr><th></th><th>Question</th><th>Your answer</th><th>Correct answer</th></tr></thead><tbody>
+      ${g.rows.map(r => `<tr><td class="${r.ok === null ? "gray" : r.ok ? "ok" : r.pts > 0 ? "warn" : "no"}">${r.ok === null ? "–" : r.ok ? "✓" : r.pts > 0 ? "◐" : "✗"}<span class="why" style="color:inherit">${r.ok === null ? "" : fmt(r.pts) + "/" + fmt(r.max)}</span></td><td>${r.n}. ${esc(r.q)}${r.why ? `<span class="why">${esc(r.why)}</span>` : ""}</td><td>${esc(r.mine)}</td><td>${r.ok === null ? '<span class="gray">Not scored</span>' : esc(r.right)}</td></tr>`).join("")}
+    </tbody></table>
+    <div class="nav" style="justify-content:flex-start">${PREVIEW || LMS.canRetake() ? '<button class="btn" id="again">Try again</button>' : ""}<a class="btn" href="${PREVIEW ? "../exams.html" : "../dashboard.html?day=3"}">${PREVIEW ? "Back to Exams" : "Back to dashboard"}</a></div>`;
+  const ag = $("again"); if (ag) ag.onclick = () => intro();
+}
+
+// Start: preview and retake accounts go straight in; everyone else waits (briefly) for the Sheet to say if it was already taken.
+function alreadyTaken(){
+  const rec = LMS.progress()[EX.id];
+  return rec && rec.status === "done" && !LMS.canRetake() && !PREVIEW ? rec : null;
+}
+function showTaken(rec){ intro(`You already took this exam: <b>${rec.score}/${rec.max}</b>. Ask Salesops if you need another attempt.`); }
+if (PREVIEW || LMS.canRetake()) intro();
+else {
+  $("card").innerHTML = `<h1>${esc(EX.title)}</h1><p class="meta">Checking your progress…</p>`;
+  LMS.ready.then(() => { if (started) return; const rec = alreadyTaken(); rec ? showTaken(rec) : intro(); });
+  LMS.syncDone.then(() => { if (!started) { const rec = alreadyTaken(); if (rec) showTaken(rec); } });
+}
+</script>
+</body>
+</html>
