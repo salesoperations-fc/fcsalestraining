@@ -65,6 +65,8 @@
   .mats a.lk{color:var(--ink);text-decoration:underline;font-weight:500;display:inline-flex;gap:8px;align-items:center}
   .mats a.lk::before{content:"";width:16px;height:16px;flex:none;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1'/%3E%3C/svg%3E") center/contain no-repeat}
   .mats .soon{font-size:12px;color:var(--ink-3);white-space:nowrap}
+  .soongrp ul{margin:0;padding-left:20px;font-size:14px;color:var(--ink-2)}.soongrp li{padding:3px 0}.soongrp ul ul{margin-top:2px;font-size:13px}
+  .pillsoon{display:inline-block;font-size:11px;font-weight:700;background:var(--marigold-soft);border-radius:999px;padding:1px 10px;margin-left:8px;vertical-align:middle}
   .exam{margin-top:22px;border-radius:12px;padding:16px 18px;background:var(--marigold-soft);display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
   .exam.ok{background:var(--green-soft)}
   .exam b{display:block;font-size:15px}
@@ -97,6 +99,7 @@
   .gx li:first-child{padding-top:0}
   .gx button{all:unset;cursor:pointer;font-weight:600;line-height:1.3}
   .gx button:hover{text-decoration:underline}
+  .gx .mk{display:flex;flex:none}.gx .mk svg{width:19px;height:19px}.gx .mk.done{color:var(--green)}.gx .mk.todo{color:#B9C4C7}
   .gx small{display:block;font-weight:400;color:var(--ink-3);font-size:12px}
   .pill{display:inline-flex;gap:4px;align-items:center;font-size:12px;font-weight:600;padding:2px 9px;border-radius:20px;white-space:nowrap}
   .pill.lock{background:var(--mist);color:var(--ink-3)} .pill.open{background:var(--marigold-soft);color:#8A5A00} .pill.done{background:var(--green-soft);color:var(--green)}
@@ -147,6 +150,7 @@ const LOCK_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" s
 const CHECK_ICON = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>';
 const PROGRESS_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12M6 21h12"/><path d="M7 3v3.5a5 5 0 0 0 2 4L12 12l-3 1.5a5 5 0 0 0-2 4V21M17 3v3.5a5 5 0 0 1-2 4L12 12l3 1.5a5 5 0 0 1 2 4V21"/></svg>';
 const CHEVRON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+const CROSS_ICON = '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M8.5 8.5l7 7M15.5 8.5l-7 7"/></svg>';
 const STATUS_ICON = { complete:CHECK_ICON, current:PROGRESS_ICON, locked:LOCK_ICON, soon:"" };
 const STATUS_TEXT = { complete:"complete", current:"in progress", locked:"locked", soon:"coming soon" };
 
@@ -180,7 +184,17 @@ function dropdown(sel, P){
         <div style="display:flex;gap:8px;flex-wrap:wrap">${open}${e.kind==="lms"||e.kind==="sim"?"":`<button class="btn sm primary" data-submit="${e.id}">${e.kind==="trainer"?"Mark completed":"I've submitted it"}</button>`}</div></div>`;
     }
   }
-  const body = (tasks || mats) ? `<div class="two">${tasks?`<div>${grouped || `<h3>${esc(sel.tasksTitle||"Tasks")} (${sel.tasksDone} of ${sel.tasks.length})</h3><ul class="tasks">${tasks}</ul>`}</div>`:"<div></div>"}${mats?`<div><h3>${esc(sel.materialsTitle||"Materials")}</h3>${mats}</div>`:""}</div>` : "";
+  // Optional per-day section that is not ready yet, shown with the task groups: comingSoon: { title, items: ["text" | { label, sub:["text"] }] } (a "Soon" bubble is added)
+  const cs = sel.comingSoon, soonLi = i => typeof i === "string" ? `<li>${esc(i)}</li>` : `<li>${esc(i.label)}${(i.sub||[]).length ? `<ul>${i.sub.map(soonLi).join("")}</ul>` : ""}</li>`;
+  const soonGrp = cs ? `<div class="soongrp" style="margin-bottom:20px"><h3>${esc(cs.title||"Coming soon")}<span class="pillsoon">Soon</span></h3><ul>${(cs.items||[]).map(soonLi).join("")}</ul></div>` : "";
+  // materialsBelow: true on a day puts Further Reading under the task groups. The "coming soon" section then sits beside the tasks (two columns, like the other days).
+  const taskList = grouped || `<h3>${esc(sel.tasksTitle||"Tasks")} (${sel.tasksDone} of ${sel.tasks.length})</h3><ul class="tasks">${tasks}</ul>`;
+  const matsBlock = mats ? `<div><h3>${esc(sel.materialsTitle||"Materials")}</h3>${mats}</div>` : "";
+  let body = "";
+  if (tasks || mats) {
+    if (sel.materialsBelow) body = `<div class="two">${tasks ? `<div>${taskList}</div>` : "<div></div>"}${soonGrp ? `<div>${soonGrp}</div>` : "<div></div>"}</div>${mats ? `<div style="margin-top:6px">${matsBlock}</div>` : ""}`;
+    else body = `<div class="two">${tasks ? `<div>${taskList}${soonGrp}</div>` : "<div></div>"}${matsBlock}</div>`;
+  }
   return `<div class="drop">${body}${examHtml}${sel.status==="complete"?`<div class="daydone">${ico("check",16)} Day ${sel.day} complete</div>`:""}${catchBtn(sel)}</div>`;
 }
 
@@ -209,10 +223,10 @@ function gradedHtml(days, P){
   if (!withExam.length) return `<p class="muted small" style="margin:0">No graded exams yet.</p>`;
   return `<ul class="gx">${withExam.map(d => {
     const rec = P[d.exam.id], isDone = rec && rec.status === "done";
-    const pill = d.status === "locked" ? `<span class="pill lock">${LOCK} Locked</span>`
-      : isDone ? `<span class="pill done">${rec.max ? Math.round(rec.score/rec.max*100)+"%" : "Done"}</span>`
-      : `<span class="pill open">To do</span>`;
-    return `<li><button data-day="${d.day}">${esc(d.exam.label)}<small>Day ${d.day}</small></button>${pill}</li>`;
+    // Just a mark: check = done, cross = not done yet (including upcoming/locked). No scores here.
+    const mark = isDone ? `<span class="mk done" role="img" aria-label="Done" title="Done">${CHECK_ICON}</span>`
+      : `<span class="mk todo" role="img" aria-label="${d.status === "locked" ? "Upcoming" : "Not done yet"}" title="${d.status === "locked" ? "Upcoming" : "Not done yet"}">${CROSS_ICON}</span>`;
+    return `<li><button data-day="${d.day}">${esc(d.exam.label)}<small>Day ${d.day}</small></button>${mark}</li>`;
   }).join("")}</ul>`;
 }
 

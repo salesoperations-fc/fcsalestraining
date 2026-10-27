@@ -18,6 +18,7 @@
   .ex .type{font-size:14px;color:var(--ink-2)}
   .ex .btn{margin-top:auto;align-self:flex-start}
   .ex .wrap2{margin-top:12px}
+  h2.sec{font-size:16px;margin:28px 0 12px}
 </style>
 </head>
 <body>
@@ -30,11 +31,17 @@
 if (LMS.requireSignIn()) {
   renderSide("exams");
   if (!LMS.isAdmin()) document.getElementById("app").innerHTML = '<h1>Exams</h1><p class="muted">This page is for trainers.</p>';
-  else document.getElementById("app").innerHTML = `<h1>Exams</h1>
-    <p class="lead">Try any exam the way a trainee sees it. <b>Nothing you do here is recorded</b>, and no attempt or score is saved or sent to the Sheet. You still see your score at the end.</p>
-    <div class="grid">${(window.LMS_EXAM_LIST || []).map(e => `<div class="ex">
+  else {
+    const card = e => `<div class="ex">
       <span class="where">${esc(e.where)}</span><h3>${esc(e.title)}</h3><span class="type">${esc(e.type)}</span>
-      <div class="wrap2"><a class="btn primary sm" href="${esc(e.href)}${e.href.includes("?") ? "&" : "?"}preview=1">Preview</a></div></div>`).join("")}</div>`;
+      <div class="wrap2">${e.empty ? '<span class="btn sm" aria-disabled="true" style="opacity:.55;cursor:not-allowed">No questions yet</span>'
+        : `<a class="btn primary sm" href="${esc(e.href)}${e.href.includes("?") ? "&" : "?"}preview=1">Preview</a>`}</div></div>`;
+    const section = (title, group) => { const list = (window.LMS_EXAM_LIST || []).filter(e => e.group === group);
+      return list.length ? `<h2 class="sec">${title}</h2><div class="grid">${list.map(card).join("")}</div>` : ""; };
+    document.getElementById("app").innerHTML = `<h1>Exams</h1>
+      <p class="lead">Try any exam the way a trainee sees it. <b>Nothing you do here is recorded</b>, and no attempt or score is saved or sent to the Sheet. You still see your score at the end.</p>
+      ${section("Product exams", "product")}${section("Simulation exams", "simulation")}${section("Others", "other")}`;
+  }
 }
 </script>
 </body>
