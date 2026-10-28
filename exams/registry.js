@@ -4,7 +4,7 @@
    empty: true = no questions yet (Preview is disabled). */
 window.LMS_EXAM_LIST = [
   { group: "product", id: "d3-exam-product-knowledge-1", title: "Product Knowledge Examination 1", where: "Day 3", type: "Multiple choice, true/false, typed and tick-all questions, shuffled", href: "exams/product-knowledge-1.html" },
-  { group: "product", id: "exam-product-2", title: "Product Exam 2", where: "Not on a day yet", type: "Multiple choice. No questions yet", href: "exams/product-exam.html?e=2", empty: true },
+  { group: "product", id: "exam-product-knowledge-2", title: "Product Knowledge Examination 2", where: "Not on a day yet", type: "Multiple choice, true/false and tick-all questions, shuffled", href: "exams/product-knowledge-2.html" },
   { group: "product", id: "exam-product-3", title: "Product Exam 3", where: "Not on a day yet", type: "Multiple choice. No questions yet", href: "exams/product-exam.html?e=3", empty: true },
   { group: "simulation", id: "d4-exam-connect-sim", title: "Connect Simulation Exam", where: "Day 4", type: "Simulation with scored steps and notes", href: "sims/connect-exam.html" },
   { group: "simulation", id: "d5-acqui-practice", title: "Acqui Service Navigation Check (practice)", where: "Day 5", type: "Practice, 15 situational tasks (click, type, pick). Not graded", href: "sims/acqui-tour-exam.html" },

@@ -11,6 +11,5 @@
    - why       optional one-line explanation shown after the exam
    ========================================================= */
 window.LMS_EXAMS = {
-  "2": { id: "exam-product-2", title: "Product Exam 2", passing: 80, questions: [] },
   "3": { id: "exam-product-3", title: "Product Exam 3", passing: 80, questions: [] }
 };
