@@ -105,7 +105,8 @@
   .pill.lock{background:var(--mist);color:var(--ink-3)} .pill.open{background:var(--marigold-soft);color:#8A5A00} .pill.done{background:var(--green-soft);color:var(--green)}
 
   @media (max-width:1100px){ .lower{grid-template-columns:1fr} }
-  @media (max-width:860px){ .rail{grid-template-columns:repeat(2,minmax(0,1fr))} .two{grid-template-columns:1fr;gap:18px} }
+  @media (max-width:860px){ .rail{grid-template-columns:repeat(2,minmax(0,1fr))} .two{grid-template-columns:1fr;gap:18px} .two.keep{grid-template-columns:1fr 1fr;gap:18px} }
+  @media (max-width:520px){ .two.keep{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
@@ -193,7 +194,7 @@ function dropdown(sel, P){
   const matsBlock = mats ? `<div><h3>${esc(sel.materialsTitle||"Materials")}</h3>${mats}</div>` : "";
   let body = "";
   if (tasks || mats) {
-    if (sel.materialsBelow) body = `<div class="two">${tasks ? `<div>${taskList}</div>` : "<div></div>"}${soonGrp ? `<div>${soonGrp}</div>` : "<div></div>"}</div>${mats ? `<div style="margin-top:6px">${matsBlock}</div>` : ""}`;
+    if (sel.materialsBelow) body = `<div class="two keep">${tasks ? `<div>${taskList}</div>` : "<div></div>"}${soonGrp ? `<div>${soonGrp}</div>` : "<div></div>"}</div>${mats ? `<div style="margin-top:6px">${matsBlock}</div>` : ""}`;
     else body = `<div class="two">${tasks ? `<div>${taskList}${soonGrp}</div>` : "<div></div>"}${matsBlock}</div>`;
   }
   return `<div class="drop">${body}${examHtml}${sel.status==="complete"?`<div class="daydone">${ico("check",16)} Day ${sel.day} complete</div>`:""}${catchBtn(sel)}</div>`;

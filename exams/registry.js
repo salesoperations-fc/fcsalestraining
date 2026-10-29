@@ -7,7 +7,7 @@ window.LMS_EXAM_LIST = [
   { group: "product", id: "exam-product-knowledge-2", title: "Product Knowledge Examination 2", where: "Day 4", type: "Multiple choice, true/false and tick-all questions, shuffled", href: "exams/product-knowledge-2.html" },
   { group: "product", id: "exam-product-3", title: "Product Exam 3", where: "Day 5", type: "Multiple choice. No questions yet", href: "exams/product-exam.html?e=3", empty: true },
   { group: "simulation", id: "d4-exam-connect-sim", title: "Connect Simulation Exam", where: "Day 4", type: "Simulation with scored steps and notes", href: "sims/connect-exam.html" },
-  { group: "simulation", id: "d5-acqui-practice", title: "Acqui Service Navigation Check (practice)", where: "Day 5", type: "Practice, 15 situational tasks (click, type, pick). Not graded", href: "sims/acqui-tour-exam.html" },
-  { group: "simulation", id: "d5-reassign-practice", title: "Lead Reassignment and New Lead Creation (practice)", where: "Day 5", type: "Practice, 5 situations in the Acqui Service sim: 3 lead requests (1 should be refused) and 2 new leads, with DTI/SEC lookups. Not graded", href: "sims/acqui-reassign-exam.html" },
+  { group: "simulation", id: "d5-acqui-practice", title: "PRACTICE: Find your way around Acqui Service", where: "Day 5", type: "Practice, 15 situational tasks (click, type, pick). Not graded", href: "sims/acqui-tour-exam.html" },
+  { group: "simulation", id: "d5-reassign-practice", title: "PRACTICE: Lead reassignment and creation in Acqui Service", where: "Day 5", type: "Practice, 5 situations in the Acqui Service sim: 3 lead requests (1 should be refused) and 2 new leads, with DTI/SEC lookups. Not graded", href: "sims/acqui-reassign-exam.html" },
   { group: "other", id: "d1-exam-responsible-selling", title: "Foundations of Responsible Selling", where: "Day 1", type: "Agree to 16 statements", href: "lessons/d01-exam-responsible-selling.html" }
 ];

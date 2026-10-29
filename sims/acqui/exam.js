@@ -11,7 +11,7 @@
     "#ex{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;width:780px;max-width:94vw;background:#fff;border-radius:16px;box-shadow:0 14px 50px rgba(0,0,0,.4);padding:16px 22px;z-index:1000;border-top:5px solid var(--teal)}" +
     "#ex.full{top:50%;bottom:auto;transform:translate(-50%,-50%);width:600px;padding:24px 28px;max-height:90vh;overflow:auto}" +
     "#ex h2{margin:0 0 6px;font-size:20px}#ex .k{font-size:12px;color:var(--mut);letter-spacing:.5px;text-transform:uppercase;font-weight:700}" +
-    "#ex .task{font-size:18px;font-weight:600;line-height:1.45;margin:6px 0 12px}" +
+    "#ex .qt{font-size:18px;font-weight:600;line-height:1.45;margin:6px 0 12px}" +
     "#ex .hint{background:#fff7e6;border:1px solid #f5a623;border-radius:10px;padding:8px 12px;font-size:14px;color:#7a4a00;margin-bottom:10px}" +
     "#ex .row{display:flex;justify-content:space-between;align-items:center;gap:10px}" +
     "#ex .btn{font-size:14px;padding:8px 16px}" +
@@ -20,15 +20,49 @@
     "#ex #exch{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}" +
     "#ex .opt2{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:5px 13px;font-size:13px;cursor:pointer}#ex .opt2:hover{background:#f1f8f6}#ex .opt2.sel{border-color:var(--teal);background:#e9f6f3}" +
     "#ex .msg{font-size:14px;font-weight:600;margin:8px 0}.bad{color:#b3243a}" +
-    "#ex .done{background:#e7f6ea;border:1px solid #9bd3a8;border-radius:12px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px}" +
+    "#ex .done{background:#e7f6ea;border:1px solid #9bd3a8;border-radius:12px;padding:12px 16px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px}#ex .done>div{flex:1}" +
     "#ex .done b{font-size:18px;color:#1c7a40}#ex .done small{display:block;color:#456;font-size:12px;margin-top:2px}" +
     "#exdim{position:fixed;inset:0;background:rgba(10,25,28,.55);z-index:900;display:none}" +
     "#ex table{width:100%;border-collapse:collapse;margin:12px 0}#ex td{padding:8px 4px;font-size:14px;border-top:1px solid #eef2f2;vertical-align:top}" +
+    "body.has-xp #ex:not(.full){left:calc((100% - 340px) / 2)}" +
+    "#ex .bd{margin-top:8px;font-size:13px;font-weight:400;color:#345}#ex .bd div{display:flex;justify-content:space-between;gap:10px;padding:1px 0}#ex .bd .y{color:#1c7a40}#ex .bd .n{color:#b3243a}" +
+    "#xp{position:fixed;top:0;right:0;bottom:0;width:340px;background:#fff;border-left:1px solid var(--line);z-index:960;display:none;flex-direction:column;padding-top:72px}" +
+    "body.has-xp.xp-on #xp{display:flex}" +
+    "#xp .xh{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center}" +
+    "#xp .av{width:36px;height:36px;border-radius:50%;background:#F4B63F;color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px;flex:none}" +
+    "#xp .xh b{display:block;font-size:14px}#xp .xh small{color:var(--mut);font-size:11px}" +
+    "#xp .xb{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:#fafbfb}" +
+    "#xp .m{background:#fff;border:1px solid var(--line);border-radius:4px 14px 14px 14px;padding:9px 12px;font-size:13px;line-height:1.5;max-width:90%;align-self:flex-start}" +
+    "#xp .m.me{align-self:flex-end;background:#e9f6f3;border-color:#bfe3db;border-radius:14px 4px 14px 14px}" +
+    "#xp .m.sys{align-self:center;background:none;border:0;color:#6b7c7a;font-size:11.5px;text-align:center;padding:0;max-width:96%}" +
+    "#xp .m.old{opacity:.55}#xp .m.new{animation:xpin .35s}@keyframes xpin{from{opacity:0;transform:translateY(8px)}}" +
+    "#xp .att{display:flex;gap:10px;align-items:center;margin-top:8px;border:1px solid var(--line);border-radius:10px;padding:6px;cursor:pointer;background:#f6fbf6}#xp .att:hover{background:#eaf6ea}" +
+    "#xp .th{width:54px;height:54px;border-radius:6px;background:#f4fbf4;border:1px solid #9fcfa6;display:grid;place-items:center;font-size:8px;color:#4a7a50;text-align:center;line-height:1.3;flex:none}" +
+    "#xp .att small{display:block;color:var(--mut);font-size:11px}" +
+    "#xp .xf{padding:10px 16px;border-top:1px solid var(--line);font-size:11.5px;color:var(--mut);line-height:1.5}" +
     "#ex .big{font-size:40px;font-weight:800;margin:6px 0}.ok{color:#1c7a40}.no{color:#b3243a}";
   document.head.appendChild(st);
   var dim = document.createElement("div"); dim.id = "exdim"; document.body.appendChild(dim);
   var box = document.createElement("div"); box.id = "ex"; document.body.appendChild(box);
 
+  var panel = document.createElement("div"); panel.id = "xp"; document.body.appendChild(panel);
+  var thread = { id: "", msgs: [] };
+  /* chat: { thread, who:{name, sub}, msgs:[{from:"them"|"me"|"sys", text, att:{name, sub, cert:[kind,no,name,owner]}}] }.
+     Messages from earlier questions of the same thread stay above, dimmed. */
+  function drawPanel(c){
+    if (!c) { document.body.classList.remove("xp-on"); return; }
+    document.body.classList.add("has-xp", "xp-on");
+    if (thread.id !== c.thread) { thread.id = c.thread; thread.msgs = []; }
+    thread.msgs = thread.msgs.filter(function(m){ return m.q !== n; });
+    c.msgs.forEach(function(m){ thread.msgs.push({ q: n, m: m }); });
+    panel.innerHTML = '<div class="xh"><div class="av">' + esc(c.who.av || c.who.name.split(" ").map(function(w){ return w[0]; }).join("").slice(0, 2)) + '</div><div><b>' + esc(c.who.name) + '</b><small>' + esc(c.who.sub || "") + '</small></div></div>' +
+      '<div class="xb" id="xpb">' + thread.msgs.map(function(x, i){
+        var m = x.m, att = m.att ? '<div class="att" data-i="' + i + '"><div class="th">' + (m.att.cert[0] === "dti" ? "DTI" : "SEC") + '<br>CERT</div><div><b style="font-size:12px">' + esc(m.att.name) + '</b><small>' + esc(m.att.sub || "Photo · tap to open") + '</small></div></div>' : "";
+        return '<div class="m ' + (m.from === "me" ? "me" : m.from === "sys" ? "sys" : "") + (x.q < n ? " old" : " new") + '">' + (m.text ? esc(m.text.replace(/\{ME\}/g, (AM_NAME || ME).split(" ")[0])) : "") + att + '</div>';
+      }).join("") + '</div><div class="xf">Read the messages, then do what you would really do in Acqui Service.</div>';
+    panel.querySelectorAll(".att").forEach(function(a){ a.onclick = function(){ showCert.apply(null, thread.msgs[+a.getAttribute("data-i")].m.att.cert); }; });
+    var xb = document.getElementById("xpb"); if (xb) xb.scrollTop = xb.scrollHeight;
+  }
   function lead(id){ return LEADS.filter(function(l){ return l.id === id; })[0]; }
   function shuffle(a){ a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
 
@@ -84,35 +118,44 @@
 
   var TASKS = CFG.tasks || DEFAULT_TASKS;
   var TASK_ID = CFG.taskId || "d5-acqui-practice", NEXT_HREF = CFG.nextHref || "acqui-tour.html", NEXT_LABEL = CFG.nextLabel || "Review the tour";
-  var n = 0, res = [], flags = {}, hintUsed = false, wrongs = 0, loss = 0, started = 0, state = "idle", picked = null;
+  var AM_NAME = "", n = 0, res = [], flags = {}, hintUsed = false, wrongs = 0, loss = 0, started = 0, state = "idle", picked = null;
 
   function esc(s){ return String(s).replace(/</g, "&lt;"); }
   function fmtPts(x){ return (Math.round(x * 100) / 100).toString(); }
-  function pointsNow(){ return Math.max(0, 1 - (hintUsed ? HINT_COST : 0) - loss); }
+  function pointsNow(raw){ return Math.max(0, (raw == null ? 1 : raw) - (hintUsed ? HINT_COST : 0) - loss); }
 
   function intro(){
-    state = "idle"; dim.style.display = "block"; box.className = "full";
+    state = "idle"; dim.style.display = "block"; box.className = "full"; document.body.classList.remove("xp-on");
     box.innerHTML = '<div class="k">Practice check · not graded</div><h2>' + esc(CFG.title || "Find your way around Acqui Service") + '</h2>' +
       '<p style="font-size:15px;line-height:1.55;margin:8px 0 10px">' + (CFG.intro || ('You will get ' + TASKS.length + ' short situations, one at a time. Use the simulation behind this box to find the answer or the right place. Some questions ask you to type or pick what you find.')) + '</p>' +
-      '<p style="font-size:14px;line-height:1.55;margin:0 0 14px;color:#456">Every question starts with 1 point. A hint costs ' + HINT_COST + ' point, and each wrong answer costs ' + WRONG_COST + '. This is practice, so your score is not recorded as a grade. Aim for ' + PASS + '% or more.</p>' +
+      '<p style="font-size:14px;line-height:1.55;margin:0 0 14px;color:#456">' + (CFG.scoring || ('Every question starts with 1 point. A hint costs ' + HINT_COST + ' point, and each wrong answer costs ' + WRONG_COST + '.')) + ' This is practice, so your score is not recorded as a grade. Aim for ' + PASS + '% or more.</p>' +
+      (CFG.askName ? '<div style="background:#f4f8f8;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0 0 14px"><div style="font-size:13px;line-height:1.5;color:#345;margin-bottom:8px"><b>Honor code.</b> I will answer this test on my own. I will not ask anyone for help, and I will not share the questions or answers.</div><label style="font-size:13px;font-weight:700">AM name: <input type="text" id="exname" placeholder="Type your name" autocomplete="off" style="margin-top:4px"></label><div style="font-size:11px;color:var(--mut);margin-top:4px">This is the name you will use in the Acqui Service simulation.</div></div>' : '') +
       '<div class="row"><span>' + (window.ACQUI_STANDALONE ? '' : '<a href="../dashboard.html" style="font-size:13px;color:var(--teal)">Back to Day 5</a> · <a href="' + NEXT_HREF + '" style="font-size:13px;color:var(--teal)">' + NEXT_LABEL + ' first</a>') + '</span><button class="btn dark" id="exgo">Start</button></div>';
-    document.getElementById("exgo").onclick = begin;
+    document.getElementById("exgo").onclick = function(){
+      if (CFG.askName) {
+        var nm = document.getElementById("exname").value.trim();
+        if (nm.length < 2) { document.getElementById("exname").style.borderColor = "#b3243a"; document.getElementById("exname").focus(); return; }
+        AM_NAME = nm; ME = nm; FC_STAFF[0] = "1368 - " + nm; ORIG.concat(BCLS).forEach(function(o){ o.am = nm; }); render();
+      }
+      begin();
+    };
   }
-  function begin(){ n = 0; res = []; started = Date.now(); location.hash = "#/home"; dim.style.display = "none"; show(); }
+  function begin(){ n = 0; res = []; started = Date.now(); TASKS.forEach(function(t){ if (t.reset) t.reset(); }); location.hash = "#/home"; dim.style.display = "none"; show(); }
 
   function show(){
     flags = {}; hintUsed = false; wrongs = 0; loss = 0; picked = null; state = "asking"; box.className = "";
     var t = TASKS[n];
     if (t.setup) t.setup();
+    drawPanel(t.chat);
     var answerUi = "";
     if (t.type === "input") answerUi = '<input type="text" id="exin" placeholder="' + esc(t.placeholder || "Type your answer") + '" autocomplete="off"><div id="exmsg"></div>';
     if (t.type === "mcq") answerUi = '<div id="exch">' + shuffle(t.choices).map(function(c){ return '<div class="opt2" data-c="' + esc(c) + '"><span>○</span> ' + esc(c) + '</div>'; }).join("") + '</div><div id="exmsg"></div>';
     if (t.type === "nav" || t.type === "act") answerUi = '<div id="exmsg"></div>';
     box.innerHTML = '<div class="bar"><i style="width:' + (n / TASKS.length * 100) + '%"></i></div><div class="k">Question ' + (n + 1) + ' of ' + TASKS.length + '</div>' +
-      '<div class="task">' + (t.html ? t.text : esc(t.text)) + '</div>' + answerUi + '<div id="exh"></div>' +
-      '<div class="row"><span style="display:flex;gap:8px"><button class="btn" id="exhint">Show hint (-' + HINT_COST + ')</button>' + ((t.type === "input" || t.type === "mcq") ? '<button class="btn dark" id="exsub">Submit</button>' : '') + (t.alt ? '<button class="btn dark" id="exalt">' + esc(t.alt.label) + '</button>' : '') + '</span><button class="btn" id="exskip">Skip (0 points)</button></div>';
+      '<div class="qt">' + (t.html ? t.text : esc(t.text)) + '</div>' + answerUi + '<div id="exh"></div>' +
+      '<div class="row"><span style="display:flex;gap:8px">' + (t.noHint ? '' : '<button class="btn" id="exhint">Show hint (-' + HINT_COST + ')</button>') + ((t.type === "input" || t.type === "mcq") ? '<button class="btn dark" id="exsub">Submit</button>' : '') + (t.alt ? '<button class="btn dark" id="exalt">' + esc(t.alt.label) + '</button>' : '') + '</span><button class="btn" id="exskip">Skip (0 points)</button></div>';
     if (t.alt) document.getElementById("exalt").onclick = function(){ handle(t, t.alt.check({ flags: flags })); };
-    document.getElementById("exhint").onclick = function(){
+    if (!t.noHint) document.getElementById("exhint").onclick = function(){
       if (!hintUsed) hintUsed = true;
       document.getElementById("exh").innerHTML = '<div class="hint">Hint: ' + esc(t.hint) + '</div>';
       this.textContent = "Hint used (-" + HINT_COST + ")";
@@ -152,15 +195,15 @@
   }
 
   /* a question is finished: show the green "Done!" strip and wait for the learner to continue */
-  function finishQ(pts, how, why){
+  function finishQ(pts, how, why, detail){
     if (state !== "asking") return;
     state = "done";
-    res.push({ text: TASKS[n].text.replace(/<[^>]+>/g, " "), pts: pts, how: how, hint: hintUsed, wrongs: wrongs, why: why || "" });
+    res.push({ text: TASKS[n].text.replace(/<[^>]+>/g, " "), pts: pts, how: how, hint: hintUsed, wrongs: wrongs, why: why || "", detail: detail || "" });
     var last = n === TASKS.length - 1;
-    var note = how === "skipped" ? "Skipped" : how === "wrong" ? why : fmtPts(pts) + (pts === 1 ? " point" : " points") + (hintUsed || wrongs ? " (" + [hintUsed ? "hint -" + HINT_COST : "", wrongs ? wrongs + " wrong -" + fmtPts(loss) : ""].filter(Boolean).join(", ") + ")" : "");
+    var note = how === "skipped" ? "Skipped" : how === "wrong" ? why : how === "graded" ? fmtPts(pts) + " / 1 point" + (hintUsed || wrongs ? " (" + [hintUsed ? "hint -" + HINT_COST : "", wrongs ? wrongs + " wrong -" + fmtPts(loss) : ""].filter(Boolean).join(", ") + ")" : "") : fmtPts(pts) + (pts === 1 ? " point" : " points") + (hintUsed || wrongs ? " (" + [hintUsed ? "hint -" + HINT_COST : "", wrongs ? wrongs + " wrong -" + fmtPts(loss) : ""].filter(Boolean).join(", ") + ")" : "");
     box.innerHTML = '<div class="bar"><i style="width:' + ((n + 1) / TASKS.length * 100) + '%"></i></div><div class="k">Question ' + (n + 1) + ' of ' + TASKS.length + '</div>' +
-      '<div class="task" style="font-size:15px;color:#456">' + (TASKS[n].html ? TASKS[n].text : esc(TASKS[n].text)) + '</div>' +
-      '<div class="done"' + (how === "wrong" ? ' style="background:#fde8ea;border-color:#e5a3ad"' : '') + '><div><b' + (how === "wrong" ? ' style="color:#b3243a"' : '') + '>' + (how === "skipped" ? "Skipped" : how === "wrong" ? "✗ Not correct" : "✓ Done!") + '</b><small>' + note + '</small></div><button class="btn dark" id="exnext">' + (last ? "See my result" : "Next question →") + '</button></div>';
+      '<div class="qt" style="font-size:15px;color:#456">' + (TASKS[n].html ? TASKS[n].text : esc(TASKS[n].text)) + '</div>' +
+      '<div class="done"' + (how === "wrong" ? ' style="background:#fde8ea;border-color:#e5a3ad"' : '') + '><div><b' + (how === "wrong" ? ' style="color:#b3243a"' : '') + '>' + (how === "skipped" ? "Skipped" : how === "wrong" ? "✗ Not correct" : how === "graded" ? (pts >= 0.8 ? "✓ Done!" : pts >= 0.5 ? "Done. Some parts were missed" : "Done. Most parts were missed") : "✓ Done!") + '</b><small>' + note + '</small>' + (detail || "") + '</div><button class="btn dark" id="exnext">' + (last ? "See my result" : "Next question →") + '</button></div>';
     document.getElementById("exnext").onclick = function(){ n++; if (n >= TASKS.length) finish(); else show(); };
   }
 
@@ -169,22 +212,37 @@
     var total = res.reduce(function(a, r){ return a + r.pts; }, 0), pct = Math.round(total / TASKS.length * 100), pass = pct >= PASS;
     var secs = Math.round((Date.now() - started) / 1000);
     box.className = "full"; dim.style.display = "block";
-    box.innerHTML = '<div class="k">Practice check · result</div><div class="big ' + (pass ? "ok" : "no") + '">' + pct + '%</div><div style="font-size:16px;font-weight:600">' + (pass ? "Passed" : "Not yet. Review the tour and try again.") + ' (' + fmtPts(total) + ' / ' + TASKS.length + ' points, ' + Math.floor(secs / 60) + 'm ' + (secs % 60) + 's)</div>' +
+    box.innerHTML = '<div class="k">Practice check · result' + (AM_NAME ? ' · ' + esc(AM_NAME) : '') + '</div><div class="big ' + (pass ? "ok" : "no") + '">' + pct + '%</div><div style="font-size:16px;font-weight:600">' + (pass ? "Passed" : "Not yet. Review the tour and try again.") + ' (' + fmtPts(total) + ' / ' + TASKS.length + ' points, ' + Math.floor(secs / 60) + 'm ' + (secs % 60) + 's)</div>' +
       '<table>' + res.map(function(r){
-        var why = r.how === "skipped" ? "skipped" : r.how === "wrong" ? "wrong" : [r.hint ? "hint" : "", r.wrongs ? r.wrongs + " wrong" : ""].filter(Boolean).join(", ");
-        var bad = r.how === "skipped" || r.how === "wrong";
-        return '<tr><td style="width:24px" class="' + (bad ? "no" : "ok") + '">' + (bad ? "✗" : "✓") + '</td><td>' + esc(r.text) + '</td><td style="white-space:nowrap;color:var(--mut)">' + why + '</td><td style="text-align:right"><b>' + fmtPts(r.pts) + '</b></td></tr>'; }).join("") + '</table>' +
+        var why = r.how === "skipped" ? "skipped" : r.how === "wrong" ? "wrong" : r.how === "graded" ? (r.pts < 1 ? "partly right" : "") : [r.hint ? "hint" : "", r.wrongs ? r.wrongs + " wrong" : ""].filter(Boolean).join(", ");
+        var bad = r.how === "skipped" || r.how === "wrong" || (r.how === "graded" && r.pts < 0.5);
+        return '<tr><td style="width:24px" class="' + (bad ? "no" : "ok") + '">' + (bad ? "✗" : "✓") + '</td><td>' + esc(r.text) + (r.detail ? r.detail : "") + '</td><td style="white-space:nowrap;color:var(--mut)">' + why + '</td><td style="text-align:right"><b>' + fmtPts(r.pts) + '</b></td></tr>'; }).join("") + '</table>' +
       '<div class="row"><span>' + (window.ACQUI_STANDALONE ? '' : '<a href="../dashboard.html" style="font-size:13px;color:var(--teal)">Back to Day 5</a> · <a href="' + NEXT_HREF + '" style="font-size:13px;color:var(--teal)">' + NEXT_LABEL + '</a>') + '</span><button class="btn dark" id="exagain">Try again</button></div>';
     document.getElementById("exagain").onclick = intro;
     try { if (window.LMS && LMS.user && LMS.user() && !(LMS.preview && LMS.preview())) LMS.complete(TASK_ID); } catch (err) {}   /* practice: ticks the Day 5 task, no grade saved */
     /* If this ever becomes graded: LMS.saveResult({ id:"d5-nav-check", label:"Acqui navigation check", score:total, max:TASKS.length, pct:pct, kind:"lms", passing:PASS }) */
-    window.ACQUI_EXAM_RESULT = { score: total, max: TASKS.length, pct: pct, passed: pass, seconds: secs, tasks: res };
+    window.ACQUI_EXAM_RESULT = { name: AM_NAME, score: total, max: TASKS.length, pct: pct, passed: pass, seconds: secs, tasks: res };
+  }
+
+  /* a graded answer: r.items = [{label, w, ok}] (the weights add up to 1), r.bonus = same, r.extra = [{label, loss}], r.factor = multiplier (e.g. 0.5) */
+  function gradeIt(t, r){
+    var sum = function(a, f){ return (a || []).reduce(function(x, i){ return x + f(i); }, 0); };
+    var raw = Math.min(1, sum(r.items, function(i){ return i.ok ? i.w : 0; }) + sum(r.bonus, function(i){ return i.ok ? i.w : 0; })) - sum(r.extra, function(i){ return i.loss; });
+    raw = Math.max(0, raw) * (r.factor || 1);
+    var line = function(label, ok, val){ return '<div class="' + (ok ? "y" : "n") + '"><span>' + (ok ? "✓ " : "✗ ") + esc(label) + '</span><span>' + val + '</span></div>'; };
+    var d = '<div class="bd">' +
+      r.items.map(function(i){ return line(i.label, i.ok, i.ok ? "+" + fmtPts(i.w) : "0"); }).join("") +
+      (r.bonus || []).map(function(i){ return line(i.label, i.ok, i.ok ? "bonus +" + fmtPts(i.w) : "no bonus"); }).join("") +
+      (r.extra || []).map(function(i){ return i.loss ? line(i.label, false, "-" + fmtPts(i.loss)) : ""; }).join("") +
+      (r.factor && r.factor < 1 ? '<div class="n"><span>✗ ' + esc(r.factorLabel || "Score reduced") + '</span><span>x ' + r.factor + '</span></div>' : "") + '</div>';
+    finishQ(pointsNow(raw), "graded", "", d);
   }
 
   /* result of a check: true = done. "text" = wrong, try again (-0.25). { fatal: "text" } = wrong for good (0 points). false = nothing yet. */
   function handle(t, r){
     if (state !== "asking") return;
     if (r === true) { finishQ(pointsNow(), hintUsed ? "hint" : "ok"); return; }
+    if (r && r.items) { gradeIt(t, r); return; }
     if (r && r.fatal) { if (t.undo) t.undo(); finishQ(0, "wrong", r.fatal); return; }
     if (typeof r === "string" || (r && r.msg)) {
       var text = typeof r === "string" ? r : r.msg, cost = typeof r === "string" ? WRONG_COST : (r.cost || WRONG_COST);
@@ -193,15 +251,23 @@
       if (t.undo) t.undo();
     }
   }
-  ["render", "search-pick", "status-history", "lead-status-history", "orig-detail", "bcl-detail", "filter", "status-set", "referrer-open", "request-sent", "lead-created", "lead-create-blocked"].forEach(function(ev){
+  ["render", "search-pick", "status-history", "lead-status-history", "orig-detail", "bcl-detail", "filter", "status-set", "referrer-open", "request-sent", "lead-created", "lead-create-blocked", "bookmark-open", "sec-search", "dti-search"].forEach(function(ev){
     ACQUI.on(ev, function(d){
       if (state !== "asking") return;
       var t = TASKS[n]; if (!t || (t.type !== "nav" && t.type !== "act")) return;
       if (ev === "render" && d && d.route === "lead") { flags.visited = flags.visited || {}; flags.visited[d.id] = true; }
+      if (ev === "lead-create-blocked") flags.dup = true;
       var c = { flags: flags };
       /* check on the next tick so the page has finished drawing */
-      setTimeout(function(){ if (state === "asking" && TASKS[n] === t) { c.d = d; t.d = d; var r = t.check(ev, d, c); if (r) { t._ev = d; handle(t, r); } } }, 30);
+      setTimeout(function(){ if (state === "asking" && TASKS[n] === t) { c.d = d; t.d = d; var r = (t.grade || t.check)(ev, d, c); if (r) { t._ev = d; handle(t, r); } } }, 30);
     });
+  });
+  /* "Finish test" (next to Exit): everything not answered yet is 0 points */
+  ACQUI.on("finish-test", function(){
+    if (state === "idle") return;
+    if (state === "asking") res.push({ text: TASKS[n].text.replace(/<[^>]+>/g, " "), pts: 0, how: "skipped", hint: false, wrongs: 0, why: "", detail: "" });
+    for (var i = res.length; i < TASKS.length; i++) res.push({ text: TASKS[i].text.replace(/<[^>]+>/g, " "), pts: 0, how: "skipped", hint: false, wrongs: 0, why: "", detail: "" });
+    state = "idle"; finish();
   });
   intro();
 })();

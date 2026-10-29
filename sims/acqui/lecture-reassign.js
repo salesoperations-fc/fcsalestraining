@@ -47,8 +47,11 @@
       until:function(){ return val("r_ch") === "KAM - Self Generated Leads"; },
       wrongIf:function(){ var v = val("r_ch"); return v && v !== "KAM - Self Generated Leads" ? "Not this one. You found the lead yourself: KAM - Self Generated Leads." : ""; },
       auto:function(){ setSel("r_ch", "KAM - Self Generated Leads"); } },
+    { r:"lead", hash:H1, modal:"keep", target:"#r_n", dim:"none", hint:"Type a short note for your approver.",
+      say:"Notes: the form doesn't force you, but always write a short note for your approver. It helps them say yes faster. Say how you know the lead, and if there's no activity or progress on it. For example: \"I found Lakeshore Hardware myself. I know the owner personally. No activity or progress on this lead so far.\" Type your own note.",
+      until:function(){ return val("r_n").trim().length >= 10; }, auto:function(){ setSel("r_n", "I found Lakeshore Hardware myself. I know the owner personally. No activity or progress on this lead so far."); } },
     { r:"lead", hash:H1, modal:"keep", target:"#r_go", circle:true, dim:"none", hint:"Click Send Request.",
-      say:"The notes are optional. You can leave a short message for your approver. Now click Send Request.",
+      say:"Now click Send Request.",
       until:function(){ return !!pending["228764"]; }, auto:function(){ var b = $("r_go"); if (b) b.click(); } },
     { r:"lead", hash:H1, target:".banner", dim:"strong", good:true, say:"Good job! Your request is now pending approval. You can see it right on the lead: Request pending. When your approver approves it, the lead gets assigned to you." },
     { r:"lead", hash:H1, target:'#side .nv[data-r="home"]', click:true, dim:"none", hint:"Click the Home icon in the menu.", say:"You can also see your pending request in your Tasks. Let's go to Home." },
@@ -87,10 +90,13 @@
     { r:"lead", hash:H2, modal:"keep", target:"#r_rr", allow:"#r_fl", dim:"none", hint:"Search for your name and click it.",
       say:"FC Referrer: this is the First Circle employee who received the referral. That's you. Search for your name and pick it.",
       until:function(){ return /^1368/.test(val("r_fs")); }, auto:function(){ pick("r_fs", "r_fl", "1368"); } },
+    { r:"lead", hash:H2, modal:"keep", target:"#r_n", dim:"none", hint:"Type a short note for your approver.",
+      say:"Notes again. For a referral, say who referred the lead and that the owner agreed. For example: \"Referred by Mia Santos, a close friend of the owner. They already talked and the owner agreed to be referred. No activity or progress on this lead so far.\" Type your own note.",
+      until:function(){ return val("r_n").trim().length >= 10; }, auto:function(){ setSel("r_n", "Referred by Mia Santos, a close friend of the owner. They already talked and the owner agreed to be referred. No activity or progress on this lead so far."); } },
     { r:"lead", hash:H2, modal:"keep", target:"#r_go", circle:true, dim:"none", hint:"Click Send Request.",
       say:"Now click Send Request.",
       until:function(){ return !!pending["297315"]; }, auto:function(){ var b = $("r_go"); if (b) b.click(); } },
     { r:"lead", hash:H2, target:".banner", dim:"strong", good:true, say:"Good job! Another request pending approval." },
-    { r:"lead", hash:H2, end:true, dim:"light", say:"Let's recap. One: search for the lead first. Two: check the status. It must NOT be Risk Review, Onboarded, Unserviceable or Utilized. Three: pick your approver, your team lead or Alan Smyth. Four: choose the Channel (Last Touch). Self-generated or referral. Five: for a referral, use Drip by default, then pick your referrer and your name. See you in the practice check! - {T}" }
+    { r:"lead", hash:H2, end:true, dim:"light", say:"Let's recap. One: search for the lead first. Two: check the status. It must NOT be Risk Review, Onboarded, Unserviceable or Utilized. Three: pick your approver, your team lead or Alan Smyth. Four: choose the Channel (Last Touch). Self-generated or referral. Five: for a referral, use Drip by default, then pick your referrer and your name. Six: always add a note for your approver. See you in the practice check! - {T}" }
   ];
 })();

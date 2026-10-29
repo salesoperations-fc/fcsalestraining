@@ -17,7 +17,8 @@
     }, 80);
   }
   var modalOpen = function(){ var o = $("ov"); return !!o && getComputedStyle(o).display === "flex" && !!$("c_ch"); };
-  var winOpen = function(){ var b = $("brw"); return !!b && getComputedStyle(b).display === "block"; };
+  var tabIs = function(n){ var t = document.querySelector("#bm .tb.on"); return !!t && t.getAttribute("data-bm") === n; };
+  var certOpen = function(){ var c = $("cv"); return !!c && getComputedStyle(c).display !== "none"; };
   var created = function(name){ return function(){ return LEADS.some(function(l){ return norm(l.name) === norm(name) && l.owner === "me"; }); }; };
   var DELTA = (LEADS.filter(function(l){ return l.name === "Delta Packaging Inc."; })[0] || {}).reg || "";
 
@@ -49,10 +50,10 @@
       until:function(){ return val("c_ty") === "Sole Proprietorship"; },
       wrongIf:function(){ var v = val("c_ty"); return v && v !== "Sole Proprietorship" ? "Not this one. A business owned by one person is a Sole Proprietorship." : ""; },
       auto:function(){ set("c_ty", "Sole Proprietorship"); } },
-    { r:"leads", modal:"keep", target:"#c_rn", dim:"strong", say:"Now it asks for the DTI Business Name No. The owner didn't send the certificate, so we will look it up on the DTI website. We open it from the bookmarks. The form stays open." },
-    { r:"leads", modal:"keep", target:'#bm .bf[data-f="Document Uploading"]', dim:"none", hint:"Click the Document Uploading folder, then DTI - BNRS.",
-      say:"Open the bookmarks: the Document Uploading folder, then DTI - BNRS.",
-      until:function(){ return winOpen() && !!$("dq"); }, auto:function(){ var b = document.querySelector('[data-bm="DTI - BNRS"]'); if (b) b.click(); } },
+    { r:"leads", modal:"keep", target:"#c_rn", dim:"strong", say:"Now it asks for the DTI Business Name No. The owner didn't send the certificate, so we will look it up on the DTI website. We open it in a new tab. The form stays open, we'll come back to it." },
+    { r:"leads", modal:"keep", target:'#bm [data-bm="DTI - BNRS"]', click:true, dim:"none", hint:"Click the DTI Website tab at the top.",
+      say:"Click the DTI Website tab at the top.",
+      until:function(){ return tabIs("DTI - BNRS") && !!$("dq"); }, auto:function(){ setBrowserTab("DTI - BNRS"); } },
     { r:"leads", modal:"keep", target:"#dq", allow:"#dsug", dim:"strong", hint:"Type: KAPITAN SARI-SARI WHOLESALE",
       say:"This is the DTI business name search. Type the exact business name. Random searches don't work, it must be the exact name.",
       until:function(){ return norm(val("dq")) === norm("Kapitan Sari-Sari Wholesale"); }, auto:function(){ set("dq", "KAPITAN SARI-SARI WHOLESALE", "input"); } },
@@ -62,8 +63,8 @@
     { r:"leads", modal:"keep", target:"#dsearch", circle:true, dim:"none", hint:"Click Search.", say:"Now click Search.",
       until:function(){ return !!$("dres") && /search results found/.test($("dres").innerText); }, auto:function(){ var b = $("dsearch"); if (b) b.click(); } },
     { r:"leads", modal:"keep", target:"#dres", dim:"strong", say:"Here it is. One search result. Check the business name and the owner's name. It's Rico Dela Cruz, the owner you met. The number we need is the Certificate No. / BNN: 7001234. That's the DTI Business Name No." },
-    { r:"leads", modal:"keep", target:"#bclose", circle:true, dim:"none", hint:"Click the X on the window.", say:"Remember the number: 7001234. Now close this window.",
-      until:function(){ return !winOpen(); }, auto:function(){ var b = $("bclose"); if (b) b.click(); } },
+    { r:"leads", modal:"keep", target:'#bm [data-bm="Acqui Service"]', click:true, dim:"none", hint:"Click the Acqui Service tab at the top.", say:"Remember the number: 7001234. Now go back to the Acqui Service tab. Your form is still there.",
+      until:function(){ return tabIs("Acqui Service"); }, auto:function(){ setBrowserTab("Acqui Service"); } },
     { r:"leads", modal:"keep", target:"#c_rn", dim:"none", hint:"Type: 7001234",
       say:"Type the number in the DTI Business Name No.",
       until:function(){ return norm(val("c_rn")) === "7001234"; }, auto:function(){ type("c_rn", "7001234"); } },
@@ -102,10 +103,10 @@
     { r:"leads", modal:"keep", target:"#c_co", dim:"none", hint:"Type: Golden Harbor Trading Corp.",
       say:"Company Name: Golden Harbor Trading Corp.",
       until:function(){ return norm(val("c_co")) === norm("Golden Harbor Trading Corp."); }, auto:function(){ type("c_co", "Golden Harbor Trading Corp."); } },
-    { r:"leads", modal:"keep", target:"#brw", dim:"strong", onEnter:function(){ showCert("sec", "CS202605227", "GOLDEN HARBOR TRADING CORP."); },
-      say:"This is the SEC certificate Mia sent. It's a Certificate of Incorporation, so this business is a corporation. The number we need is at the top right: the Company Reg. No., CS202605227. Because the owner sent the certificate, we don't need to search the SEC website." },
-    { r:"leads", modal:"keep", target:"#bclose", circle:true, dim:"none", hint:"Click the X on the window.", say:"Remember the number: CS202605227. Close the certificate.",
-      until:function(){ return !winOpen(); }, auto:function(){ var b = $("bclose"); if (b) b.click(); } },
+    { r:"leads", modal:"keep", target:"#cv .cvbox", dim:"strong", onEnter:function(){ showCert("sec", "CS202605227", "GOLDEN HARBOR TRADING CORP."); },
+      say:"This is the SEC certificate Mia sent (it opens as a picture, like an attachment). It's a Certificate of Incorporation, so this business is a corporation. The number we need is at the top right: the Company Reg. No., CS202605227. Because the owner sent the certificate, we don't need to search the SEC website." },
+    { r:"leads", modal:"keep", target:"#cvx", click:true, circle:true, dim:"none", hint:"Click the X on the picture.", say:"Remember the number: CS202605227. Close the certificate.",
+      until:function(){ return !certOpen(); }, auto:function(){ var b = $("cvx"); if (b) b.click(); } },
     { r:"leads", modal:"keep", target:"#c_ty", dim:"none", hint:"Choose Corporation.",
       say:"Company Type: a Certificate of Incorporation means it's a Corporation.",
       until:function(){ return val("c_ty") === "Corporation"; }, auto:function(){ set("c_ty", "Corporation"); } },
@@ -130,6 +131,6 @@
     { r:"leads", modal:"keep", target:"#c_rne", dim:"strong", say:"Acqui Service says a lead with this registration number already exists, so you can't create it again. When that happens, search the lead and request it instead. That's the reassignment lesson." },
     { r:"leads", modal:"keep", target:"#mx", allow:"#c_foot", circle:true, dim:"none", hint:"Click the X, then Discard.", say:"Close the form. You don't need to save it.",
       until:function(){ var o = $("ov"); return !o || getComputedStyle(o).display === "none"; }, auto:function(){ closeModal(); } },
-    { r:"leads", end:true, dim:"light", say:"Let's recap. One: always search first. If the business is already in Acqui, request it, don't create it. Two: the channel is how you got the lead. Self-generated, or Referral with Drip by default. Three: the Company Type decides the number. Sole proprietorship: DTI Business Name No. Corporation, partnership or OPC: SEC Registration No. Four: if the owner sent a certificate, read the number there. If not, look it up with the DTI - BNRS or SEC Express bookmarks. See you in the practice check! - {T}" }
+    { r:"leads", end:true, dim:"light", say:"Let's recap. One: always search first. If the business is already in Acqui, request it, don't create it. Two: the channel is how you got the lead. Self-generated, or Referral with Drip by default. Three: the Company Type decides the number. Sole proprietorship: DTI Business Name No. Corporation, partnership or OPC: SEC Registration No. Four: if the owner sent a certificate, read the number there. If not, look it up in the DTI Website or SEC Website tab. See you in the practice check! - {T}" }
   ];
 })();

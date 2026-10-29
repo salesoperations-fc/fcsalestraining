@@ -1,17 +1,17 @@
 /* Day 5. Edit only this file to change this day (see modules.js for the fields). */
 LMS_DAY_DEFS[5] = {
-  title: "Lead Enrollment and Reassignment",
+  title: "Intro to Acqui Service",
   brief: "Find your way around Acqui Service, our CRM, then learn to request a lead (reassignment) and to enroll a new lead.",
   materialsTitle: "Further Reading",
   materialsBelow: true,        // Further Reading goes under the task groups, not beside them (see dashboard.html)
   // All of these open a simulation of the Acqui Service screens (fake data, nothing real is touched). Practice only: nothing is graded.
   // The sims tick the task themselves when finished (if signed in). Source: sims/acqui-*.html, shared code in sims/acqui/ (see build-standalone.py for the shareable single-file versions).
   tasks: [
-    { id: "d5-acqui-tour",         group: "Introduction to Acqui Service", label: "Take the Acqui Service tour",                                        href: "sims/acqui-tour.html" },
-    { id: "d5-acqui-practice",     group: "Introduction to Acqui Service", label: "Practice check: find your way around Acqui Service",                 href: "sims/acqui-tour-exam.html" },
-    { id: "d5-reassign-lecture",   group: "Getting Leads in Acqui Service", label: "Lecture: request a lead (lead reassignment)",                       href: "sims/acqui-reassign-lecture.html" },
-    { id: "d5-create-lecture",     group: "Getting Leads in Acqui Service", label: "Lecture: create a new lead (self-generated and referral)",          href: "sims/acqui-create-lecture.html" },
-    { id: "d5-reassign-practice",  group: "Getting Leads in Acqui Service", label: "Practice check: lead reassignment and creating a new lead",         href: "sims/acqui-reassign-exam.html" }
+    { id: "d5-acqui-tour",         group: "Introduction to Acqui Service", label: "LECTURE: Tour of Acqui Service",                                        href: "sims/acqui-tour.html" },
+    { id: "d5-acqui-practice",     group: "Introduction to Acqui Service", label: "PRACTICE: Find your way around Acqui Service",                 href: "sims/acqui-tour-exam.html" },
+    { id: "d5-reassign-lecture",   group: "Getting Leads in Acqui Service", label: "LECTURE: Lead Reassignment in Acqui Service",                       href: "sims/acqui-reassign-lecture.html" },
+    { id: "d5-create-lecture",     group: "Getting Leads in Acqui Service", label: "LECTURE: Lead Creation in Acqui Service",          href: "sims/acqui-create-lecture.html" },
+    { id: "d5-reassign-practice",  group: "Getting Leads in Acqui Service", label: "PRACTICE: Lead reassignment and creation in Acqui Service",         href: "sims/acqui-reassign-exam.html" }
   ],
   // Product Exam 3 has no questions yet (soon: true = shown but does not block the day). Remove soon when exams/questions.js is filled in.
   exams: [

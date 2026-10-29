@@ -152,22 +152,16 @@ body.sp-on #exitbub,body:has(#sp.open) #exitbub{right:calc(340px + 30px)}
 /* the "approve as Team Lead" sandbox helper is not part of the lecture or the exams */
 body[data-mode="exam"] #simappr,body[data-mode="tour"] #simappr{display:none}
 
-/* bookmarks bar (like the imported First Circle bookmarks) */
+/* browser tabs: Acqui Service, SEC website, DTI website */
 body{padding-top:28px}
-#bm{position:fixed;top:0;left:0;right:0;height:28px;background:#f3eaea;border-bottom:1px solid #e0d6d6;display:flex;align-items:center;gap:2px;padding:0 10px;z-index:27;font-size:11px;white-space:nowrap}
-#bm .bi,#bm .bf{padding:3px 9px;border-radius:6px;cursor:pointer;color:#333;position:relative}
-#bm .bi:hover,#bm .bf:hover{background:#e6dada}
-#bm .bdd{display:none;position:absolute;top:24px;left:0;min-width:240px;background:#fff;border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.25);padding:6px 0;z-index:40}
-#bm .bf.open .bdd{display:block}#bm .bit{padding:7px 14px;font-size:12px;color:#222}#bm .bit:hover{background:#eef4ff}
+#bm{position:fixed;top:0;left:0;right:0;height:28px;background:#dee1e6;display:flex;align-items:flex-end;gap:2px;padding:0 10px;z-index:52;font-size:11px;white-space:nowrap}
+#bm .tb{padding:6px 18px;border-radius:8px 8px 0 0;cursor:pointer;color:#444;background:#cdd1d8;font-weight:600}
+#bm .tb:hover{background:#e9ebef}#bm .tb.on{background:#fff;color:#0f2a2e}
 #side{top:28px}#top{top:28px}#sp{top:28px}
 #exitbub{top:34px}
-/* mock browser window for the SEC / DTI mock-ups */
-#brw{display:none;position:fixed;top:40px;left:70px;right:40px;bottom:24px;z-index:45}
-#brw .bwin{height:100%;background:#fff;border-radius:10px;box-shadow:0 14px 50px rgba(0,0,0,.4);display:flex;flex-direction:column;overflow:hidden;border:1px solid #cfd8d8}
-#brw .bbar{display:flex;gap:10px;align-items:center;background:#efe6e6;padding:6px 10px;font-size:11px}
-#brw .btab{background:#fff;border-radius:6px 6px 0 0;padding:4px 12px;font-weight:600}#brw .baddr{flex:1;background:#fff;border-radius:999px;padding:3px 12px;color:#667}
-#brw #bclose{border:0;background:none;font-size:20px;color:#556;cursor:pointer}
-#brw .bbody{flex:1;overflow:auto}#brw .mockb{background:#fff3dc;color:#7a4a00;font-size:11px;text-align:center;padding:4px}
+/* the SEC / DTI websites fill the page under the tabs */
+#brw{display:none;position:fixed;top:28px;left:0;right:0;bottom:0;z-index:55;background:#fff;overflow:auto}
+#brw .pane{min-height:100%}#brw .mockb{background:#fff3dc;color:#7a4a00;font-size:11px;text-align:center;padding:4px}
 .spin{display:inline-block;width:12px;height:12px;border:2px solid #cdd;border-top-color:#3c7;border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle}.spin.big{width:44px;height:44px;border-width:5px}@keyframes sp{to{transform:rotate(360deg)}}
 .secw{font-family:Arial,Helvetica,sans-serif;color:#222}.sechead{padding:12px 24px;display:flex;justify-content:space-between;align-items:center;font-size:14px}.sechead span{font-size:12px;color:#444}.sechead u{color:#3a8a2a;text-decoration-thickness:2px}
 .secband{background:#4a8a2e;color:#fff;font-size:24px;padding:34px 40px}
@@ -189,14 +183,25 @@ body{padding-top:28px}
 .dload{text-align:center;padding:20px}.dnote{font-size:11px}
 /* dummy certificates */
 .cert{position:relative;background:#fff;border:3px double #2a7;padding:22px 26px;font-size:12px;line-height:1.5;text-align:center;overflow:hidden}.cert h2{margin:6px 0;font-size:18px}.cert h3{margin:4px 0;font-size:15px}.cert h4{margin:10px 0;font-size:14px}
-.cert.cd{border-color:#999}.cert.cs{text-align:left}.cert .cwm{position:absolute;inset:0;display:grid;place-items:center;font-size:42px;font-weight:800;color:rgba(0,0,0,.06);transform:rotate(-18deg);pointer-events:none}
-
-/* in the exams the question box sits at the bottom: keep the mock websites above it */
-body[data-mode="exam"] #brw{bottom:250px}
+.cert.cd{border-color:#999}.cert.cs{background:#f4fbf4;border-color:#9fcfa6}.cert.cs .rn{text-align:right;margin:0 0 6px}.cert.cs .cn{margin:4px 0 8px}.cert .cwm{position:absolute;inset:0;display:grid;place-items:center;font-size:42px;font-weight:800;color:rgba(0,0,0,.06);transform:rotate(-18deg);pointer-events:none}
 
 .pillpending{font-size:11px;font-weight:700;color:#1c6a66;background:#e1f5f2;border-radius:999px;padding:5px 14px;white-space:nowrap}
 /* mock websites + certificates sit above the Create Lead form, so people can look things up while it is open */
-#bm{z-index:52}#brw{z-index:55}
+
+
+/* certificate photo / attachment viewer */
+#cv{display:none;position:fixed;inset:0;background:rgba(10,25,28,.6);z-index:970;align-items:center;justify-content:center;padding:20px}
+#cv .cvbox{position:relative;background:#fff;border-radius:12px;width:560px;max-width:92%;max-height:92%;overflow:auto;padding:14px 16px 18px;box-shadow:0 14px 50px rgba(0,0,0,.4)}
+#cv .cvt{font-size:11px;color:var(--mut);margin-bottom:8px}#cv #cvx{position:absolute;right:10px;top:6px;border:0;background:none;font-size:24px;color:#556;cursor:pointer}
+/* "Finish test" next to Exit, and its dialog */
+#exitbub .fin{background:#fff;color:#1c6a66;border:1px solid #1c6a66}
+.xdlg{position:fixed;inset:0;background:rgba(10,25,28,.6);z-index:1300;display:none;align-items:center;justify-content:center}
+.xdlg .box{background:#fff;border-radius:14px;padding:22px 24px;width:380px;max-width:92vw;box-shadow:0 14px 50px rgba(0,0,0,.4)}
+.xdlg h3{margin:0 0 8px;font-size:17px}.xdlg p{margin:0 0 16px;font-size:14px;line-height:1.5;color:#456}.xdlg .r{display:flex;justify-content:flex-end;gap:8px}.xdlg .btn{font-size:14px;padding:8px 16px}
+/* exam with a chat panel on the right (class set by exam.js) */
+body.has-xp #main{padding-right:364px}
+body.has-xp #bm{right:340px}body.has-xp #brw{right:340px}body.has-xp #cv{right:340px}body.has-xp #ov{right:340px}
+body.has-xp #sp{right:340px}body.has-xp #exitbub{right:14px !important}
 </style>
 </head>
 <body data-mode="tour">
@@ -746,16 +751,16 @@ function openCreate(){
       if(v("#c_ch")==="Referral"){if(!st.rc)need.push("Referral Channel");if(!st.ref)need.push("Referrer");if(!st.fc)need.push("FC Referrer")}
       [["#c_co","Company Name"],["#c_ty","Company Type"],["#c_rn","Registration Number"],["#c_fn","First Name"],["#c_ln","Last Name"],["#c_em","Email"],["#c_ph","Phone"]].forEach(function(f){if(!v(f[0]))need.push(f[1])});
       if(need.length){toast("Please fill in: "+need.join(", "));return}
-      var dup=LEADS.filter(function(x){return x.reg&&normReg(x.reg)===normReg(v("#c_rn"))})[0];
+      var dupReg=LEADS.filter(function(x){return x.reg&&normReg(x.reg)===normReg(v("#c_rn"))})[0],dup=dupReg;
       if(dup){
         $("#c_rne").innerHTML='<div style="color:#b3243a;font-size:11px;font-weight:600;margin-top:4px">A lead with this registration number already exists. You cannot create it again.</div>';
-        toast("Registration number already exists");ACQUI.emit("lead-create-blocked",{reg:v("#c_rn"),id:dup.id,name:dup.name});return;
+        toast("This lead already exists");ACQUI.emit("lead-create-blocked",{reg:v("#c_rn"),id:dup.id,name:dup.name});return;
       }
       var ch=v("#c_ch");
       var chn=ch==="Referral"?"Referrals":ch==="KAM Self Generated"?"KAM - Self Generated Leads":ch;
       var nid=String(371930+LEADS.length);
       LEADS.unshift({id:nid,name:v("#c_co"),status:"For Engagement",risk:"-",channel:chn,entry:chn,refBy:ch==="Referral"?st.ref.k:undefined,fcRef:ch==="Referral"?st.fc.k:undefined,clo:0,eng:"2026-10-26",owner:"me",reg:v("#c_rn"),ctype:v("#c_ty"),contact:v("#c_fn")+" "+v("#c_ln")});
-      closeModal();toast("Lead created");ACQUI.emit("lead-created",{id:nid,ch:ch,type:v("#c_ty"),reg:v("#c_rn"),rc:st.rc||null,ref:st.ref?st.ref.k:null,fc:st.fc?st.fc.k:null,name:v("#c_co")});render();
+      closeModal();toast("Lead created");ACQUI.emit("lead-created",{id:nid,ch:ch,type:v("#c_ty"),reg:v("#c_rn"),rc:st.rc||null,ref:st.ref?st.ref.k:null,fc:st.fc?st.fc.k:null,name:v("#c_co"),fn:v("#c_fn"),ln:v("#c_ln"),em:v("#c_em"),ph:v("#c_ph")});render();
     };
   }
   wire();
@@ -768,7 +773,7 @@ function openRequest(id){
   md.innerHTML='<h3>Request this lead <button id="mx">×</button></h3><div class="idot">This sends a reassignment request for approval. If approved, the lead will be assigned to you.</div>'+
    '<label>Approver <i>*</i></label><select id="r_app"><option value="">Select an approver</option>'+TEAM_LEADS.map(function(a){return '<option>'+a+'</option>'}).join("")+'</select>'+
    '<label>Channel (Last Touch) <i>*</i></label><select id="r_ch"><option value="">Select a channel</option>'+CHANNELS.map(function(c){return '<option>'+c+'</option>'}).join("")+'</select>'+
-   '<div id="r_ref"></div><label>Notes</label><textarea id="r_n" placeholder="Add any notes (optional)..."></textarea>'+
+   '<div id="r_ref"></div><label>Notes</label><textarea id="r_n" placeholder="Add a note for your approver. Example: Referred by (name), a close friend of the owner. They already talked and the owner agreed to be referred. No activity or progress on this lead so far."></textarea>'+
    '<div class="foot"><button class="btn dark" id="r_go">Send Request</button></div>';
   $("#ov").style.display="flex";
   $("#mx").onclick=closeModal;
@@ -836,42 +841,34 @@ if(!/[?&]keep=1/.test(location.search)){try{history.replaceState(null,"",locatio
 render();
 
 
-/* ===== Bookmarks bar + mock SEC / DTI search sites (training mock-ups, dummy data, no official logos) =====
-   The bar mirrors the First Circle bookmarks people import on Day 1. Only "Document Uploading > SEC Express / DTI - BNRS" open something here. */
+/* ===== Browser tabs + mock SEC / DTI websites (training mock-ups, dummy data, no official logos) =====
+   Three tabs like a real browser: Acqui Service, SEC website, DTI website. The data-bm values are the names the lectures wait for. */
 (function(){
+  var TABS=[["Acqui Service","Acqui Service"],["SEC Express","SEC Website"],["DTI - BNRS","DTI Website"]];
   var bm=document.createElement("div");bm.id="bm";
-  var folder=function(n,items){return '<span class="bf" data-f="'+n+'">▸ '+n+'<div class="bdd">'+items.map(function(i){return '<div class="bit" data-bm="'+i+'">'+i+'</div>'}).join("")+'</div></span>'};
-  bm.innerHTML='<span class="bi" data-bm="Gmail">Gmail</span><span class="bi" data-bm="Onboarding Playbook">Onboarding Playbook</span>'+
-   folder("Notion Pages",["First Circle Home","Acquisition @ First Circle","Grab Policy"])+
-   '<span class="bi" data-bm="Connect Actual">Connect Actual</span><span class="bi" data-bm="Connect Demo">Connect Demo</span><span class="bi" data-bm="Hubspot">Hubspot</span>'+
-   folder("Forms",["First Circle Support Form - Zendesk"])+folder("SalesOps Tools",["FC Collaterals | Email Signature"])+
-   folder("Document Uploading",["Document Guidelines","Uploading Documents Instruction","FCC - BVP / Upload Here","SEC Express","DTI - BNRS","Document Resubmission Reasons","Connect User ID"])+
-   '<span class="bi" data-bm="BambooHR">BambooHR</span><span class="bi" data-bm="Metabase">Metabase</span><span class="bi" data-bm="Asana">Asana</span>';
+  bm.innerHTML=TABS.map(function(t,i){return '<span class="tb'+(i?'':' on')+'" data-bm="'+t[0]+'">'+t[1]+'</span>'}).join("");
   document.body.insertBefore(bm,document.body.firstChild);
   var brw=document.createElement("div");brw.id="brw";document.body.appendChild(brw);
-
-  document.addEventListener("click",function(e){
-    var f=e.target.closest(".bf"),it=e.target.closest("[data-bm]");
-    document.querySelectorAll(".bf.open").forEach(function(x){if(x!==f)x.classList.remove("open")});
-    if(f&&!it){f.classList.toggle("open");return}
-    if(it){
-      f&&f.classList.remove("open");
-      var n=it.getAttribute("data-bm");
-      ACQUI.emit("bookmark-open",n);
-      if(n==="SEC Express")openSec();else if(n==="DTI - BNRS")openDti();else toast("Not part of this simulation");
-    }
-  });
-
-  function win(title,addr,body){
-    brw.innerHTML='<div class="bwin"><div class="bbar"><span class="btab">'+title+'</span><span class="baddr">'+addr+'</span><button id="bclose" title="Close">×</button></div><div class="bbody">'+body+'</div></div>';
-    brw.style.display="block";$("#bclose").onclick=function(){brw.style.display="none";brw.innerHTML=""};
-  }
+  var built={};
   var mockBanner='<div class="mockb">Training mock-up with dummy companies and numbers. Not the real website.</div>';
 
+  function setTab(n){
+    document.querySelectorAll("#bm .tb").forEach(function(t){t.classList.toggle("on",t.getAttribute("data-bm")===n)});
+    brw.style.display=n==="Acqui Service"?"none":"block";
+    if(n==="SEC Express"&&!built.sec){built.sec=1;buildSec()}
+    if(n==="DTI - BNRS"&&!built.dti){built.dti=1;buildDti()}
+    var s=$("#pane-sec"),d=$("#pane-dti");
+    if(s)s.style.display=n==="SEC Express"?"block":"none";
+    if(d)d.style.display=n==="DTI - BNRS"?"block":"none";
+    ACQUI.emit("bookmark-open",n);
+  }
+  window.setBrowserTab=setTab;
+  bm.onclick=function(e){var t=e.target.closest(".tb");if(t)setTab(t.getAttribute("data-bm"))};
+  function pane(id,html){var p=document.createElement("div");p.id=id;p.className="pane";p.innerHTML=mockBanner+html;brw.appendChild(p)}
+
   /* --- SEC Express style search --- */
-  function openSec(){
-    win("SEC Express (mock-up)","training mock-up · SEC company search",mockBanner+
-     '<div class="secw"><div class="sechead"><b>Securities and Exchange Commission</b> <span>Home &nbsp; <u>Order</u> &nbsp; Payment &nbsp; Check Status &nbsp; FAQ &nbsp; Service Fees</span></div><div class="secband">Order</div>'+
+  function buildSec(){
+    pane("pane-sec",'<div class="secw"><div class="sechead"><b>Securities and Exchange Commission</b> <span>Home &nbsp; <u>Order</u> &nbsp; Payment &nbsp; Check Status &nbsp; FAQ &nbsp; Service Fees</span></div><div class="secband">Order</div>'+
      '<div class="secbox"><label>Company Name or SEC Registration Number:</label><div class="secrow"><input id="secq" autocomplete="off"><button id="secgo">Search</button></div>'+
      '<div class="capok" id="seccap"><span class="spin"></span> Verifying...</div></div><div id="secres"></div></div>');
     var ok=false;setTimeout(function(){var c=$("#seccap");if(c){ok=true;c.innerHTML='<b class="tick">✓</b> Success!'}},900);
@@ -884,15 +881,14 @@ render();
       $("#secres").querySelectorAll("[data-co]").forEach(function(a){a.onclick=function(){toast("Company details are not part of this simulation")}});
       ACQUI.emit("sec-search",{q:$("#secq").value,n:rows.length});
     };
-    $("#secgo").onclick=run;$("#secq").onkeydown=function(e){if(e.key==="Enter")run()};$("#secq").focus();
+    $("#secgo").onclick=run;$("#secq").onkeydown=function(e){if(e.key==="Enter")run()};
   }
 
   /* --- DTI BNRS style search (exact business name, captcha) --- */
   function capCode(){var c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789",s="";for(var i=0;i<6;i++)s+=c.charAt(Math.floor(Math.random()*c.length));return s}
-  function openDti(){
+  function buildDti(){
     var code=capCode(),verified=false;
-    win("BNRS Business Name Search (mock-up)","training mock-up · business name search",mockBanner+
-     '<div class="dtiw"><div class="dtiside"><div class="dtilogo">BNRS<br><small>mock-up</small></div><div class="dnav">NAVIGATION</div><div class="dit">⌂ HOME</div><div class="dit">⚙ BUSINESS NAME SERVICES ‹</div></div>'+
+    pane("pane-dti",'<div class="dtiw"><div class="dtiside"><div class="dtilogo">BNRS<br><small>mock-up</small></div><div class="dnav">NAVIGATION</div><div class="dit">⌂ HOME</div><div class="dit">⚙ BUSINESS NAME SERVICES ‹</div></div>'+
      '<div class="dtimain"><div class="dtitop">≡</div><h3>⚙ SERVICES - BUSINESS NAME SEARCH</h3><div class="dtipanel"><div class="dtiph">▤ BUSINESS NAME SEARCH</div><div class="dtipb">'+
      '<div class="dtirow"><div><label>Filter *</label><select disabled><option>BUSINESS NAME</option></select></div><div style="position:relative"><label>Value *</label><input id="dq" autocomplete="off"><div id="dsug"></div></div></div>'+
      '<label>Criteria</label><div><input type="radio" checked> Exact Match</div><label>Sort By</label><div><select disabled><option>Business Name</option></select> <input type="radio" checked> Ascending <input type="radio"> Descending</div>'+
@@ -925,13 +921,18 @@ render();
     };
   }
 
-  /* --- dummy certificates (for scenarios where the owner sends the certificate) --- */
+  /* --- dummy certificates, shown as a picture on top of the page (the owner's photo / attachment) --- */
   window.showCert=function(kind,no,name,owner){
     var dti=kind==="dti";
     var body=dti?
       '<div class="cert cd"><div class="cwm">SAMPLE · TRAINING</div><small>This certifies that</small><h2>'+esc(name)+'</h2><small>(REGIONAL)</small><p>is a business name registered in this office pursuant to the provisions of the law, and in compliance with the applicable rules and regulations. This certificate is issued to</p><h3>'+esc(owner||"OWNER NAME")+'</h3><p>is valid for five (5) years from the date of registration.</p><h4>Certificate of Business Name Registration</h4><p><b>Business Name No. '+esc(no)+'</b></p></div>'
-     :'<div class="cert cs"><div class="cwm">SAMPLE · TRAINING</div><div class="cn"><small>REPUBLIC OF THE PHILIPPINES · SECURITIES AND EXCHANGE COMMISSION</small></div><p style="text-align:right"><b>COMPANY REG. NO. '+esc(no)+'</b></p><h4>CERTIFICATE OF INCORPORATION</h4><p>KNOW ALL MEN BY THESE PRESENTS:</p><p>This is to certify that the Articles of Incorporation and By-Laws of</p><h2>'+esc(name)+'</h2><p>were duly approved by the Commission on this date upon the issuance of this Certificate of Incorporation.</p></div>';
-    win(dti?"DTI certificate (sample)":"SEC certificate (sample)","training mock-up · certificate.pdf",mockBanner+'<div style="padding:18px">'+body+'</div>');
+     :'<div class="cert cs"><div class="cwm">SAMPLE · TRAINING</div><p class="rn"><b>COMPANY REG. NO. '+esc(no)+'</b></p><div class="cn"><small>REPUBLIC OF THE PHILIPPINES<br>DEPARTMENT OF FINANCE<br><b>SECURITIES AND EXCHANGE COMMISSION</b></small></div><h4>CERTIFICATE OF INCORPORATION</h4><p>KNOW ALL MEN BY THESE PRESENTS:</p><p>This is to certify that the Articles of Incorporation and By-Laws of</p><h2>'+esc(name)+'</h2><p>were duly approved by the Commission on this date upon the issuance of this Certificate of Incorporation.</p></div>';
+    var cv=$("#cv");if(!cv){cv=document.createElement("div");cv.id="cv";document.body.appendChild(cv)}
+    cv.innerHTML='<div class="cvbox"><button id="cvx" title="Close">×</button><div class="cvt">'+(dti?"DTI certificate":"SEC certificate")+' (sample photo)</div>'+body+'</div>';
+    cv.style.display="flex";
+    var shut=function(){cv.style.display="none";cv.innerHTML=""};
+    $("#cvx").onclick=shut;cv.onclick=function(e){if(e.target===cv)shut()};
+    ACQUI.emit("cert-open",{kind:kind,no:no});
   };
 })();
 
@@ -940,12 +941,20 @@ render();
   var mode=document.body.getAttribute("data-mode");
   if(mode!=="tour"&&mode!=="exam")return;
   var b=document.createElement("div");b.id="exitbub";
-  b.innerHTML='<span class="live"></span><span>You are currently in training</span><button id="exitbtn">Exit</button>';
+  b.innerHTML='<span class="live"></span><span>'+(mode==="exam"?"In training":"You are currently in training")+'</span>'+(mode==="exam"?'<button id="finbtn" class="fin">Finish test</button>':"")+'<button id="exitbtn">Exit</button>';
   document.body.appendChild(b);
   var dlg=document.createElement("div");dlg.id="exitdlg";
   dlg.innerHTML='<div class="box"><h3>Exit training?</h3><p>If you exit now, your progress in this '+(mode==="tour"?"tour":"practice check")+' will be reset and you will have to start again.</p><div class="r"><button class="btn" id="exstay">Keep going</button><button class="btn dark" id="exleave">Exit</button></div></div>';
   document.body.appendChild(dlg);
   $("#exitbtn").onclick=function(){dlg.style.display="flex"};
+  if(mode==="exam"){
+    var fd=document.createElement("div");fd.id="findlg";fd.className="xdlg";
+    fd.innerHTML='<div class="box"><h3>Finish the test now?</h3><p>Questions you have not answered will get 0 points. You will see your result right away.</p><div class="r"><button class="btn" id="finstay">Keep going</button><button class="btn dark" id="finyes">Finish test</button></div></div>';
+    document.body.appendChild(fd);
+    $("#finbtn").onclick=function(){fd.style.display="flex"};
+    $("#finstay").onclick=function(){fd.style.display="none"};
+    $("#finyes").onclick=function(){fd.style.display="none";ACQUI.emit("finish-test")};
+  }
   $("#exstay").onclick=function(){dlg.style.display="none"};
   $("#exleave").onclick=function(){if(window.ACQUI_STANDALONE)location.reload();else location.href="../dashboard.html"};
 })();
@@ -970,7 +979,8 @@ render();
     }, 80);
   }
   var modalOpen = function(){ var o = $("ov"); return !!o && getComputedStyle(o).display === "flex" && !!$("c_ch"); };
-  var winOpen = function(){ var b = $("brw"); return !!b && getComputedStyle(b).display === "block"; };
+  var tabIs = function(n){ var t = document.querySelector("#bm .tb.on"); return !!t && t.getAttribute("data-bm") === n; };
+  var certOpen = function(){ var c = $("cv"); return !!c && getComputedStyle(c).display !== "none"; };
   var created = function(name){ return function(){ return LEADS.some(function(l){ return norm(l.name) === norm(name) && l.owner === "me"; }); }; };
   var DELTA = (LEADS.filter(function(l){ return l.name === "Delta Packaging Inc."; })[0] || {}).reg || "";
 
@@ -1002,10 +1012,10 @@ render();
       until:function(){ return val("c_ty") === "Sole Proprietorship"; },
       wrongIf:function(){ var v = val("c_ty"); return v && v !== "Sole Proprietorship" ? "Not this one. A business owned by one person is a Sole Proprietorship." : ""; },
       auto:function(){ set("c_ty", "Sole Proprietorship"); } },
-    { r:"leads", modal:"keep", target:"#c_rn", dim:"strong", say:"Now it asks for the DTI Business Name No. The owner didn't send the certificate, so we will look it up on the DTI website. We open it from the bookmarks. The form stays open." },
-    { r:"leads", modal:"keep", target:'#bm .bf[data-f="Document Uploading"]', dim:"none", hint:"Click the Document Uploading folder, then DTI - BNRS.",
-      say:"Open the bookmarks: the Document Uploading folder, then DTI - BNRS.",
-      until:function(){ return winOpen() && !!$("dq"); }, auto:function(){ var b = document.querySelector('[data-bm="DTI - BNRS"]'); if (b) b.click(); } },
+    { r:"leads", modal:"keep", target:"#c_rn", dim:"strong", say:"Now it asks for the DTI Business Name No. The owner didn't send the certificate, so we will look it up on the DTI website. We open it in a new tab. The form stays open, we'll come back to it." },
+    { r:"leads", modal:"keep", target:'#bm [data-bm="DTI - BNRS"]', click:true, dim:"none", hint:"Click the DTI Website tab at the top.",
+      say:"Click the DTI Website tab at the top.",
+      until:function(){ return tabIs("DTI - BNRS") && !!$("dq"); }, auto:function(){ setBrowserTab("DTI - BNRS"); } },
     { r:"leads", modal:"keep", target:"#dq", allow:"#dsug", dim:"strong", hint:"Type: KAPITAN SARI-SARI WHOLESALE",
       say:"This is the DTI business name search. Type the exact business name. Random searches don't work, it must be the exact name.",
       until:function(){ return norm(val("dq")) === norm("Kapitan Sari-Sari Wholesale"); }, auto:function(){ set("dq", "KAPITAN SARI-SARI WHOLESALE", "input"); } },
@@ -1015,8 +1025,8 @@ render();
     { r:"leads", modal:"keep", target:"#dsearch", circle:true, dim:"none", hint:"Click Search.", say:"Now click Search.",
       until:function(){ return !!$("dres") && /search results found/.test($("dres").innerText); }, auto:function(){ var b = $("dsearch"); if (b) b.click(); } },
     { r:"leads", modal:"keep", target:"#dres", dim:"strong", say:"Here it is. One search result. Check the business name and the owner's name. It's Rico Dela Cruz, the owner you met. The number we need is the Certificate No. / BNN: 7001234. That's the DTI Business Name No." },
-    { r:"leads", modal:"keep", target:"#bclose", circle:true, dim:"none", hint:"Click the X on the window.", say:"Remember the number: 7001234. Now close this window.",
-      until:function(){ return !winOpen(); }, auto:function(){ var b = $("bclose"); if (b) b.click(); } },
+    { r:"leads", modal:"keep", target:'#bm [data-bm="Acqui Service"]', click:true, dim:"none", hint:"Click the Acqui Service tab at the top.", say:"Remember the number: 7001234. Now go back to the Acqui Service tab. Your form is still there.",
+      until:function(){ return tabIs("Acqui Service"); }, auto:function(){ setBrowserTab("Acqui Service"); } },
     { r:"leads", modal:"keep", target:"#c_rn", dim:"none", hint:"Type: 7001234",
       say:"Type the number in the DTI Business Name No.",
       until:function(){ return norm(val("c_rn")) === "7001234"; }, auto:function(){ type("c_rn", "7001234"); } },
@@ -1055,10 +1065,10 @@ render();
     { r:"leads", modal:"keep", target:"#c_co", dim:"none", hint:"Type: Golden Harbor Trading Corp.",
       say:"Company Name: Golden Harbor Trading Corp.",
       until:function(){ return norm(val("c_co")) === norm("Golden Harbor Trading Corp."); }, auto:function(){ type("c_co", "Golden Harbor Trading Corp."); } },
-    { r:"leads", modal:"keep", target:"#brw", dim:"strong", onEnter:function(){ showCert("sec", "CS202605227", "GOLDEN HARBOR TRADING CORP."); },
-      say:"This is the SEC certificate Mia sent. It's a Certificate of Incorporation, so this business is a corporation. The number we need is at the top right: the Company Reg. No., CS202605227. Because the owner sent the certificate, we don't need to search the SEC website." },
-    { r:"leads", modal:"keep", target:"#bclose", circle:true, dim:"none", hint:"Click the X on the window.", say:"Remember the number: CS202605227. Close the certificate.",
-      until:function(){ return !winOpen(); }, auto:function(){ var b = $("bclose"); if (b) b.click(); } },
+    { r:"leads", modal:"keep", target:"#cv .cvbox", dim:"strong", onEnter:function(){ showCert("sec", "CS202605227", "GOLDEN HARBOR TRADING CORP."); },
+      say:"This is the SEC certificate Mia sent (it opens as a picture, like an attachment). It's a Certificate of Incorporation, so this business is a corporation. The number we need is at the top right: the Company Reg. No., CS202605227. Because the owner sent the certificate, we don't need to search the SEC website." },
+    { r:"leads", modal:"keep", target:"#cvx", click:true, circle:true, dim:"none", hint:"Click the X on the picture.", say:"Remember the number: CS202605227. Close the certificate.",
+      until:function(){ return !certOpen(); }, auto:function(){ var b = $("cvx"); if (b) b.click(); } },
     { r:"leads", modal:"keep", target:"#c_ty", dim:"none", hint:"Choose Corporation.",
       say:"Company Type: a Certificate of Incorporation means it's a Corporation.",
       until:function(){ return val("c_ty") === "Corporation"; }, auto:function(){ set("c_ty", "Corporation"); } },
@@ -1083,7 +1093,7 @@ render();
     { r:"leads", modal:"keep", target:"#c_rne", dim:"strong", say:"Acqui Service says a lead with this registration number already exists, so you can't create it again. When that happens, search the lead and request it instead. That's the reassignment lesson." },
     { r:"leads", modal:"keep", target:"#mx", allow:"#c_foot", circle:true, dim:"none", hint:"Click the X, then Discard.", say:"Close the form. You don't need to save it.",
       until:function(){ var o = $("ov"); return !o || getComputedStyle(o).display === "none"; }, auto:function(){ closeModal(); } },
-    { r:"leads", end:true, dim:"light", say:"Let's recap. One: always search first. If the business is already in Acqui, request it, don't create it. Two: the channel is how you got the lead. Self-generated, or Referral with Drip by default. Three: the Company Type decides the number. Sole proprietorship: DTI Business Name No. Corporation, partnership or OPC: SEC Registration No. Four: if the owner sent a certificate, read the number there. If not, look it up with the DTI - BNRS or SEC Express bookmarks. See you in the practice check! - {T}" }
+    { r:"leads", end:true, dim:"light", say:"Let's recap. One: always search first. If the business is already in Acqui, request it, don't create it. Two: the channel is how you got the lead. Self-generated, or Referral with Drip by default. Three: the Company Type decides the number. Sole proprietorship: DTI Business Name No. Corporation, partnership or OPC: SEC Registration No. Four: if the owner sent a certificate, read the number there. If not, look it up in the DTI Website or SEC Website tab. See you in the practice check! - {T}" }
   ];
 })();
 </script>

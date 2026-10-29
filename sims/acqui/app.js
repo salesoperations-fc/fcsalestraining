@@ -532,16 +532,16 @@ function openCreate(){
       if(v("#c_ch")==="Referral"){if(!st.rc)need.push("Referral Channel");if(!st.ref)need.push("Referrer");if(!st.fc)need.push("FC Referrer")}
       [["#c_co","Company Name"],["#c_ty","Company Type"],["#c_rn","Registration Number"],["#c_fn","First Name"],["#c_ln","Last Name"],["#c_em","Email"],["#c_ph","Phone"]].forEach(function(f){if(!v(f[0]))need.push(f[1])});
       if(need.length){toast("Please fill in: "+need.join(", "));return}
-      var dup=LEADS.filter(function(x){return x.reg&&normReg(x.reg)===normReg(v("#c_rn"))})[0];
+      var dupReg=LEADS.filter(function(x){return x.reg&&normReg(x.reg)===normReg(v("#c_rn"))})[0],dup=dupReg;
       if(dup){
         $("#c_rne").innerHTML='<div style="color:#b3243a;font-size:11px;font-weight:600;margin-top:4px">A lead with this registration number already exists. You cannot create it again.</div>';
-        toast("Registration number already exists");ACQUI.emit("lead-create-blocked",{reg:v("#c_rn"),id:dup.id,name:dup.name});return;
+        toast("This lead already exists");ACQUI.emit("lead-create-blocked",{reg:v("#c_rn"),id:dup.id,name:dup.name});return;
       }
       var ch=v("#c_ch");
       var chn=ch==="Referral"?"Referrals":ch==="KAM Self Generated"?"KAM - Self Generated Leads":ch;
       var nid=String(371930+LEADS.length);
       LEADS.unshift({id:nid,name:v("#c_co"),status:"For Engagement",risk:"-",channel:chn,entry:chn,refBy:ch==="Referral"?st.ref.k:undefined,fcRef:ch==="Referral"?st.fc.k:undefined,clo:0,eng:"2026-10-26",owner:"me",reg:v("#c_rn"),ctype:v("#c_ty"),contact:v("#c_fn")+" "+v("#c_ln")});
-      closeModal();toast("Lead created");ACQUI.emit("lead-created",{id:nid,ch:ch,type:v("#c_ty"),reg:v("#c_rn"),rc:st.rc||null,ref:st.ref?st.ref.k:null,fc:st.fc?st.fc.k:null,name:v("#c_co")});render();
+      closeModal();toast("Lead created");ACQUI.emit("lead-created",{id:nid,ch:ch,type:v("#c_ty"),reg:v("#c_rn"),rc:st.rc||null,ref:st.ref?st.ref.k:null,fc:st.fc?st.fc.k:null,name:v("#c_co"),fn:v("#c_fn"),ln:v("#c_ln"),em:v("#c_em"),ph:v("#c_ph")});render();
     };
   }
   wire();
@@ -554,7 +554,7 @@ function openRequest(id){
   md.innerHTML='<h3>Request this lead <button id="mx">×</button></h3><div class="idot">This sends a reassignment request for approval. If approved, the lead will be assigned to you.</div>'+
    '<label>Approver <i>*</i></label><select id="r_app"><option value="">Select an approver</option>'+TEAM_LEADS.map(function(a){return '<option>'+a+'</option>'}).join("")+'</select>'+
    '<label>Channel (Last Touch) <i>*</i></label><select id="r_ch"><option value="">Select a channel</option>'+CHANNELS.map(function(c){return '<option>'+c+'</option>'}).join("")+'</select>'+
-   '<div id="r_ref"></div><label>Notes</label><textarea id="r_n" placeholder="Add any notes (optional)..."></textarea>'+
+   '<div id="r_ref"></div><label>Notes</label><textarea id="r_n" placeholder="Add a note for your approver. Example: Referred by (name), a close friend of the owner. They already talked and the owner agreed to be referred. No activity or progress on this lead so far."></textarea>'+
    '<div class="foot"><button class="btn dark" id="r_go">Send Request</button></div>';
   $("#ov").style.display="flex";
   $("#mx").onclick=closeModal;
@@ -622,42 +622,34 @@ if(!/[?&]keep=1/.test(location.search)){try{history.replaceState(null,"",locatio
 render();
 
 
-/* ===== Bookmarks bar + mock SEC / DTI search sites (training mock-ups, dummy data, no official logos) =====
-   The bar mirrors the First Circle bookmarks people import on Day 1. Only "Document Uploading > SEC Express / DTI - BNRS" open something here. */
+/* ===== Browser tabs + mock SEC / DTI websites (training mock-ups, dummy data, no official logos) =====
+   Three tabs like a real browser: Acqui Service, SEC website, DTI website. The data-bm values are the names the lectures wait for. */
 (function(){
+  var TABS=[["Acqui Service","Acqui Service"],["SEC Express","SEC Website"],["DTI - BNRS","DTI Website"]];
   var bm=document.createElement("div");bm.id="bm";
-  var folder=function(n,items){return '<span class="bf" data-f="'+n+'">▸ '+n+'<div class="bdd">'+items.map(function(i){return '<div class="bit" data-bm="'+i+'">'+i+'</div>'}).join("")+'</div></span>'};
-  bm.innerHTML='<span class="bi" data-bm="Gmail">Gmail</span><span class="bi" data-bm="Onboarding Playbook">Onboarding Playbook</span>'+
-   folder("Notion Pages",["First Circle Home","Acquisition @ First Circle","Grab Policy"])+
-   '<span class="bi" data-bm="Connect Actual">Connect Actual</span><span class="bi" data-bm="Connect Demo">Connect Demo</span><span class="bi" data-bm="Hubspot">Hubspot</span>'+
-   folder("Forms",["First Circle Support Form - Zendesk"])+folder("SalesOps Tools",["FC Collaterals | Email Signature"])+
-   folder("Document Uploading",["Document Guidelines","Uploading Documents Instruction","FCC - BVP / Upload Here","SEC Express","DTI - BNRS","Document Resubmission Reasons","Connect User ID"])+
-   '<span class="bi" data-bm="BambooHR">BambooHR</span><span class="bi" data-bm="Metabase">Metabase</span><span class="bi" data-bm="Asana">Asana</span>';
+  bm.innerHTML=TABS.map(function(t,i){return '<span class="tb'+(i?'':' on')+'" data-bm="'+t[0]+'">'+t[1]+'</span>'}).join("");
   document.body.insertBefore(bm,document.body.firstChild);
   var brw=document.createElement("div");brw.id="brw";document.body.appendChild(brw);
-
-  document.addEventListener("click",function(e){
-    var f=e.target.closest(".bf"),it=e.target.closest("[data-bm]");
-    document.querySelectorAll(".bf.open").forEach(function(x){if(x!==f)x.classList.remove("open")});
-    if(f&&!it){f.classList.toggle("open");return}
-    if(it){
-      f&&f.classList.remove("open");
-      var n=it.getAttribute("data-bm");
-      ACQUI.emit("bookmark-open",n);
-      if(n==="SEC Express")openSec();else if(n==="DTI - BNRS")openDti();else toast("Not part of this simulation");
-    }
-  });
-
-  function win(title,addr,body){
-    brw.innerHTML='<div class="bwin"><div class="bbar"><span class="btab">'+title+'</span><span class="baddr">'+addr+'</span><button id="bclose" title="Close">×</button></div><div class="bbody">'+body+'</div></div>';
-    brw.style.display="block";$("#bclose").onclick=function(){brw.style.display="none";brw.innerHTML=""};
-  }
+  var built={};
   var mockBanner='<div class="mockb">Training mock-up with dummy companies and numbers. Not the real website.</div>';
 
+  function setTab(n){
+    document.querySelectorAll("#bm .tb").forEach(function(t){t.classList.toggle("on",t.getAttribute("data-bm")===n)});
+    brw.style.display=n==="Acqui Service"?"none":"block";
+    if(n==="SEC Express"&&!built.sec){built.sec=1;buildSec()}
+    if(n==="DTI - BNRS"&&!built.dti){built.dti=1;buildDti()}
+    var s=$("#pane-sec"),d=$("#pane-dti");
+    if(s)s.style.display=n==="SEC Express"?"block":"none";
+    if(d)d.style.display=n==="DTI - BNRS"?"block":"none";
+    ACQUI.emit("bookmark-open",n);
+  }
+  window.setBrowserTab=setTab;
+  bm.onclick=function(e){var t=e.target.closest(".tb");if(t)setTab(t.getAttribute("data-bm"))};
+  function pane(id,html){var p=document.createElement("div");p.id=id;p.className="pane";p.innerHTML=mockBanner+html;brw.appendChild(p)}
+
   /* --- SEC Express style search --- */
-  function openSec(){
-    win("SEC Express (mock-up)","training mock-up · SEC company search",mockBanner+
-     '<div class="secw"><div class="sechead"><b>Securities and Exchange Commission</b> <span>Home &nbsp; <u>Order</u> &nbsp; Payment &nbsp; Check Status &nbsp; FAQ &nbsp; Service Fees</span></div><div class="secband">Order</div>'+
+  function buildSec(){
+    pane("pane-sec",'<div class="secw"><div class="sechead"><b>Securities and Exchange Commission</b> <span>Home &nbsp; <u>Order</u> &nbsp; Payment &nbsp; Check Status &nbsp; FAQ &nbsp; Service Fees</span></div><div class="secband">Order</div>'+
      '<div class="secbox"><label>Company Name or SEC Registration Number:</label><div class="secrow"><input id="secq" autocomplete="off"><button id="secgo">Search</button></div>'+
      '<div class="capok" id="seccap"><span class="spin"></span> Verifying...</div></div><div id="secres"></div></div>');
     var ok=false;setTimeout(function(){var c=$("#seccap");if(c){ok=true;c.innerHTML='<b class="tick">✓</b> Success!'}},900);
@@ -670,15 +662,14 @@ render();
       $("#secres").querySelectorAll("[data-co]").forEach(function(a){a.onclick=function(){toast("Company details are not part of this simulation")}});
       ACQUI.emit("sec-search",{q:$("#secq").value,n:rows.length});
     };
-    $("#secgo").onclick=run;$("#secq").onkeydown=function(e){if(e.key==="Enter")run()};$("#secq").focus();
+    $("#secgo").onclick=run;$("#secq").onkeydown=function(e){if(e.key==="Enter")run()};
   }
 
   /* --- DTI BNRS style search (exact business name, captcha) --- */
   function capCode(){var c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789",s="";for(var i=0;i<6;i++)s+=c.charAt(Math.floor(Math.random()*c.length));return s}
-  function openDti(){
+  function buildDti(){
     var code=capCode(),verified=false;
-    win("BNRS Business Name Search (mock-up)","training mock-up · business name search",mockBanner+
-     '<div class="dtiw"><div class="dtiside"><div class="dtilogo">BNRS<br><small>mock-up</small></div><div class="dnav">NAVIGATION</div><div class="dit">⌂ HOME</div><div class="dit">⚙ BUSINESS NAME SERVICES ‹</div></div>'+
+    pane("pane-dti",'<div class="dtiw"><div class="dtiside"><div class="dtilogo">BNRS<br><small>mock-up</small></div><div class="dnav">NAVIGATION</div><div class="dit">⌂ HOME</div><div class="dit">⚙ BUSINESS NAME SERVICES ‹</div></div>'+
      '<div class="dtimain"><div class="dtitop">≡</div><h3>⚙ SERVICES - BUSINESS NAME SEARCH</h3><div class="dtipanel"><div class="dtiph">▤ BUSINESS NAME SEARCH</div><div class="dtipb">'+
      '<div class="dtirow"><div><label>Filter *</label><select disabled><option>BUSINESS NAME</option></select></div><div style="position:relative"><label>Value *</label><input id="dq" autocomplete="off"><div id="dsug"></div></div></div>'+
      '<label>Criteria</label><div><input type="radio" checked> Exact Match</div><label>Sort By</label><div><select disabled><option>Business Name</option></select> <input type="radio" checked> Ascending <input type="radio"> Descending</div>'+
@@ -711,13 +702,18 @@ render();
     };
   }
 
-  /* --- dummy certificates (for scenarios where the owner sends the certificate) --- */
+  /* --- dummy certificates, shown as a picture on top of the page (the owner's photo / attachment) --- */
   window.showCert=function(kind,no,name,owner){
     var dti=kind==="dti";
     var body=dti?
       '<div class="cert cd"><div class="cwm">SAMPLE · TRAINING</div><small>This certifies that</small><h2>'+esc(name)+'</h2><small>(REGIONAL)</small><p>is a business name registered in this office pursuant to the provisions of the law, and in compliance with the applicable rules and regulations. This certificate is issued to</p><h3>'+esc(owner||"OWNER NAME")+'</h3><p>is valid for five (5) years from the date of registration.</p><h4>Certificate of Business Name Registration</h4><p><b>Business Name No. '+esc(no)+'</b></p></div>'
-     :'<div class="cert cs"><div class="cwm">SAMPLE · TRAINING</div><div class="cn"><small>REPUBLIC OF THE PHILIPPINES · SECURITIES AND EXCHANGE COMMISSION</small></div><p style="text-align:right"><b>COMPANY REG. NO. '+esc(no)+'</b></p><h4>CERTIFICATE OF INCORPORATION</h4><p>KNOW ALL MEN BY THESE PRESENTS:</p><p>This is to certify that the Articles of Incorporation and By-Laws of</p><h2>'+esc(name)+'</h2><p>were duly approved by the Commission on this date upon the issuance of this Certificate of Incorporation.</p></div>';
-    win(dti?"DTI certificate (sample)":"SEC certificate (sample)","training mock-up · certificate.pdf",mockBanner+'<div style="padding:18px">'+body+'</div>');
+     :'<div class="cert cs"><div class="cwm">SAMPLE · TRAINING</div><p class="rn"><b>COMPANY REG. NO. '+esc(no)+'</b></p><div class="cn"><small>REPUBLIC OF THE PHILIPPINES<br>DEPARTMENT OF FINANCE<br><b>SECURITIES AND EXCHANGE COMMISSION</b></small></div><h4>CERTIFICATE OF INCORPORATION</h4><p>KNOW ALL MEN BY THESE PRESENTS:</p><p>This is to certify that the Articles of Incorporation and By-Laws of</p><h2>'+esc(name)+'</h2><p>were duly approved by the Commission on this date upon the issuance of this Certificate of Incorporation.</p></div>';
+    var cv=$("#cv");if(!cv){cv=document.createElement("div");cv.id="cv";document.body.appendChild(cv)}
+    cv.innerHTML='<div class="cvbox"><button id="cvx" title="Close">×</button><div class="cvt">'+(dti?"DTI certificate":"SEC certificate")+' (sample photo)</div>'+body+'</div>';
+    cv.style.display="flex";
+    var shut=function(){cv.style.display="none";cv.innerHTML=""};
+    $("#cvx").onclick=shut;cv.onclick=function(e){if(e.target===cv)shut()};
+    ACQUI.emit("cert-open",{kind:kind,no:no});
   };
 })();
 
@@ -726,12 +722,20 @@ render();
   var mode=document.body.getAttribute("data-mode");
   if(mode!=="tour"&&mode!=="exam")return;
   var b=document.createElement("div");b.id="exitbub";
-  b.innerHTML='<span class="live"></span><span>You are currently in training</span><button id="exitbtn">Exit</button>';
+  b.innerHTML='<span class="live"></span><span>'+(mode==="exam"?"In training":"You are currently in training")+'</span>'+(mode==="exam"?'<button id="finbtn" class="fin">Finish test</button>':"")+'<button id="exitbtn">Exit</button>';
   document.body.appendChild(b);
   var dlg=document.createElement("div");dlg.id="exitdlg";
   dlg.innerHTML='<div class="box"><h3>Exit training?</h3><p>If you exit now, your progress in this '+(mode==="tour"?"tour":"practice check")+' will be reset and you will have to start again.</p><div class="r"><button class="btn" id="exstay">Keep going</button><button class="btn dark" id="exleave">Exit</button></div></div>';
   document.body.appendChild(dlg);
   $("#exitbtn").onclick=function(){dlg.style.display="flex"};
+  if(mode==="exam"){
+    var fd=document.createElement("div");fd.id="findlg";fd.className="xdlg";
+    fd.innerHTML='<div class="box"><h3>Finish the test now?</h3><p>Questions you have not answered will get 0 points. You will see your result right away.</p><div class="r"><button class="btn" id="finstay">Keep going</button><button class="btn dark" id="finyes">Finish test</button></div></div>';
+    document.body.appendChild(fd);
+    $("#finbtn").onclick=function(){fd.style.display="flex"};
+    $("#finstay").onclick=function(){fd.style.display="none"};
+    $("#finyes").onclick=function(){fd.style.display="none";ACQUI.emit("finish-test")};
+  }
   $("#exstay").onclick=function(){dlg.style.display="none"};
   $("#exleave").onclick=function(){if(window.ACQUI_STANDALONE)location.reload();else location.href="../dashboard.html"};
 })();
