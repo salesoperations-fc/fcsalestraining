@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Acqui Service Practice Check</title>
+<style>
+:root{--teal:#0b6b5b;--teal-d:#0a3d37;--ink:#0f2a2e;--mut:#6b7c80;--line:#e3ebea;--bg:#eaf7f4;--blue:#2742c9}
+*{box-sizing:border-box}
+body{zoom:1.15;margin:0;font-family:Inter,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:12px;color:var(--ink);background:linear-gradient(135deg,#f6fbfa 0%,#e4f5f1 60%,#d9f0ea 100%);min-height:100vh}
+button{font:inherit;cursor:pointer}
+/* sidebar */
+:root{--sw:48px}body.sb-open{--sw:200px}
+#side{position:fixed;left:0;top:0;bottom:0;width:var(--sw);background:#f6fcfb;border-right:1px solid var(--line);display:flex;flex-direction:column;padding:12px 6px;gap:6px;z-index:20;transition:width .15s}
+#side .hd{display:flex;align-items:center;justify-content:center;height:24px;margin-bottom:8px}
+body.sb-open #side .hd{justify-content:space-between;padding:0 8px}
+#side .hd b{display:none;font-size:10px;letter-spacing:1.4px;color:#8a9a9d}body.sb-open #side .hd b{display:block}
+#side .hd button{width:22px;height:22px;border:0;background:none;color:#556;font-size:15px;padding:0}
+#side .nv{height:36px;border:0;border-radius:9px;background:none;color:#40565a;display:flex;align-items:center;justify-content:center;gap:14px;position:relative;padding:0}
+body.sb-open #side .nv{justify-content:flex-start;padding:0 12px;font-size:12px;font-weight:600}
+#side .nv svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+#side .nv .l{display:none}body.sb-open #side .nv .l{display:inline}
+#side .nv.on{background:#2f7270;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+body:not(.sb-open) #side .nv:hover::after{content:attr(data-tip);position:absolute;left:46px;top:7px;background:#0f2a2e;color:#fff;font-size:10px;padding:2px 7px;border-radius:5px;white-space:nowrap;z-index:30}
+/* top bar */
+#top{position:sticky;top:0;z-index:15;padding:12px 0 0 calc(var(--sw) + 20px);height:48px;transition:padding .15s}
+#sbox{position:relative;width:230px}
+#sbox input{width:100%;height:30px;border:1px solid var(--line);border-radius:7px;background:#f3f6f6;padding:0 24px 0 24px;font-size:12px;outline:none}
+#sbox input:focus{background:#fff;border-color:var(--teal)}
+#sbox .ic{position:absolute;left:8px;top:8px;width:13px;height:13px;stroke:#667;fill:none;stroke-width:1.8}
+#sbox .x{position:absolute;right:6px;top:3px;border:0;background:none;font-size:14px;color:#889;display:none}
+#sres{position:absolute;top:34px;left:0;width:240px;background:#fff;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.15);display:none;overflow:hidden}
+.sr{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;cursor:pointer;gap:6px}
+.sr:hover{background:#f0f8f6}.sr b{font-size:11px;font-weight:600;display:block;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sr small{font-size:9px;color:var(--mut)}
+.badge{font-size:9px;color:#889;background:#f1f3f3;border-radius:4px;padding:1px 5px}.badge.id{background:#e0f4f0;color:var(--teal);font-weight:600}
+/* main */
+#main{padding:44px 24px 40px calc(var(--sw) + 20px);max-width:1280px;transition:padding .15s}
+h1{font-size:20px;margin:6px 0 2px;letter-spacing:-.3px}.sub{color:var(--mut);font-size:11px;margin-bottom:12px}
+.card{background:#fff;border-radius:8px;padding:12px 14px;box-shadow:0 1px 2px rgba(0,0,0,.04);margin-bottom:12px}
+.ctitle{font-size:9.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;margin-bottom:8px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:6px;padding:5px 10px;font-size:11px;display:inline-flex;align-items:center;gap:5px}
+.btn:hover{background:#f6faf9}
+.btn.dark{background:var(--teal-d);color:#fff;border-color:var(--teal-d);font-weight:600}.btn.teal{background:var(--teal);color:#fff;border-color:var(--teal);font-weight:600}
+.btn[disabled]{opacity:.55;cursor:not-allowed}
+/* home */
+.hello{display:flex;justify-content:space-between;align-items:flex-start}
+.tabs{display:flex;gap:14px;margin-bottom:6px;font-size:11px}
+.tabs span{padding:4px 0;color:#445;cursor:pointer;border-bottom:2px solid transparent}.tabs span.on{color:var(--blue);border-color:var(--blue);font-weight:600}
+.empty{text-align:center;color:var(--mut);padding:26px 0;font-size:10.5px}
+.grid3{display:grid;grid-template-columns:1.2fr 1fr .8fr;gap:24px}
+.bar{height:9px;border-radius:5px;background:#eceeef}
+table{width:100%;border-collapse:collapse}
+th{font-size:9px;letter-spacing:.5px;text-transform:uppercase;text-align:left;padding:8px 6px;color:#1c3033;font-weight:700;white-space:nowrap}
+td{padding:9px 6px;font-size:11px;border-top:1px solid #f0f4f3;vertical-align:middle}
+tr.row:hover td{background:#f7fbfa}
+.kt th,.kt td{text-align:center}.kt th:first-child,.kt td:first-child{text-align:left}
+.kt td:first-child{font-weight:600}.hl{background:#eaf1ff}.neg{color:#c62b3e}.blue{color:var(--blue);font-weight:600}
+.idtag{display:block;font-size:8.5px;background:#e0f4f0;color:var(--teal);width:fit-content;padding:0 4px;border-radius:3px;margin-top:2px}
+.link{color:var(--teal);cursor:pointer;font-weight:600}
+.sort{color:#9ab}
+/* filters */
+.filters{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:6px}
+.fl label{display:block;font-size:9.5px;color:#445;margin-bottom:3px}
+.fl input.txt,.sel{height:26px;border:1px solid var(--line);border-radius:6px;background:#fff;padding:0 8px;font-size:10.5px;min-width:120px;outline:none;color:#445}
+.dd{position:relative}
+.dd>button{width:100%;min-width:120px;height:26px;border:1px solid var(--line);background:#fff;border-radius:6px;padding:0 8px;font-size:10.5px;color:#556;display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left}
+.dd.open>button{border-color:var(--teal)}
+.dd>button::after{content:"⌄";font-size:11px;margin-top:-3px}
+.panel{display:none;position:absolute;top:30px;left:0;min-width:100%;width:max-content;max-width:210px;background:#fff;border-radius:7px;box-shadow:0 6px 24px rgba(0,0,0,.16);padding:6px 4px;z-index:12;max-height:260px;overflow:auto}
+.dd.open .panel{display:block}
+.panel .ph{font-size:9px;color:var(--mut);display:flex;justify-content:space-between;padding:2px 8px 5px}.panel .ph a{color:var(--teal);cursor:pointer;font-weight:600}
+.opt{display:flex;gap:7px;align-items:center;padding:5px 8px;font-size:10.5px;cursor:pointer;border-radius:5px}.opt:hover{background:#f1f8f6}
+.opt input{accent-color:var(--teal);margin:0}
+.opt.pick.on{color:var(--teal);font-weight:600}
+.rng input{width:calc(100% - 12px);margin:3px 6px;height:28px;border:1px solid var(--line);border-radius:6px;padding:0 8px;font-size:11px}
+.note{font-size:9px;color:var(--mut);margin:0 0 6px}
+.pager{display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#445;margin-top:8px}
+.pager button{border:0;background:none;color:#445;font-size:12px;padding:0 5px}.pager button[disabled]{color:#bbb}
+.chip{font-size:9.5px;padding:2px 7px;border-radius:5px;background:#eef2f2}
+.chip.blue{background:#e5ecff;color:#2342c0;font-weight:600}.chip.green{background:#dff5e7;color:#1c7a40;font-weight:600}
+/* lead page */
+.crumb{font-size:9px;color:var(--mut);margin-top:8px}
+.lh{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.lh h1{margin:2px 0 4px;font-size:17px}.lmeta{display:flex;gap:6px;align-items:center;font-size:9.5px;color:#445;flex-wrap:wrap}
+.lmeta .p{background:#eef2f2;border-radius:4px;padding:1px 6px}
+.stat{display:flex;gap:26px;flex-wrap:wrap}.stat .bx{border:1px solid #eef2f2;border-radius:6px;padding:6px 10px;min-width:104px}
+.stat small{display:block;font-size:8px;letter-spacing:.4px;color:var(--mut);text-transform:uppercase}
+.mini{display:flex;gap:22px;margin-top:10px;font-size:9px;color:var(--mut)}.mini b{display:block;color:var(--ink);font-size:11px}
+.banner{background:#f1f3f3;border-radius:8px;padding:12px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.banner b{font-size:11px}.banner p{margin:3px 0 0;color:#556;font-size:10.5px}
+.ltabs{display:flex;gap:18px;border-bottom:1px solid var(--line);margin:8px 0 12px;font-size:11px}.ltabs span{padding:6px 0;cursor:pointer;color:#445}.ltabs span.on{border-bottom:2px solid var(--ink);font-weight:600;color:var(--ink)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kv{display:grid;grid-template-columns:130px 1fr;gap:8px 8px;font-size:10.5px}.kv span:nth-child(odd){color:var(--mut)}
+.task{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:2px 0}
+.task .t{font-size:10.5px}.task small{display:block;color:var(--mut);font-size:9px;margin-top:1px}
+.pill{font-size:8px;font-weight:700;background:#eef2f2;border-radius:3px;padding:1px 4px;margin-right:4px}.pill.b{background:#e5ecff;color:#2342c0}
+/* modal */
+#ov{position:fixed;inset:0;overflow:hidden;background:rgba(10,30,30,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:14px}
+#md{background:#fff;border-radius:10px;width:340px;max-width:92vw;max-height:calc(88vh / 1.15);overflow-y:auto;padding:0 16px 14px;overscroll-behavior:contain}
+#md.wide{width:520px}
+#md h3{margin:0 0 10px;font-size:13px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;padding:14px 0 8px;z-index:2}#md h3 button{border:0;background:none;font-size:20px;line-height:1;color:#556;padding:0 4px}
+#md .info{background:#f3f6f6;border-radius:6px;padding:7px 9px;font-size:10px;color:#445;margin-bottom:10px}
+#md label{display:block;font-size:10px;font-weight:600;margin:8px 0 3px}#md label i{color:#c62b3e;font-style:normal}
+#md select,#md input[type=text],#md textarea{width:100%;border:1px solid var(--line);border-radius:6px;padding:7px 8px;font:inherit;font-size:11px;background:#fff;outline:none}
+#md select:focus,#md input:focus,#md textarea:focus{border-color:var(--teal)}
+#md textarea{min-height:56px;resize:vertical}
+#md .foot{display:flex;justify-content:flex-end;margin-top:12px;gap:8px;position:sticky;bottom:0;background:#fff;padding:8px 0 0}
+.sug{border:1px solid var(--line);border-radius:6px;max-height:130px;overflow:auto;margin-top:3px;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.1)}
+.sug div{padding:6px 8px;cursor:pointer;font-size:10.5px}.sug div:hover{background:#f1f8f6}.sug small{display:block;color:var(--mut);font-size:9px}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#0f2a2e;color:#fff;padding:8px 14px;border-radius:7px;font-size:11px;display:none;z-index:60}
+#tag{position:fixed;right:10px;bottom:8px;font-size:9px;color:#78908c;z-index:5}
+
+/* lead header + status cards */
+.lh h1 .rf{display:inline-block;margin-left:8px;color:#9aa;font-size:15px;vertical-align:middle}
+.lmeta .p{background:#f1f4f4;border:1px solid #e3ebea;border-radius:5px;padding:2px 8px}
+.lmeta .lst{cursor:pointer;color:#2a4a47;display:inline-flex;gap:5px;align-items:center}.lmeta .lst:hover{background:#e6f1ef}
+.lmeta .dot{color:#9aa}.lmeta .syn{color:#9aa}
+.idot{display:inline-grid;place-items:center;width:12px;height:12px;border-radius:50%;background:#1c6a66;color:#fff;font-size:8px;font-weight:700;cursor:pointer;vertical-align:middle}
+.stats2{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.scard{position:relative;border:1px solid #e3ebea;border-radius:12px;padding:10px 14px;min-width:210px;background:#fff}
+.sch{display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:700;letter-spacing:.6px;color:#8a9a9d;margin-bottom:8px;gap:20px}
+.ics{display:flex;gap:8px}.ic{cursor:pointer;display:inline-grid;place-items:center}.ic svg{width:15px;height:15px;stroke:#667;fill:none;stroke-width:1.7}.ic.clk svg{stroke:#2a8a82}
+.sp2{display:inline-block;font-size:11.5px;font-weight:700;background:#f1f3f3;color:#667;border-radius:6px;padding:4px 9px}
+.sp2.g{background:#e7f6ea;color:#2a7d43}.sp2.b{background:#e8eefc;color:#2342c0}.sp2.a{background:#fff3dc;color:#9a6200}.sp2.r{background:#fde8ea;color:#b3243a}
+.pop{display:none;position:absolute;left:0;top:calc(100% + 6px);background:#fff;border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:10px 4px;z-index:25;min-width:230px}
+.pop.open{display:block}.pop h6{margin:0 0 6px;padding:0 12px;font-size:10px;letter-spacing:.6px;color:#8a9a9d}
+.pop .po{display:flex;gap:10px;align-items:center;padding:8px 12px;font-size:12px;cursor:pointer;border-radius:6px}.pop .po:hover{background:#f1f8f6}.pop .po i{width:8px;height:8px;border-radius:50%;background:#2e55e6;flex:none}
+.pop.am{left:auto;top:auto;position:absolute;min-width:260px;padding:12px 14px}.pop.am .kv{grid-template-columns:90px 1fr}
+.mini2{display:flex;gap:30px;margin-top:12px;flex-wrap:wrap}.mini2 span{font-size:11px;color:#8a9a9d}.mini2 b{display:block;color:var(--ink);font-size:15px;margin-top:2px}
+table.ht{width:100%}.ht th{text-transform:none;letter-spacing:0;font-weight:500;color:#889;font-size:11px;padding:8px 6px}.ht td{font-size:12px;padding:9px 6px}
+/* lead status side panel */
+#sp{position:fixed;top:0;right:0;bottom:0;width:340px;max-width:92vw;background:#fff;box-shadow:-8px 0 30px rgba(0,0,0,.15);z-index:40;transform:translateX(105%);transition:transform .2s;padding:18px 20px;overflow:auto}
+#sp.open{transform:none}
+#sp .t{font-size:10px;letter-spacing:1px;color:#889;font-weight:700}#sp .n{font-size:14px;font-weight:700;margin:2px 0 14px}
+#sp .x{position:absolute;right:16px;top:14px;border:0;background:none;font-size:20px;color:#667;cursor:pointer}
+#sp .row2{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-top:1px solid #f0f4f3;font-size:11.5px}
+#sp .row2 span.c{background:#eef2f2;border-radius:6px;padding:3px 9px;font-weight:600}#sp .row2 em{font-style:normal;color:#667}
+
+.bvp{font-size:9.5px;color:#8a9a9d;margin-top:8px;line-height:1.5}.bvp a{color:var(--teal);cursor:pointer;font-weight:600}
+
+#exitbub{position:fixed;top:10px;right:14px;z-index:1200;display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:999px;box-shadow:0 4px 18px rgba(0,0,0,.18);padding:6px 6px 6px 14px;font-size:12px;font-weight:600;color:#2a4a47}
+#exitbub .live{width:8px;height:8px;border-radius:50%;background:#2bb673;box-shadow:0 0 0 3px rgba(43,182,115,.25)}
+#exitbub button{border:0;background:#8a0f2f;color:#fff;border-radius:999px;padding:6px 14px;font-size:12px;font-weight:700}
+#exitdlg{position:fixed;inset:0;background:rgba(10,25,28,.6);z-index:1300;display:none;align-items:center;justify-content:center}
+#exitdlg .box{background:#fff;border-radius:14px;padding:22px 24px;width:380px;max-width:92vw;box-shadow:0 14px 50px rgba(0,0,0,.4)}
+#exitdlg h3{margin:0 0 8px;font-size:17px}#exitdlg p{margin:0 0 16px;font-size:14px;line-height:1.5;color:#456}
+#exitdlg .r{display:flex;justify-content:flex-end;gap:8px}#exitdlg .btn{font-size:14px;padding:8px 16px}
+
+/* the exit bubble steps aside when the right-hand panel is open, so it never covers the panel's X */
+body.sp-on #exitbub,body:has(#sp.open) #exitbub{right:calc(340px + 30px)}
+
+/* the "approve as Team Lead" sandbox helper is not part of the lecture or the exams */
+body[data-mode="exam"] #simappr,body[data-mode="tour"] #simappr{display:none}
+
+/* bookmarks bar (like the imported First Circle bookmarks) */
+body{padding-top:28px}
+#bm{position:fixed;top:0;left:0;right:0;height:28px;background:#f3eaea;border-bottom:1px solid #e0d6d6;display:flex;align-items:center;gap:2px;padding:0 10px;z-index:27;font-size:11px;white-space:nowrap}
+#bm .bi,#bm .bf{padding:3px 9px;border-radius:6px;cursor:pointer;color:#333;position:relative}
+#bm .bi:hover,#bm .bf:hover{background:#e6dada}
+#bm .bdd{display:none;position:absolute;top:24px;left:0;min-width:240px;background:#fff;border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.25);padding:6px 0;z-index:40}
+#bm .bf.open .bdd{display:block}#bm .bit{padding:7px 14px;font-size:12px;color:#222}#bm .bit:hover{background:#eef4ff}
+#side{top:28px}#top{top:28px}#sp{top:28px}
+#exitbub{top:34px}
+/* mock browser window for the SEC / DTI mock-ups */
+#brw{display:none;position:fixed;top:40px;left:70px;right:40px;bottom:24px;z-index:45}
+#brw .bwin{height:100%;background:#fff;border-radius:10px;box-shadow:0 14px 50px rgba(0,0,0,.4);display:flex;flex-direction:column;overflow:hidden;border:1px solid #cfd8d8}
+#brw .bbar{display:flex;gap:10px;align-items:center;background:#efe6e6;padding:6px 10px;font-size:11px}
+#brw .btab{background:#fff;border-radius:6px 6px 0 0;padding:4px 12px;font-weight:600}#brw .baddr{flex:1;background:#fff;border-radius:999px;padding:3px 12px;color:#667}
+#brw #bclose{border:0;background:none;font-size:20px;color:#556;cursor:pointer}
+#brw .bbody{flex:1;overflow:auto}#brw .mockb{background:#fff3dc;color:#7a4a00;font-size:11px;text-align:center;padding:4px}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid #cdd;border-top-color:#3c7;border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle}.spin.big{width:44px;height:44px;border-width:5px}@keyframes sp{to{transform:rotate(360deg)}}
+.secw{font-family:Arial,Helvetica,sans-serif;color:#222}.sechead{padding:12px 24px;display:flex;justify-content:space-between;align-items:center;font-size:14px}.sechead span{font-size:12px;color:#444}.sechead u{color:#3a8a2a;text-decoration-thickness:2px}
+.secband{background:#4a8a2e;color:#fff;font-size:24px;padding:34px 40px}
+.secbox{margin:30px auto;max-width:620px;background:#f3f3f3;border-radius:6px;padding:12px 14px}.secbox label{font-size:12px;display:block;margin-bottom:4px}
+.secrow{display:flex}.secrow input{flex:1;height:30px;border:1px solid #bbb;padding:0 8px;font-size:13px;outline:none}.secrow button{border:0;background:#4a86c5;color:#fff;padding:0 18px;font-size:12px;cursor:pointer}
+.capok{margin:10px auto 0;width:230px;background:#fff;border:1px solid #ddd;padding:8px 12px;font-size:12px;border-radius:3px}.tick{color:#2ea043}
+.sect{margin:0 auto 30px;width:calc(100% - 80px);max-width:760px;border-collapse:collapse;font-size:12.5px}.sect th,.sect td{border:1px solid #ddd;padding:6px 8px;text-align:left}.sect th{background:#fafafa}.sect a{color:#2b6cb0;cursor:pointer}.sect a:hover{text-decoration:underline}
+.dtiw{display:flex;min-height:100%;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#222}.dtiside{width:150px;background:#1f2a30;color:#cfd8dc;flex:none}
+.dtilogo{background:#fff;color:#1c3f8c;font-weight:900;font-size:20px;text-align:center;padding:14px 0}.dtilogo small{font-size:8px;color:#888;font-weight:400}.dnav{font-size:9px;padding:10px 12px;color:#789}.dit{padding:9px 12px;font-size:11px}
+.dtimain{flex:1;background:#eef0f3}.dtitop{background:#2f80b3;color:#fff;padding:8px 14px}.dtimain h3{margin:14px 16px 8px;font-weight:400;font-size:16px}
+.dtipanel{margin:0 16px 20px;background:#fff;border:1px solid #2f80b3}.dtiph{background:#2f80b3;color:#fff;padding:7px 10px;font-size:13px}.dtipb{padding:12px 24px}
+.dtipb label{display:block;font-weight:700;margin:10px 0 3px;font-size:11px}.dtipb input[type=text],.dtipb input:not([type]),.dtipb select{height:26px;border:1px solid #bbb;padding:0 6px;font-size:12px}
+.dtirow{display:flex;gap:0}.dtirow select{width:160px}.dtirow input{width:330px}
+#dsug{position:absolute;top:50px;left:0;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:5;width:240px}.dsi{padding:7px 12px;font-size:12px;cursor:pointer}.dsi:hover{background:#eef4ff}
+.dtirow2{display:flex;gap:18px;align-items:flex-start;margin-top:12px}.dcap{background:#f1f1f1;border:1px solid #ddd;padding:8px;width:220px}
+.dcode{background:#fff;border:1px solid #ccc;text-align:center;font:italic 700 22px "Courier New",monospace;letter-spacing:3px;padding:12px 0;text-decoration:line-through;text-decoration-color:#aaa;color:#444}
+.dcin{margin-top:6px;display:flex;gap:4px}.dcin input{width:90px}.dcin button{border:0;background:#2e8b57;color:#fff;width:24px;height:24px;cursor:pointer}.dcin button:last-child{background:#555}.vok{color:#2e8b57;font-weight:700;font-size:11px}
+.dbtn{border:0;background:#2f80b3;color:#fff;padding:7px 14px;cursor:pointer;font-size:12px}.dtit{width:100%;border-collapse:collapse;margin:8px 0;font-size:11.5px}.dtit th{text-align:left;padding:6px;font-size:10px;border-bottom:2px solid #ddd}.dtit td{padding:8px 6px;border-bottom:1px solid #eee}
+.dload{text-align:center;padding:20px}.dnote{font-size:11px}
+/* dummy certificates */
+.cert{position:relative;background:#fff;border:3px double #2a7;padding:22px 26px;font-size:12px;line-height:1.5;text-align:center;overflow:hidden}.cert h2{margin:6px 0;font-size:18px}.cert h3{margin:4px 0;font-size:15px}.cert h4{margin:10px 0;font-size:14px}
+.cert.cd{border-color:#999}.cert.cs{text-align:left}.cert .cwm{position:absolute;inset:0;display:grid;place-items:center;font-size:42px;font-weight:800;color:rgba(0,0,0,.06);transform:rotate(-18deg);pointer-events:none}
+
+/* in the exams the question box sits at the bottom: keep the mock websites above it */
+body[data-mode="exam"] #brw{bottom:250px}
+
+.pillpending{font-size:11px;font-weight:700;color:#1c6a66;background:#e1f5f2;border-radius:999px;padding:5px 14px;white-space:nowrap}
+/* mock websites + certificates sit above the Create Lead form, so people can look things up while it is open */
+#bm{z-index:52}#brw{z-index:55}
+</style>
+</head>
+<body data-mode="exam">
+<nav id="side"></nav>
+<div id="top"><div id="sbox">
+  <svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+  <input id="q" placeholder="Search by ID or name" autocomplete="off"><button class="x" id="qx">×</button>
+  <div id="sres"></div></div></div>
+<div id="main"></div>
+<div id="ov"><div id="md"></div></div>
+<div id="sp"></div>
+<div id="toast"></div>
+<div id="tag">Training simulation. Fake data only.</div>
+<script>window.ACQUI_STANDALONE=true;</script>
+<script>
+window.ACQUI=window.ACQUI||{hooks:{},on:function(n,f){(this.hooks[n]=this.hooks[n]||[]).push(f)},emit:function(n,d){(this.hooks[n]||[]).forEach(function(f){try{f(d)}catch(e){console.error(e)}})}};
+/* ===== Fake data (no real clients) ===== */
+var ME = "Hanna Test";
+var TEAM_LEADS = ["Tina Teamlead (Team Lead)", "Alan Smyth"];
+var CHANNELS = ["Partnerships","Related Party","Referrals","Trading Relationships","Inputs Engine - Government Awards Web Scraping","Outbound - Sole Prop","Support Generated Leads","KAM - Self Generated Leads","Product - New Onboarding Channel","Solar"];
+var REFCH = ["RPP","Customer","Drip"];
+var LEAD_STATUS = ["For Engagement","Prospecting","Discovery","Presented","Completing Requirements","Risk Review","Onboarded","Utilized","Unserviceable"];
+var RISK_STATUS = ["Account Ready for Review","Information Missing","Information Resubmitted","For Clarification","Raised to Risk Management","Preliminary CLO Assessment","CLO Ready for Review","CLO Approved","CLO Rejected","Fully Verified with Provisional Limit","Fully Verified with Future Revenue","Off-boarded/Rejected","Blacklisted"];
+/* owner: "me" | "none" | other AM name */
+var LEADS = [
+ /* Lead reassignment lecture + practice: leads that already exist in Acqui Service and nobody works on */
+ {id:"190552",name:"Harbor View Lodging",status:"Risk Review",risk:"-",channel:"Inputs Engine - Government Awards Web Scraping",clo:0,eng:"2026-09-21",owner:"none",contact:"Lita Gomez"},
+ {id:"228764",name:"Lakeshore Hardware",status:"Prospecting",risk:"-",channel:"Inputs Engine - Government Awards Web Scraping",clo:0,eng:"2026-10-01",owner:"none",contact:"Ramon Cruz"},
+ {id:"297315",name:"Maple Leaf Printing",status:"Discovery",risk:"-",channel:"Inputs Engine - Government Awards Web Scraping",clo:0,eng:"2026-10-06",owner:"none",contact:"Joy Tan"},
+ {id:"184422",name:"Riverside Lumber Trading",status:"Risk Review",risk:"-",channel:"Inputs Engine - Government Awards Web Scraping",clo:0,eng:"2026-09-12",owner:"none",contact:"Ben Aquino"},
+ {id:"263118",name:"Greenfield Foods Corp.",status:"Prospecting",risk:"-",channel:"Inputs Engine - Government Awards Web Scraping",clo:0,eng:"2026-10-08",owner:"none",contact:"Gina Flores"},
+ {id:"341907",name:"Delta Packaging Inc.",status:"Discovery",risk:"-",channel:"Inputs Engine - Government Awards Web Scraping",clo:0,eng:"2026-10-09",owner:"none",contact:"Paolo Ramos"},
+ {id:"350115",name:"Metro Courier Services",status:"Onboarded",risk:"Fully Verified with Future Revenue",ba:"Approved",rev:1665278,bclAmt:100000,channel:"Referrals",refBy:"Bea Salonga",fcRef:"Mary Test",clo:0,eng:"2026-10-27",owner:"me",contact:"Christina Lopez",
+  bclH:[{s:"Fully Verified with Future Revenue",at:"Oct 27, 2026, 2:46 PM",by:"BVP"},{s:"Information Resubmitted",at:"Oct 26, 2026, 3:10 PM",by:"Hanna Test"},{s:"Information Missing",at:"Oct 26, 2026, 11:38 AM",by:"BVP"},{s:"Information Resubmitted",at:"Oct 26, 2026, 11:20 AM",by:"Hanna Test"},{s:"Information Missing",at:"Oct 26, 2026, 10:47 AM",by:"BVP"},{s:"Account Ready for Review",at:"Oct 26, 2026, 10:30 AM",by:"Hanna Test"}],
+  leadH:[{s:"Onboarded",d:"Oct 27, 2026"},{s:"Risk Review",d:"Oct 26, 2026"},{s:"Completing Requirements",d:"Oct 21, 2026"},{s:"Discovery",d:"Jul 20, 2026"},{s:"For Engagement",d:"Jul 20, 2026"}]},
+ {id:"212766",hub:true,task:{pr:"Low",due:"Due tomorrow"},name:"Mike's Banana Chips (Test)",status:"For Engagement",risk:"-",channel:"KAM - Self Generated Leads",clo:0,eng:"2026-10-26",owner:"me",contact:"Mike Ilagan"},
+ {id:"170240",task:{pr:"Medium",due:"Overdue"},name:"Sunrise Agri Corp",status:"Utilized",risk:"-",channel:"Inputs Engine - Government Awards Web Scraping",clo:500000,eng:"2026-08-12",owner:"me",contact:"Rita Cruz"},
+ {id:"174297",task:{pr:"High",due:"Overdue"},name:"Blue Harbor Masters Inc.",status:"Utilized",risk:"-",channel:"Inputs Engine - Government Awards Web Scraping",clo:6000000,eng:"2026-09-02",owner:"me",contact:"Leo Tan"},
+ {id:"271202",task:{pr:"High",due:"Due today"},name:"Benry Sand and Gravel",status:"Onboarded",risk:"-",channel:"Referrals",refBy:"Bea Salonga",clo:0,eng:"2026-10-23",owner:"me",contact:"Ben Ry"},
+ {id:"371014",task:{pr:"Medium",due:"Due today"},name:"Golden Rice and Feeds",status:"Onboarded",risk:"-",channel:"Referrals",refBy:"Aaron Conda",clo:0,eng:"2026-10-20",owner:"me",contact:"Gina Lim"},
+ {id:"370878",task:{pr:"Low",due:"Due tomorrow"},name:"Delta Trucking Services",status:"Onboarded",risk:"-",channel:"Referrals",refBy:"Carlo Mendez",clo:0,eng:"2026-10-23",owner:"me",contact:"Dan Dela"},
+ {id:"316266",task:{pr:"Medium",due:"Overdue"},name:"Hotel Palmera Group",status:"Onboarded",risk:"CLO Approved",channel:"Inputs Engine - Government Awards Web Scraping",clo:2000000,eng:"2026-07-07",owner:"me",contact:"Pam Reyes"},
+ {id:"156661",ba:"Approved",name:"Angel's Catering Services",status:"Presented",risk:"Raised to Risk Management",channel:"Product - New Onboarding Channel",clo:0,eng:"2026-09-29",owner:"none",contact:"Angelique Vergara"},
+ {id:"133901",name:"Metro Print and Pack",status:"Discovery",risk:"-",channel:"Outbound - Sole Prop",clo:0,eng:"2026-09-18",owner:"none",contact:"Joel Santos"},
+ {id:"248810",name:"Cebu Coastal Foods",status:"Prospecting",risk:"-",channel:"Partnerships",clo:0,eng:"2026-10-02",owner:"Aaron Test (AM)",contact:"Cora Uy"},
+ {id:"305522",name:"Davao Highland Coffee",status:"Presented",risk:"For Clarification",channel:"Referrals",refBy:"Dina Robles",clo:1500000,eng:"2026-10-11",owner:"Aaron Test (AM)",contact:"Nilo Tan"},
+ {id:"119034",name:"Northgate Logistics",status:"For Engagement",risk:"-",channel:"Support Generated Leads",clo:0,eng:"2026-10-05",owner:"none",contact:"Ana Ramos"},
+ {id:"287450",name:"Pioneer Steel Works",status:"Onboarded",risk:"Fully Verified with Provisional Limit",channel:"Trading Relationships",clo:3000000,eng:"2026-10-14",owner:"Aaron Test (AM)",contact:"Vic Lee"}
+];
+/* referrers attributed to the AM (an AM only sees these when requesting a lead) */
+var REFERRERS = [
+ {id:41,name:"Aaron Conda",type:"Drip",email:"aaron.conda@example.com",phone:"09170000001"},
+ {id:47,name:"Bea Salonga",type:"RPP",email:"bea.salonga@example.com",phone:"09170000002"},
+ {id:52,name:"Carlo Mendez",type:"Customer",email:"carlo.mendez@example.com",phone:"09170000003"},
+ {id:58,name:"Dina Robles",type:"Drip",email:"dina.robles@example.com",phone:"09170000004"},
+ {id:63,name:"Eli Ocampo",type:"RPP",email:"eli.ocampo@example.com",phone:"09170000005"},
+ {id:66,name:"Faye Navarro",type:"Customer",email:"faye.navarro@example.com",phone:"09170000006"},
+ {id:12,name:"Mia Santos",type:"Drip",email:"mia.santos@example.com",phone:"09170000007"},
+ {id:14,name:"Noel Reyes",type:"Drip",email:"noel.reyes@example.com",phone:"09170000008"},
+ {id:15,name:"Pia Lacson",type:"Drip",email:"pia.lacson@example.com",phone:"09170000009"}
+];
+/* Lessons on reassignment and lead creation assume ONE referrer is already enrolled and has no leads yet */
+window.ACQUI_ONE_REFERRER=function(){
+  var mia=REFERRERS.filter(function(r){return r.name==="Mia Santos"})[0];
+  REFERRERS.length=0;REFERRERS.push(mia);
+  LEADS.forEach(function(l){delete l.refBy;delete l.fcRef});
+};
+var FC_STAFF = ["1368 - Hanna Test","1407 - Mary Test","1113 - Nery Test","576 - Bert Test"];
+/* originations (drawdown triggered) and open BCLs (also without drawdown). ym = "YYYY-MM" */
+var ORIG = [
+ {co:"Sunrise Agri Corp",id:"170240",team:"Region Team 2",am:ME,rcl:500000,amt:350000,med:"No",chq:"Direct Debit",status:"Disbursed",signed:"2026-10-12",time:"11:26 AM",ym:"2026-10",rclid:"c62b502f-9a2c-4351-9741-ce9006dafc59",lp:"109669",rate:"2.74%",lpc:1,boost:"-"},
+ {co:"Hotel Palmera Group",id:"316266",team:"Region Team 2",am:ME,rcl:2000000,amt:1200000,med:"Yes",chq:"-",status:"Contract Signed",signed:"2026-10-20",time:"2:14 PM",ym:"2026-10",rclid:"4a1d92c0-1b7e-4c0a-8f31-6d2e5b9c7a10",lp:"109702",rate:"2.50%",lpc:1,boost:"-"},
+ {co:"Blue Harbor Masters Inc.",id:"174297",team:"Region Team 2",am:ME,rcl:6000000,amt:900000,med:"Yes",chq:"Direct Debit",status:"Settled",signed:"2026-09-15",time:"9:05 AM",ym:"2026-09",rclid:"9be0c7a2-55d3-47f1-b0c4-1e8a3d7f6b22",lp:"108844",rate:"2.60%",lpc:2,boost:"5%"},
+ {co:"Delta Trucking Services",id:"370878",team:"Region Team 2",am:ME,rcl:300000,amt:120000,med:"No",chq:"-",status:"Pending",signed:"2026-08-04",time:"3:40 PM",ym:"2026-08",rclid:"d3f4a8e1-72c9-4b6d-9a15-0c2b7e4f8d33",lp:"107310",rate:"2.74%",lpc:1,boost:"-"}
+];
+var BCLS = [
+ {co:"Sunrise Agri Corp",id:"170240",team:"Region Team 2",am:ME,bcl:500000,orig30:350000,login:"2026-10-12",ym:"2026-10",date:"Oct 12, 2026"},
+ {co:"Hotel Palmera Group",id:"316266",team:"Region Team 2",am:ME,bcl:2000000,orig30:1200000,login:"2026-10-20",ym:"2026-10",date:"Oct 20, 2026"},
+ {co:"Golden Rice and Feeds",id:"371014",team:"Region Team 2",am:ME,bcl:250000,orig30:0,login:"-",ym:"2026-10",date:"Oct 21, 2026"},
+ {co:"Blue Harbor Masters Inc.",id:"174297",team:"Region Team 2",am:ME,bcl:6000000,orig30:900000,login:"2026-09-15",ym:"2026-09",date:"Sep 15, 2026"},
+ {co:"Benry Sand and Gravel",id:"271202",team:"Region Team 2",am:ME,bcl:400000,orig30:0,login:"-",ym:"2026-08",date:"Aug 28, 2026"}
+];
+var EYE='<svg viewBox="0 0 24 24" width="18" height="18" style="stroke:#556;fill:none;stroke-width:1.7"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+var MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+/* ===== Dummy company registry for the mock SEC / DTI search sites (all names and numbers are made up) ===== */
+var REGISTRY=[];
+(function(){
+  var i=0;
+  LEADS.forEach(function(l){
+    if(/\(Test\)/.test(l.name)){l.reg="TEST-0001";return}
+    i++;var no="CS2024"+("000000"+(100200+i*53)).slice(-6);
+    REGISTRY.push({kind:"SEC",name:l.name.toUpperCase(),no:no});l.reg=no;
+  });
+  [["GOLDEN HARBOR TRADING CORP.","CS202605227"],["GOLDEN HARBOR TRADING AND SUPPLY INC.","CS202311890"],["GOLDEN HARBOUR TRADING CORP.","CS202204411"],["KAPITAN HOLDINGS INC.","CS202008800"],["GOLDEN HARBOR CONSTRUCTION CORP.","CS201907316"]]
+   .forEach(function(r){REGISTRY.push({kind:"SEC",name:r[0],no:r[1]})});
+  [["KAPITAN SARI-SARI WHOLESALE","7001234","RICO DELA CRUZ","REGIONAL - REGION III (CENTRAL LUZON)","Mar 12 2024"],
+   ["KAPITAN SARI-SARI STORE","6998811","ELENA RAMOS","REGIONAL - REGION IV-A (CALABARZON)","Aug 03 2023"],
+   ["KAPITAN SARI-SARI MART","7010055","MARIO BAUTISTA","REGIONAL - REGION VII (CENTRAL VISAYAS)","Jan 19 2024"],
+   ["ALING NENA BAKESHOP","6951220","NENA SALAZAR","BARANGAY","Jun 08 2022"],
+   ["JUAN SARI-SARI STORE","0012345","JUAN PEDRO DE LA CRUZ","REGIONAL - REGION VII (CENTRAL VISAYAS)","Aug 13 2020"]]
+   .forEach(function(r){REGISTRY.push({kind:"DTI",name:r[0],no:r[1],owner:r[2],territory:r[3],date:r[4],status:"REGISTERED",scope:/^REGIONAL/.test(r[3])?"REGIONAL":"BARANGAY"})});
+})();
+function normReg(s){return String(s||"").toLowerCase().replace(/[^a-z0-9]/g,"")}
+
+/* ===== helpers ===== */
+var $=function(s,r){return (r||document).querySelector(s)};
+var fmt=function(n){return n?"₱"+n.toLocaleString("en-US",{minimumFractionDigits:2}):"-"};
+var fdate=function(d){var x=new Date(d+"T00:00:00");return MONTHS[x.getMonth()].slice(0,3)+" "+x.getDate()+", "+x.getFullYear()};
+var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
+var ICONS={
+ home:'<svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg>',
+ star:'<svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.8-4.4 4.3 1 6.1L12 16.9 6.6 19.8l1-6.1L3.2 9.4l6.1-.8z"/></svg>',
+ card:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg>',
+ user:'<svg viewBox="0 0 24 24"><circle cx="10" cy="8" r="4"/><path d="M3 20c0-4 3-6 7-6m3 4 2 2 4-4"/></svg>',
+ layers:'<svg viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg>'
+};
+var NAV=[["home","Home","#/home"],["star","Leads","#/leads"],["card","Originations","#/originations"],["user","Referrers","#/referrers"],["layers","Open BCLs","#/open-bcls"]];
+function toast(m){var t=$("#toast");t.textContent=m;t.style.display="block";clearTimeout(toast.h);toast.h=setTimeout(function(){t.style.display="none"},2600)}
+
+/* shared state */
+var S={};            // filter state per page
+var pending={};      // lead id -> true after request sent
+function mine(){return LEADS.filter(function(l){return l.owner==="me"})}
+
+/* ===== dropdown / filter widgets ===== */
+function multi(key,label,opts,wide){
+  return '<div class="fl"><label>'+label+'</label><div class="dd" data-ms="'+key+'" style="'+(wide?"min-width:130px":"")+'"><button type="button"><span class="lbl"></span></button>'+
+   '<div class="panel"><div class="ph"><span>Select options</span><a data-clear="'+key+'">Clear All</a></div>'+
+   opts.map(function(o){return '<label class="opt"><input type="checkbox" data-k="'+key+'" value="'+esc(o)+'"> '+esc(o)+'</label>'}).join("")+'</div></div></div>';
+}
+function single(key,label,opts,def){
+  return '<div class="fl"><label>'+label+'</label><select class="sel" data-sel="'+key+'">'+opts.map(function(o){return '<option'+(o===def?" selected":"")+'>'+o+'</option>'}).join("")+'</select></div>';
+}
+function setLabels(root,all){
+  root.querySelectorAll(".dd[data-ms]").forEach(function(d){
+    var k=d.dataset.ms,v=(S[k]||[]);
+    d.querySelector(".lbl").textContent=v.length?(v.length>1?v.length+" selected":v[0]):(all[k]||"All");
+  });
+}
+function bindFilters(root,onChange,all){
+  root.querySelectorAll(".dd>button").forEach(function(b){b.onclick=function(e){e.stopPropagation();var d=b.parentNode,was=d.classList.contains("open");document.querySelectorAll(".dd.open").forEach(function(x){x.classList.remove("open")});if(!was)d.classList.add("open")}});
+  root.querySelectorAll("input[type=checkbox][data-k]").forEach(function(c){c.onchange=function(){
+    var k=c.dataset.k;S[k]=[].slice.call(root.querySelectorAll('input[data-k="'+k+'"]:checked')).map(function(x){return x.value});setLabels(root,all);ACQUI.emit("filter",{key:k,vals:S[k]});onChange()}});
+  root.querySelectorAll("[data-clear]").forEach(function(a){a.onclick=function(){var k=a.dataset.clear;S[k]=[];root.querySelectorAll('input[data-k="'+k+'"]').forEach(function(c){c.checked=false});setLabels(root,all);onChange()}});
+  root.querySelectorAll("[data-sel]").forEach(function(s){s.onchange=function(){S[s.dataset.sel]=s.value;onChange()}});
+  root.querySelectorAll("input.txt[data-txt]").forEach(function(i){i.oninput=function(){S[i.dataset.txt]=i.value;onChange()}});
+  setLabels(root,all);
+}
+document.addEventListener("click",function(e){if(!e.target.closest(".dd"))document.querySelectorAll(".dd.open").forEach(function(x){x.classList.remove("open")})});
+
+/* paging */
+function paged(key,rows,render,cols){
+  var per=+(S[key+"_per"]||10),pg=Math.min(+(S[key+"_pg"]||1),Math.max(1,Math.ceil(rows.length/per))),
+      tot=Math.max(1,Math.ceil(rows.length/per)),from=rows.length?(pg-1)*per:0,to=Math.min(rows.length,from+per);
+  var html=rows.length?rows.slice(from,to).map(render).join(""):'<tr><td colspan="'+cols+'"></td></tr>';
+  return {html:html,bar:'<div class="pager"><span>Showing '+(rows.length?from+1:0)+' to '+to+' of '+rows.length+' entries</span><span>ROWS PER PAGE: <select class="sel" style="min-width:50px;height:22px" data-per="'+key+'">'+[10,20,50,100].map(function(n){return '<option'+(n===per?" selected":"")+'>'+n+'</option>'}).join("")+'</select> &nbsp; <button data-pg="'+key+':1"'+(pg<=1?" disabled":"")+'>«</button><button data-pg="'+key+':'+(pg-1)+'"'+(pg<=1?" disabled":"")+'>‹</button> Page <b>'+pg+'</b> of <b>'+tot+'</b> <button data-pg="'+key+':'+(pg+1)+'"'+(pg>=tot?" disabled":"")+'>›</button><button data-pg="'+key+':'+tot+'"'+(pg>=tot?" disabled":"")+'>»</button></span></div>'};
+}
+function bindPager(root,key,again){
+  root.querySelectorAll("[data-pg]").forEach(function(b){b.onclick=function(){var p=b.dataset.pg.split(":");S[p[0]+"_pg"]=+p[1];again()}});
+  root.querySelectorAll("[data-per]").forEach(function(s){s.onchange=function(){S[key+"_per"]=+s.value;S[key+"_pg"]=1;again()}});
+}
+
+/* ===== pages ===== */
+function pageHome(){
+  var h=new Date().getHours(),g=h<12?"morning":h<18?"afternoon":"evening";
+  return '<div class="hello"><div><h1>Good '+g+', '+ME+'!</h1><div class="sub">Here\'s your overview for today.</div>'+
+   '<div class="sub" style="font-size:9px">EMAIL MONITORING &nbsp; <button class="btn" disabled>Connect Gmail</button> &nbsp; Not available in the simulation</div></div>'+
+   '<button class="btn teal" disabled title="Coming soon">Calculate Incentive</button></div>'+
+   '<div class="card" id="tasks"><div class="ctitle">▣ Tasks</div><div class="tabs" id="ttabs"></div><div id="tlist"></div></div>'+
+   '<div class="card"><div class="ctitle">Intraday Productivity</div><div class="grid3"><div><div class="ctitle" style="color:var(--mut)">Call flow</div><div class="bar" style="height:20px"></div><div class="sub" style="margin:6px 0 0">No calls yet today</div><div style="margin-top:6px"><b>0</b> Attempted → — <b>0</b> Connected → — <b>0</b> Unique leads</div></div>'+
+   '<div><div class="ctitle" style="color:var(--mut)">Pace</div><div class="sub">Connected calls · vs 0/day avg</div><div class="bar"></div><div class="sub" style="margin-top:14px">Connected calls · last 7 days</div><div style="margin-top:22px;display:flex;justify-content:space-between"><span class="sub">F2F Meetings</span><b style="font-size:18px">0</b></div></div>'+
+   '<div><div class="ctitle" style="color:var(--mut)">Task completion</div><div class="sub">— cleared today</div><div class="bar"></div><div class="sub" style="margin-top:6px">No tasks due today</div></div></div></div>'+
+   '<div class="card" id="mtd"><div class="ctitle">MTD Productivity View</div><table class="kt"><thead><tr><th>Metric</th><th class="hl blue">This Month<br><small>Avg/Day</small></th><th>Ave. Last Month<br><small>Avg/Day</small></th><th>Ave. Last 3 Months<br><small>Avg/Day</small></th><th>vs Top Performer<br><small>Avg/Day</small></th></tr></thead><tbody>'+
+   [["Connected Calls","0","26.4",'<span class="neg">(-26.4)</span>'],["First F2F Meetings","0","1.8",'<span class="neg">(-1.8)</span>'],["First Completing Requirements","—","2",""],["First BVP Submitted","—","1.3",""],["Documents Verified","—","8.4",""]].map(function(r){return '<tr><td>'+r[0]+'</td><td class="hl blue">'+r[1]+'</td><td>—</td><td>—</td><td>'+r[2]+' '+r[3]+'</td></tr>'}).join("")+
+   '</tbody></table><div class="sub" style="margin:8px 0 0;font-size:9px">ⓘ Click a This Month value to view the last 30-day daily breakdown.</div></div>'+
+   '<div class="card"><div class="ctitle">MTD KPI Summary</div><table class="kt"><thead><tr><th>KPI</th><th>This Month</th><th>vs Last Month<br><small>full / partial</small></th><th>3-Month Avg</th><th>vs Top Performer</th></tr></thead><tbody>'+
+   [["First F2F Meetings","0","33"],["Open BCL w/ Connect Login","0","16"],["SBA Utilized","0","14"],["Origination (Count)","0","15"],["Origination (Amount)","₱0.00","₱37.80M"]].map(function(r){return '<tr><td>'+r[0]+'</td><td class="blue kpi" style="cursor:pointer">'+r[1]+'</td><td><small class="sub">— 0<br>part. — 0</small></td><td>0</td><td><span class="neg">-100% ▼</span> <small class="sub">'+r[2]+'</small></td></tr>'}).join("")+
+   '</tbody></table><div class="sub" style="margin:8px 0 0;font-size:9px">ⓘ Partial: same days elapsed in last month as the current month-to-date.<br>ⓘ Click any number to view detailed breakdown and trends.</div></div>';
+}
+
+var TTAB="Today's Tasks";
+/* leads you asked to have reassigned to you (pending approval) show up as tasks */
+function reqItems(){return Object.keys(pending).map(function(id){var l=LEADS.filter(function(x){return x.id===id})[0];return l?{id:id,l:l,req:pending[id]}:null}).filter(Boolean)}
+function openReassignTask(id){
+  var l=LEADS.filter(function(x){return x.id===id})[0],q=pending[id];if(!l||!q)return;
+  var ref=q.channel==="Referrals"&&q.ref?q.rc+" — Referrer ID "+(REFERRERS.filter(function(r){return r.name===q.ref.k})[0]||{}).id:"";
+  $("#md").innerHTML='<h3 style="align-items:flex-start"><span>'+esc(l.name.toUpperCase())+' has been requested for reassignment by you<br><span class="chip blue" style="font-size:9px;font-weight:600">Reassignment Request</span></span> <button id="mx">×</button></h3>'+
+   '<div class="kv" style="grid-template-columns:110px 1fr;margin-bottom:10px"><span>Due:</span><span>Today</span><span>Created:</span><span>'+q.created+'</span><span>Company:</span><span>'+esc(l.name.toUpperCase())+'</span><span>Lead ID:</span><span>'+l.id+'</span><span>Requested channel:</span><span>'+esc(q.channel)+'</span>'+(ref?'<span>Requested referral:</span><span>'+esc(ref)+'</span>':"")+'</div>'+
+   '<div style="background:#e7f6ea;color:#1c7a40;border-radius:6px;padding:7px 10px;font-size:11px;margin-bottom:10px">Your reassignment request is awaiting approval.</div>'+
+   '<label>Notes <small style="float:right;font-weight:400;color:var(--mut)">Visible to the approver</small></label><textarea id="rt_n">'+esc(q.notes||"")+'</textarea>'+
+   '<div class="foot" style="justify-content:space-between"><button class="btn" id="rt_view">View lead ↗</button><button class="btn" id="rt_save">Save notes</button></div>';
+  $("#md").classList.remove("wide");$("#ov").style.display="flex";$("#mx").onclick=closeModal;
+  $("#rt_save").onclick=function(){q.notes=$("#rt_n").value;toast("Notes saved")};
+  $("#rt_view").onclick=function(){closeModal();location.hash="#/lead/"+id};
+}
+function taskList(){return mine().filter(function(l){return l.task&&!l.task.done})}
+function tabItems(t){
+  return taskList().filter(function(l){var k=l.task;
+    return t==="All pending"||(t==="Today's Tasks"&&(k.due==="Overdue"||k.due==="Due today"))||(t==="Urgent/High"&&k.pr==="High")||(t==="Medium"&&k.pr==="Medium")||(t==="Low"&&k.pr==="Low")});
+}
+/* Lead summary panel (Tasks > Summary). In the real app this is AI-generated from call and meeting notes, so it is "not available" here. */
+function openSummary(id){
+  var l=LEADS.filter(function(x){return x.id===id})[0];if(!l)return;
+  var na='<div style="color:var(--mut);font-size:12px;margin:4px 0 14px">Not available</div>';
+  $("#sp").innerHTML='<button class="x" onclick="closeSP()">×</button><div class="t">LEAD SUMMARY</div><div class="n">'+esc(l.name.toUpperCase())+'</div><hr style="border:0;border-top:1px solid #eef2f2;margin:0 0 14px">'+
+   '<div class="t" style="margin-bottom:6px">PRIMARY CONTACT</div><div style="font-size:13px;font-weight:600;margin-bottom:6px">'+esc(l.contact)+'</div>'+
+   '<div class="row2"><span style="color:var(--mut)">Phone</span><b>+63 900 000 0001</b></div><div class="row2"><span style="color:var(--mut)">Phone</span><b>+63 900 000 0002</b></div>'+
+   '<div class="t" style="margin:16px 0 8px">CUSTOMER SUMMARY</div>'+
+   '<div style="background:#f3f6f6;border-radius:8px;padding:8px 10px;font-size:10.5px;color:#456;margin-bottom:12px">In the real Acqui Service, this summary is written by AI from your call and meeting notes on the lead. It is not available in the simulation.</div>'+
+   '<div style="font-weight:700;color:#445;font-size:12px">What was discussed</div>'+na+
+   '<div style="font-weight:700;color:#445;font-size:12px">Key takeaways</div>'+na+
+   '<div style="font-weight:700;color:#445;font-size:12px">Commitments / Next steps</div>'+na;
+  $("#sp").classList.add("open");
+}
+function drawTasks(root){
+  var tabs=["Today's Tasks","All pending","Urgent/High","Medium","Low"];
+  var reqIn=function(t){return t==="Today's Tasks"||t==="All pending"||t==="Medium"};
+  $("#ttabs",root).innerHTML=tabs.map(function(t){var n=tabItems(t).length+(reqIn(t)?reqItems().length:0);return '<span data-t="'+t+'" class="'+(t===TTAB?"on":"")+'">'+t+' <span class="chip '+(t===TTAB?"blue":"")+'">'+n+'</span></span>'}).join("");
+  var it=tabItems(TTAB),rq=reqIn(TTAB)?reqItems():[];
+  var reqRows=rq.map(function(r){return '<tr class="row" data-reqrow="'+r.id+'" style="cursor:pointer"><td style="width:24px"></td><td><b style="font-weight:600">'+esc(r.l.name.toUpperCase())+' has been requested for reassignment…</b></td><td><span class="chip" style="background:#dff5ee;color:#0b6b5b;font-weight:700;font-size:9px">REASSIGNMENT REQUEST</span></td><td><span class="chip">'+r.l.status+'</span></td><td style="font-weight:600;color:#c46a00">Due today</td><td><button class="btn" data-reqview="'+r.id+'">View lead</button></td></tr>'}).join("");
+  $("#tlist",root).innerHTML=(it.length||rq.length)?'<table><tbody>'+reqRows+it.map(function(l){var k=l.task;
+    return '<tr class="row"><td style="width:24px"><input type="checkbox" data-done="'+l.id+'"></td><td><span class="pill">'+k.pr.toUpperCase()+'</span> <b style="font-weight:600">'+esc(l.name)+' — Call</b></td><td><span class="pill b">CALL</span></td><td><span class="chip">'+l.status+'</span></td><td class="'+(k.due==="Overdue"?"neg":"")+'" style="font-weight:600">'+k.due+'</td><td><button class="btn" data-sum="'+l.id+'">Summary</button></td></tr>'}).join("")+'</tbody></table>'
+    :'<div class="empty">No pending tasks'+(TTAB==="Today's Tasks"?" for today":"")+'.</div>';
+  root.querySelectorAll("[data-t]").forEach(function(x){x.onclick=function(){TTAB=x.dataset.t;drawTasks(root)}});
+  root.querySelectorAll("[data-reqrow]").forEach(function(r){r.onclick=function(e){if(e.target.closest("[data-reqview]"))return;openReassignTask(r.dataset.reqrow);ACQUI.emit("request-task-open",r.dataset.reqrow)}});
+  root.querySelectorAll("[data-reqview]").forEach(function(b){b.onclick=function(){location.hash="#/lead/"+b.dataset.reqview}});
+  root.querySelectorAll("[data-done]").forEach(function(c){c.onchange=function(){var l=LEADS.filter(function(x){return x.id===c.dataset.done})[0];l.task.done=true;toast("Task completed");drawTasks(root)}});
+  root.querySelectorAll("[data-sum]").forEach(function(c){c.onclick=function(){openSummary(c.dataset.sum);ACQUI.emit("summary-open",c.dataset.sum)}});
+}
+function afterHome(root){
+  drawTasks(root);
+  root.querySelectorAll(".kpi").forEach(function(k){k.onclick=function(){toast("Lead details coming soon")}});
+}
+
+function pageLeads(){
+  var all={status:"All statuses",risk:"All risk statuses"};
+  return '<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><h1>My Lead List</h1><div class="sub">View and manage leads currently assigned.</div></div><button class="btn teal" id="newlead">Create Lead</button></div>'+
+   '<div class="fl" style="margin-bottom:12px"><input class="txt sel" data-txt="lq" placeholder="Search by business name or lead ID..." style="width:230px" value="'+esc(S.lq||"")+'"></div>'+
+   '<div class="filters" id="lf">'+multi("status","Status",LEAD_STATUS)+multi("risk","Risk status",RISK_STATUS)+
+   single("eng","Last engagement",["Any time","Last 7 days","Last 30 days","Last 90 days"],S.eng||"Any time")+
+   '<div class="fl"><label>CLO amount <span title="CLO amount data is still being backfilled — filtering may not match all leads yet." style="color:var(--teal);cursor:help">●</span></label><div class="dd rng"><button type="button"><span class="lbl" id="clol">Any amount</span></button><div class="panel"><div class="ph"><span>Set a range</span><a id="clox">Clear</a></div><input data-r="min" placeholder="Min" value="'+esc(S.cmin||"")+'"><input data-r="max" placeholder="Max" value="'+esc(S.cmax||"")+'"></div></div></div></div>'+
+   '<div class="note">The owner and unassigned-leads filters are not available when viewing your own leads.</div>'+
+   '<div id="ltbl"></div>';
+}
+function leadRows(){
+  var now=new Date("2026-10-26T00:00:00"),q=(S.lq||"").toLowerCase();
+  return mine().filter(function(l){
+    if(q&&l.name.toLowerCase().indexOf(q)<0&&l.id.indexOf(q)<0)return false;
+    if((S.status||[]).length&&S.status.indexOf(l.status)<0)return false;
+    if((S.risk||[]).length&&S.risk.indexOf(l.risk)<0)return false;
+    var days={"Last 7 days":7,"Last 30 days":30,"Last 90 days":90}[S.eng];
+    if(days&&(now-new Date(l.eng+"T00:00:00"))/864e5>days)return false;
+    var mn=parseFloat((S.cmin||"").replace(/,/g,"")),mx=parseFloat((S.cmax||"").replace(/,/g,""));
+    if(!isNaN(mn)&&l.clo<mn)return false;if(!isNaN(mx)&&l.clo>mx)return false;return true;
+  }).sort(function(a,b){var d=S.lsort==="name"?a.name.localeCompare(b.name):S.lsort==="eng"?(a.eng<b.eng?-1:1):0;return S.ldir==="desc"?-d:d});
+}
+function drawLeads(root){
+  var r=paged("ls",leadRows(),function(l){return '<tr class="row"><td>'+esc(l.name)+'<span class="idtag">'+l.id+'</span></td><td>'+l.status+'</td><td>'+l.risk+'</td><td>'+esc(l.channel.length>14?l.channel.slice(0,12)+"…":l.channel)+'</td><td>'+fmt(l.clo)+'</td><td>'+fdate(l.eng)+'</td><td><span class="link" data-open="'+l.id+'">Open</span></td></tr>'},7);
+  $("#ltbl",root).innerHTML='<div class="card" style="padding:4px 10px"><table><thead><tr><th>Business name <span class="sort" data-sort="name" style="cursor:pointer">⇅</span></th><th>Status</th><th>Risk status</th><th>Channel</th><th>CLO amount</th><th>Last engagement <span class="sort" data-sort="eng" style="cursor:pointer">⇅</span></th><th></th></tr></thead><tbody>'+r.html+'</tbody></table></div>'+r.bar;
+  bindPager($("#ltbl",root),"ls",function(){drawLeads(root)});
+  root.querySelectorAll("[data-sort]").forEach(function(s){s.onclick=function(){S.ldir=(S.lsort===s.dataset.sort&&S.ldir==="asc")?"desc":"asc";S.lsort=s.dataset.sort;drawLeads(root)}});
+  root.querySelectorAll("[data-open]").forEach(function(a){a.onclick=function(){location.hash="#/lead/"+a.dataset.open}});
+}
+function afterLeads(root){
+  var all={status:"All statuses",risk:"All risk statuses"};
+  var redraw=function(){S.ls_pg=1;drawLeads(root)};
+  bindFilters(root,redraw,all);
+  root.querySelectorAll(".rng input").forEach(function(i){i.oninput=function(){S[i.dataset.r==="min"?"cmin":"cmax"]=i.value;
+    var a=S.cmin,b=S.cmax;$("#clol",root).textContent=(a||b)?(a?"₱"+a:"₱0")+" – "+(b?"₱"+b:"any"):"Any amount";redraw()}});
+  $("#clox",root).onclick=function(){S.cmin=S.cmax="";root.querySelectorAll(".rng input").forEach(function(i){i.value=""});$("#clol",root).textContent="Any amount";redraw()};
+  $("#newlead",root).onclick=openCreate;
+  drawLeads(root);
+}
+
+/* date coverage control shared by Originations and Open BCLs */
+function coverage(){
+  return '<div style="text-align:right"><div class="fl" style="display:inline-flex;gap:8px;align-items:center"><label style="margin:0">Filter by:</label>'+
+   '<select class="sel" data-sel="by" style="min-width:90px"><option>All</option><option>Monthly</option><option>Quarterly</option></select></div>'+
+   '<div id="cov" style="margin-top:6px"></div></div>';
+}
+function drawCov(root){
+  var by=S.by||"Monthly",c=$("#cov",root);
+  if(by==="All"){c.innerHTML="";return}
+  var yrs='<select class="sel" data-sel="yr" style="min-width:70px">'+[2025,2026].map(function(y){return '<option'+(y==(S.yr||2026)?" selected":"")+'>'+y+'</option>'}).join("")+'</select>';
+  var per=by==="Monthly"?'<select class="sel" data-sel="mo">'+MONTHS.map(function(m,i){return '<option value="'+i+'"'+(i==(S.mo==null?9:S.mo)?" selected":"")+'>'+m+'</option>'}).join("")+'</select>':
+   '<select class="sel" data-sel="qt">'+[1,2,3,4].map(function(q){return '<option value="'+q+'"'+(q==(S.qt||4)?" selected":"")+'>Q'+q+'</option>'}).join("")+'</select>';
+  c.innerHTML='<div class="sub" style="margin:0 0 3px">Current coverage</div>'+per+" "+yrs;
+}
+function inCov(ym){
+  var by=S.by||"Monthly";if(by==="All")return true;
+  var y=+ym.slice(0,4),m=+ym.slice(5)-1;
+  if(y!==+(S.yr||2026))return false;
+  if(by==="Monthly")return m===+(S.mo==null?9:S.mo);
+  return Math.floor(m/3)+1===+(S.qt||4);
+}
+function bindCov(root,redraw){
+  root.querySelectorAll("[data-sel]").forEach(function(s){s.onchange=function(){S[s.dataset.sel]=s.value;setTimeout(function(){ACQUI.emit("filter",{key:"cov",by:S.by||"Monthly",mo:S.mo==null?9:+S.mo,qt:+(S.qt||4),yr:+(S.yr||2026)})},0);if(s.dataset.sel==="by")drawCov(root);bindCov(root,redraw);redraw()}});
+}
+
+function pageOrig(){
+  return '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px"><div><h1>Originations</h1><div class="sub">View and manage all originations.</div>'+
+   '<div class="fl"><input class="txt sel" data-txt="oq" placeholder="Search using name or lead ID" style="width:250px" value="'+esc(S.oq||"")+'"></div>'+
+   '<div class="filters" style="margin-top:8px">'+multi("ost","Status:",["Disbursed","Settled","Contract Signed","Pending"])+single("chq","Cheques:",["All","Yes","No"],S.chq||"All")+'</div></div>'+coverage()+'</div><div id="otbl"></div>';
+}
+function drawOrig(root){
+  var q=(S.oq||"").toLowerCase();
+  var rows=ORIG.filter(function(o){
+    if(q&&o.co.toLowerCase().indexOf(q)<0&&o.id.indexOf(q)<0)return false;
+    if((S.ost||[]).length&&S.ost.indexOf(o.status)<0)return false;
+    if(S.chq&&S.chq!=="All"&&((S.chq==="Yes")!==(o.chq!=="-")))return false;
+    return inCov(o.ym)});
+  var tr=rows.reduce(function(a,o){return a+o.rcl},0),ta=rows.reduce(function(a,o){return a+o.amt},0);
+  var r=paged("or",rows,function(o){return '<tr class="row"><td>'+esc(o.co)+'<span class="idtag">'+o.id+'</span></td><td style="color:var(--teal);font-weight:600">'+o.team+'</td><td>'+o.am+'</td><td>'+fmt(o.rcl)+'</td><td>'+fmt(o.amt)+'</td><td>'+(o.med==="Yes"?"Yes":"No")+'</td><td>'+(o.chq==="-"?"":o.chq)+'</td><td>'+o.status+'</td><td>'+fdate(o.signed)+'<div class="sub" style="margin:0;font-size:9px">'+o.time+'</div></td><td><span class="eye" data-eye="'+o.id+'" style="cursor:pointer">'+EYE+'</span></td></tr>'},10);
+  $("#otbl",root).innerHTML='<div class="card" style="padding:4px 10px;margin-top:12px"><table><thead><tr><th>Company name</th><th>Team</th><th>AM</th><th>RCL amount</th><th>Amount ⇅</th><th>Medium +</th><th>Cheques collected</th><th>Status</th><th>Contract signed</th><th></th></tr></thead><tbody>'+
+   (rows.length?'<tr style="background:#f3f6f6"><td colspan="3"><b style="font-size:13px">Total</b></td><td><b>'+fmt(tr)+'</b></td><td><b>'+fmt(ta)+'</b></td><td colspan="6"></td></tr>':"")+r.html+'</tbody></table></div>'+r.bar;
+  bindPager($("#otbl",root),"or",function(){drawOrig(root)});
+  root.querySelectorAll("[data-eye]").forEach(function(e){e.onclick=function(){openOrigDetail(e.dataset.eye);ACQUI.emit("orig-detail",e.dataset.eye)}});
+}
+function detailModal(title,items){
+  $("#md").innerHTML='<h3>'+title+' <button id="mx">×</button></h3><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 18px">'+items.map(function(i){return '<div><div style="font-size:9px;color:var(--mut);text-transform:uppercase;letter-spacing:.3px">'+i[0]+'</div><div style="font-weight:600;font-size:11.5px;word-break:break-all">'+esc(i[1])+'</div></div>'}).join("")+'</div><div class="foot"><button class="btn" id="mclose">Close</button></div>';
+  $("#md").classList.add("wide");$("#ov").style.display="flex";$("#mx").onclick=closeModal;$("#mclose").onclick=closeModal;
+}
+function openOrigDetail(id){
+  var o=ORIG.filter(function(x){return x.id===id})[0];
+  detailModal("Origination Details",[["Company name",o.co],["RCL ID",o.rclid],["Loan plan ID",o.lp],["Lead ID",o.id],["Status",o.status],["Date",o.signed],["RCL amount",fmt(o.rcl)],["Amount",fmt(o.amt)],["Amount SME eq.",fmt(o.amt)],["Interest rate",o.rate],["Medium +",o.med],["Loan plan count",String(o.lpc)],["First loan plan date",o.signed],["Credit boost %",o.boost],["Cheques collected",o.chq==="-"?"-":o.chq],["Incentive withheld","-"]]);
+}
+function afterOrig(root){
+  var redraw=function(){S.or_pg=1;drawOrig(root)};
+  bindFilters(root,redraw,{ost:"All statuses"});
+  var by=root.querySelector('[data-sel="by"]');by.value=S.by||"Monthly";
+  drawCov(root);bindCov(root,redraw);drawOrig(root);
+}
+
+function pageBcl(){
+  return '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px"><div><h1>Open BCLs</h1><div class="sub">View details for all open BCLs.</div>'+
+   '<div class="fl"><input class="txt sel" data-txt="bq" placeholder="Search using name or lead ID" style="width:230px" value="'+esc(S.bq||"")+'"></div></div>'+coverage()+'</div><div id="btbl"></div>';
+}
+function drawBcl(root){
+  var q=(S.bq||"").toLowerCase();
+  var rows=BCLS.filter(function(b){return (!q||b.co.toLowerCase().indexOf(q)>=0||b.id.indexOf(q)>=0)&&inCov(b.ym)});
+  var r=paged("bc",rows,function(b){return '<tr class="row"><td>'+esc(b.co)+'<span class="idtag">'+b.id+'</span></td><td style="color:var(--teal);font-weight:600">'+b.team+'</td><td>'+b.am+'</td><td>'+fmt(b.bcl)+'</td><td>'+fmt(b.orig30)+'</td><td>'+b.login+'</td><td>'+b.date+'</td><td><span class="eye" data-beye="'+b.id+'" style="cursor:pointer">'+EYE+'</span></td></tr>'},8);
+  $("#btbl",root).innerHTML='<div class="card" style="padding:4px 10px;margin-top:12px"><table><thead><tr><th>Company name</th><th>Team</th><th>Account manager</th><th>BCL amount ⇅</th><th>Total originations (30D)</th><th>Connect login</th><th>Date</th><th></th></tr></thead><tbody>'+r.html+'</tbody></table></div>'+r.bar;
+  bindPager($("#btbl",root),"bc",function(){drawBcl(root)});
+  root.querySelectorAll("[data-beye]").forEach(function(e){e.onclick=function(){openBclDetail(e.dataset.beye);ACQUI.emit("bcl-detail",e.dataset.beye)}});
+}
+function openBclDetail(id){
+  var b=BCLS.filter(function(x){return x.id===id})[0];
+  detailModal("Open BCL Details",[["Company name",b.co],["Lead ID",b.id],["Team",b.team],["Account manager",b.am],["BCL amount",fmt(b.bcl)],["Total originations (30D)",fmt(b.orig30)],["Connect login",b.login],["Date",b.date]]);
+}
+function afterBcl(root){
+  var redraw=function(){S.bc_pg=1;drawBcl(root)};
+  bindFilters(root,redraw,{});
+  var by=root.querySelector('[data-sel="by"]');by.value=S.by||"Monthly";
+  drawCov(root);bindCov(root,redraw);drawBcl(root);
+}
+
+function pageRef(){
+  return '<h1>Referrers</h1><div class="sub">Referrers attributed to you. (Admins can see all referrers.)</div>'+
+   '<div class="fl" style="margin-bottom:10px"><input class="txt sel" data-txt="rq" placeholder="Search by name, email or phone" style="width:250px" value="'+esc(S.rq||"")+'"></div>'+
+   '<div class="filters">'+multi("rty","Type",REFCH)+'</div><div id="rtbl"></div>';
+}
+function drawRef(root){
+  var q=(S.rq||"").toLowerCase();
+  var rows=REFERRERS.filter(function(r){return (!q||(r.name+r.email+r.phone).toLowerCase().indexOf(q)>=0)&&(!(S.rty||[]).length||S.rty.indexOf(r.type)>=0)});
+  var r=paged("rf",rows,function(x){return '<tr class="row"><td><span class="link" data-ref="'+esc(x.name)+'">'+esc(x.name)+'</span></td><td><span class="chip">'+x.type+'</span></td><td>'+x.email+'</td><td>'+x.phone+'</td><td>'+LEADS.filter(function(l){return l.refBy===x.name}).length+'</td></tr>'},5);
+  $("#rtbl",root).innerHTML='<div class="card" style="padding:4px 10px"><table><thead><tr><th>Name</th><th>Type</th><th>Email</th><th>Phone</th><th>Leads referred</th></tr></thead><tbody>'+r.html+'</tbody></table></div>'+r.bar;
+  bindPager($("#rtbl",root),"rf",function(){drawRef(root)});
+  root.querySelectorAll("[data-ref]").forEach(function(a){a.onclick=function(){ACQUI.emit("referrer-open",a.dataset.ref);location.hash="#/referrer/"+encodeURIComponent(a.dataset.ref)}});
+}
+function afterRef(root){var redraw=function(){S.rf_pg=1;drawRef(root)};bindFilters(root,redraw,{rty:"All types"});drawRef(root)}
+function pageReferrer(name){
+  var r=REFERRERS.filter(function(x){return x.name===name})[0];
+  if(!r)return '<h1>Referrer not found</h1>';
+  var ls=LEADS.filter(function(l){return l.refBy===name});
+  return '<div class="crumb"><span class="link" id="rback">Referrers</span> /</div><h1>'+esc(r.name)+'</h1><div class="sub">'+r.type+' · '+r.email+' · '+r.phone+'</div>'+
+   '<div class="card" id="rdetail" style="padding:4px 10px"><div class="ctitle" style="padding:10px 4px 0">Leads referred ('+ls.length+')</div><table><thead><tr><th>Business name</th><th>Status</th><th>Owner</th><th>Date</th><th></th></tr></thead><tbody>'+
+   (ls.length?ls.map(function(l){return '<tr class="row"><td>'+esc(l.name)+'<span class="idtag">'+l.id+'</span></td><td>'+l.status+'</td><td>'+(l.owner==="me"?ME:l.owner==="none"?"—":esc(l.owner))+'</td><td>'+fdate(l.eng)+'</td><td><span class="link" data-open="'+l.id+'">Open</span></td></tr>'}).join(""):'<tr><td colspan="5" class="sub">No leads referred yet.</td></tr>')+'</tbody></table></div>';
+}
+function afterReferrer(root){
+  $("#rback",root).onclick=function(){location.hash="#/referrers"};
+  root.querySelectorAll("[data-open]").forEach(function(a){a.onclick=function(){location.hash="#/lead/"+a.dataset.open}});
+}
+
+/* lead detail */
+var CLOCK='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+var PEN='<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg>';
+var BA_OPTS=["Information Resubmitted"];
+var FVS=["Fully Verified with Future Revenue","Fully Verified with Provisional Limit"];
+/* BCL flow: ARFR (once) -> Information Missing <-> Information Resubmitted -> Fully Verified; Fully Verified -> Information Resubmitted -> Fully Verified.
+   The AM sets ARFR and Information Resubmitted; BVP sets Information Missing and Fully Verified. */
+function bclOpts(l){
+  var st=bclOf(l),hadARFR=bclHist(l).some(function(h){return h.s==="Account Ready for Review"});
+  if(!st)return hadARFR?[]:["Account Ready for Review"];
+  if(st==="Information Missing"||/^Fully Verified/.test(st))return ["Information Resubmitted"];
+  return [];
+}
+function bvpOpts(l){var st=bclOf(l);return(st==="Account Ready for Review"||st==="Information Resubmitted")?["Information Missing"].concat(FVS):[]}
+function pillCls(st){return /Fully Verified|Approved|Utilized/.test(st)?"g":/Clarification/.test(st)?"a":/Missing|Rejected|Blacklisted|Off-boarded/.test(st)?"r":"b"}
+function bclOf(l){return l.risk&&l.risk!=="-"?l.risk:null}
+function bclHist(l){return l.bclH||(bclOf(l)?[{s:bclOf(l),at:"Oct 20, 2026, 10:12 AM",by:"BVP"}]:[])}
+function baHist(l){return l.baH||(l.ba?[{s:l.ba,at:"Oct 20, 2026, 10:15 AM",by:"BVP"}]:[])}
+function iso(d){var p=function(n){return n<10?"0"+n:n};return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())}
+function leadHist(l){
+  if(l.leadH)return l.leadH;
+  var i=Math.max(0,LEAD_STATUS.indexOf(l.status)),out=[],d=new Date(l.eng+"T00:00:00");
+  for(var k=i;k>=0;k--){out.push({s:LEAD_STATUS[k],d:fdate(iso(d))});d=new Date(d.getTime()-(k>2?3:20)*864e5)}
+  return out;
+}
+function nowStamp(){return "Oct 28, 2026, "+new Date().toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"})}
+function scard(kind,st,canEdit,l){
+  var bv=(kind==="BCL"&&canEdit)?bvpOpts(l):[];
+  return '<div class="scard"><div class="sch"><span>'+kind+' STATUS</span><span class="ics"><span class="ic clk" data-hist="'+kind+'" title="Status history">'+CLOCK+'</span>'+(canEdit?'<span class="ic" data-edit="'+kind+'" title="Change status">'+PEN+'</span>':"")+'</span></div>'+
+   '<span class="sp2 '+(st?pillCls(st):"")+'">● '+(st?esc(st):"—")+'</span>'+
+   (bv.length?'<div class="bvp">Sandbox: act as BVP<br>'+bv.map(function(o){return '<a data-bvp="'+o+'">'+o.replace("Fully Verified with ","Fully Verified: ")+'</a>'}).join(" · ")+'</div>':"")+'<div class="pop" id="pop-'+kind+'"></div></div>';
+}
+function pageLead(id){
+  var l=LEADS.filter(function(x){return x.id===id})[0];
+  if(!l)return '<h1>Lead not found</h1>';
+  var isMine=l.owner==="me",un=l.owner==="none",tab=S.ltab||"Company info";
+  var owner=isMine?ME:un?"—":l.owner,bcl=bclOf(l),fv=/Fully Verified/.test(bcl||"");
+  var head='<div class="crumb">Leads /</div><div class="lh"><div><h1>'+esc(l.name)+'<span class="rf">⟳</span></h1><div class="lmeta"><span class="p">Lead ID '+l.id+'</span><span class="dot">⧉ ·</span>'+
+   (un?"":'Assigned to <b style="font-size:12px">'+esc(owner)+'</b> <span class="idot" id="amdot" title="Account manager">i</span>'+(l.hub?'<span class="dot">·</span><span class="syn">Synced from HubSpot</span>':""))+
+   '<span class="dot">·</span><span class="p lst" data-lh title="Lead status history">'+CLOCK.replace("<svg",'<svg width="12" height="12" style="stroke:#2a8a82;fill:none;stroke-width:1.8"')+l.status+'</span><div class="pop am" id="ampop" style="position:absolute"></div></div></div>'+
+   '<div style="display:flex;gap:6px"><button class="btn" data-soon>Open in LMS ↗</button>'+(isMine?'<button class="btn" data-soon>⟳ Reassign</button>':pending[l.id]?'<button class="btn" disabled>⟳ Reassign</button>':'<button class="btn" data-soon>⟳ Assign</button>')+(isMine?'<button class="btn" data-soon>✉ Send email</button>':"")+'<button class="btn" data-soon>Contacts »</button></div></div>';
+  var rf=REFERRERS.filter(function(r){return r.name===l.refBy})[0];
+  var rev=l.rev||(fv?850000:0),bamt=l.bclAmt||(fv?100000:0);
+  var stat='<div class="card" id="stats" style="margin-top:8px"><div class="stats2">'+scard("BCL",bcl,isMine,l)+scard("BA",l.ba||null,isMine,l)+'<span class="ic" style="margin-top:14px"><svg viewBox="0 0 24 24" style="width:16px;height:16px"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.5"/></svg></span></div>'+
+   '<div class="mini2"><span>Last contact<b>'+fdate(l.eng)+'</b></span><span>Revenue est.<b>'+(rev?fmt(rev).replace(".00",""):"—")+'</b></span>'+(fv?"":'<span>CLO<b>'+(l.clo?fmt(l.clo).replace(".00",""):"₱0")+'</b></span>')+'<span>BCL<b>'+(bamt?fmt(bamt).replace(".00",""):"₱0")+'</b></span><span>Blocker / action required<b>—</b></span></div></div>';
+  var mid;
+  if(isMine){
+    mid='<div class="card" style="background:#f3f6f6"><div class="ctitle" style="font-size:12px;text-transform:none;letter-spacing:0">Tasks</div>'+(l.task&&!l.task.done?'<div class="task"><div class="t"><span class="pill">'+l.task.pr.toUpperCase()+'</span><span class="pill b">Call</span>Call Lead ID '+l.id+'<small>No connected contact yet<br>'+(l.task.due)+'</small></div><div style="display:flex;flex-direction:column;gap:6px"><button class="btn" data-soon>+ Add Reminder</button><button class="btn" data-soon>+ Log activity ⌄</button></div></div>':'<div style="display:flex;justify-content:space-between;align-items:center"><span class="sub" style="margin:0;font-size:12px">No tasks yet.</span><span style="display:flex;gap:6px"><button class="btn" data-soon>+ Add Reminder</button><button class="btn" data-soon>+ Log activity ⌄</button></span></div>')+'</div>';
+  } else if(pending[l.id]){
+    mid='<div class="banner"><div><b>'+(un?"This lead is unassigned":"This lead is assigned to "+esc(l.owner))+'</b><p>Your reassignment request is pending approval.</p></div><span class="pillpending">Request pending</span></div>';
+  } else {
+    mid='<div class="banner"><div><b>'+(un?"This lead is unassigned":"This lead is assigned to "+esc(l.owner))+'</b><p>Request this lead to have it '+(un?"assigned":"reassigned")+' to you once approved.</p></div><button class="btn dark" id="reqbtn">Request this lead</button></div>';
+  }
+  var tabs=["Company info","Engagement","Risk","Product usage","Operations","Referral opportunities"];
+  var tb='<div class="ltabs">'+tabs.map(function(t){return '<span data-tab="'+t+'" class="'+(t===tab?"on":"")+'">'+t+'</span>'}).join("")+'</div>';
+  var body;
+  if(tab==="Company info"){
+    var disb=l.disb||(l.status==="Utilized"?(l.entry||l.channel):"—");
+    body='<div class="two"><div>'+
+     '<div class="card"><div class="ctitle">Company information</div><div class="kv"><span>Lead ID</span><span>'+l.id+'</span><span>Owner</span><span>'+esc(owner)+'</span><span>Business Name</span><span>'+esc(l.name)+'</span><span>Registration No.</span><span>'+(l.reg&&!/^TEST/.test(l.reg)?esc(l.reg):"—")+'</span><span>Risk Address</span><span>—</span><span>Current Address</span><span>—</span></div>'+
+     '<div style="display:flex;justify-content:space-between;margin:14px 0 6px;font-size:11px;color:var(--mut)"><span>Business Contacts</span><span class="link" data-soon>+ Add contact</span></div>'+
+     '<div style="background:#f7fafa;border-radius:8px;padding:9px 12px;display:flex;justify-content:space-between;align-items:flex-start"><div><b style="font-size:12px">'+esc(l.contact)+'</b><div class="sub" style="margin:2px 0 0">Applicant</div></div><span style="display:flex;gap:14px;font-size:10px"><span class="link" data-soon>View contact info</span><span data-soon style="cursor:pointer">Edit</span><span data-soon style="cursor:pointer;color:#b3243a;font-weight:600">Remove</span></span></div>'+
+     '<div class="kv" style="margin-top:12px"><span>B2B / B2C</span><span>B2B</span><span>Sales Qualified?</span><span>Yes</span><span>Industry</span><span>—</span><span>No. of Employees</span><span>—</span><span>Connect Link</span><span style="color:#2742c9">Connect homepage ↗</span><span>Selling Signals</span><span>—</span><span>Buying Signals</span><span>—</span></div></div>'+
+     '<div class="card"><div class="ctitle">Company briefing</div><div class="sub" style="font-size:11px">Generate an AI summary of what this company does, recent news about it, and any contact details findable online.</div><button class="btn" data-soon>Generate briefing</button></div>'+
+     '<div class="card"><div class="ctitle">Channel information</div><div class="kv"><span>Channel at Entry</span><span>'+esc(l.entry||l.channel)+'</span><span>Channel Last Touch</span><span>'+esc(l.touch||"—")+'</span><span>Channel at Disbursement</span><span>'+esc(disb)+'</span></div></div>'+
+     '</div><div>'+
+     '<div class="card"><div class="ctitle">CLO information</div><div class="kv"><span>CLO Status</span><span>'+(l.clo?"Clo approved · Oct 22, 2026":"—")+'</span><span>CLO Amount</span><span>'+(l.clo?fmt(l.clo).replace(".00",""):"₱0")+'</span><span>Conversion Probability</span><span>—</span><span>AFS / ITR Revenue</span><span>—</span><span>BS Revenue</span><span>—</span></div></div>'+
+     '<div class="card"><div class="ctitle">Related parties</div><div class="sub" style="font-size:10.5px">Related Parties</div><div style="background:#f7fafa;border-radius:6px;padding:8px 10px;font-size:10.5px;color:var(--mut)">ⓘ No confirmed related parties for this lead.</div><div class="sub" style="font-size:10.5px;margin-top:8px">Qualified Trading Partners</div><div style="background:#f7fafa;border-radius:6px;padding:8px 10px;font-size:10.5px;color:var(--mut)">ⓘ This lead has no Qualified Trading Partners.</div></div>'+
+     '<div class="card"><div class="ctitle">Referrer information</div><div class="kv"><span>Name of Referrer</span><span>'+(rf?esc(rf.name):"—")+'</span><span>Lead ID of Referrer</span><span>—</span><span>Email of Referrer</span><span>'+(rf?rf.email:"—")+'</span><span>Contact Number</span><span>'+(rf?rf.phone:"—")+'</span><span>FC Employee Referral</span><span>'+(l.fcRef?esc(l.fcRef):"—")+'</span><span>Referral Channel</span><span>'+(rf?rf.type:"—")+'</span></div></div>'+
+     '</div></div>';
+  } else body='<div class="card"><div class="empty">'+tab+' (not part of this simulation yet).</div></div>';
+  return head+stat+mid+tb+body;
+}
+function afterLead(root,id){
+  var l=LEADS.filter(function(x){return x.id===id})[0];if(!l)return;
+  root.querySelectorAll("[data-tab]").forEach(function(t){t.onclick=function(){S.ltab=t.dataset.tab;render()}});
+  root.querySelectorAll("[data-soon]").forEach(function(b){b.onclick=function(){toast("Not part of this simulation")}});
+  var rb=$("#reqbtn",root);if(rb)rb.onclick=function(){openRequest(id)};
+  var closePops=function(){root.querySelectorAll(".pop").forEach(function(p){p.classList.remove("open")})};
+  root.addEventListener("click",function(e){if(!e.target.closest(".pop")&&!e.target.closest("[data-edit]")&&!e.target.closest("#amdot"))closePops()});
+  root.querySelectorAll("[data-edit]").forEach(function(b){b.onclick=function(e){
+    e.stopPropagation();var k=b.dataset.edit,pop=$("#pop-"+k,root),was=pop.classList.contains("open");closePops();if(was)return;
+    var opts=k==="BCL"?bclOpts(l):BA_OPTS;
+    pop.innerHTML='<h6>SET '+k+' STATUS</h6>'+(opts.length?opts.map(function(o){return '<div class="po" data-set="'+o+'"><i></i>'+o+'</div>'}).join(""):'<div class="sub" style="margin:0;padding:6px 12px;max-width:230px">No change available now. Waiting for BVP review.</div>');
+    pop.classList.add("open");
+    pop.querySelectorAll("[data-set]").forEach(function(o){o.onclick=function(){
+      var v=o.dataset.set,h={s:v,at:nowStamp(),by:ME};
+      if(k==="BCL"){l.bclH=[h].concat(bclHist(l));l.risk=v}else{l.baH=[h].concat(baHist(l));l.ba=v}
+      toast(k+" status set to "+v);ACQUI.emit("status-set",{kind:k,value:v,id:id});render()}});
+  }});
+  root.querySelectorAll("[data-bvp]").forEach(function(a){a.onclick=function(){
+    var v=a.dataset.bvp;l.bclH=[{s:v,at:nowStamp(),by:"BVP"}].concat(bclHist(l));l.risk=v;toast("BVP set BCL status to "+v);ACQUI.emit("status-set",{kind:"BCL",value:v,id:id,by:"BVP"});render()}});
+  root.querySelectorAll("[data-hist]").forEach(function(b){b.onclick=function(){
+    ACQUI.emit("status-history",{kind:b.dataset.hist,id:id});
+    var k=b.dataset.hist,rows=k==="BCL"?bclHist(l):baHist(l);
+    $("#md").innerHTML='<h3>'+k+' Status history <button id="mx">×</button></h3><table class="ht"><thead><tr><th>Status</th><th>Changed</th><th>Changed by</th></tr></thead><tbody>'+
+     (rows.length?rows.map(function(r){return '<tr><td>'+esc(r.s)+'</td><td>'+r.at+'</td><td>'+(r.by==="BVP"?"BVP":esc(r.by)+' <span class="idot">i</span>')+'</td></tr>'}).join(""):'<tr><td colspan="3" class="sub">No history yet.</td></tr>')+
+     '</tbody></table><div class="foot"><button class="btn" id="mclose">Close</button></div>';
+    $("#md").classList.add("wide");$("#ov").style.display="flex";$("#mx").onclick=closeModal;$("#mclose").onclick=closeModal}});
+  var lh=$("[data-lh]",root);if(lh)lh.onclick=function(){ACQUI.emit("lead-status-history",id);
+    var h=leadHist(l);
+    $("#sp").innerHTML='<button class="x" onclick="closeSP()">×</button><div class="t">LEAD STATUS HISTORY</div><div class="n">'+esc(l.name)+'</div><div class="sub" style="margin:0 0 6px">'+h.length+' entries · most recent first</div>'+h.map(function(r){return '<div class="row2"><span class="c">'+r.s+'</span><em>'+r.d+'</em></div>'}).join("");
+    $("#sp").classList.add("open")};
+  var am=$("#amdot",root);if(am)am.onclick=function(e){e.stopPropagation();var pop=$("#ampop",root),was=pop.classList.contains("open");closePops();if(was)return;
+    pop.innerHTML='<h6>ACCOUNT MANAGER</h6><div class="kv" style="padding:0 12px"><span>Name</span><span>'+esc(l.owner==="me"?ME:l.owner)+'</span><span>User ID</span><span>1368</span><span>Team</span><span>Region Team 2</span><span>Email</span><span>hanna.test@example.com</span><span>Start date</span><span>Oct 5, 2026</span></div>';
+    pop.classList.add("open")};
+}
+function closeSP(){$("#sp").classList.remove("open")}
+
+/* shared: Referral Channel + Referrer + FC Referrer block */
+function sugList(inp,out,items,onPick){
+  var draw=function(){var q=inp.value.toLowerCase();var m=items().filter(function(x){return (x.k+" "+x.s).toLowerCase().indexOf(q)>=0});
+    out.innerHTML=m.length?'<div class="sug">'+m.map(function(x,i){return '<div data-i="'+i+'">'+esc(x.k)+(x.s?'<small>'+esc(x.s)+'</small>':"")+'</div>'}).join("")+'</div>':'<div class="sug"><div>No match</div></div>';
+    out.querySelectorAll("[data-i]").forEach(function(d){d.onclick=function(){var x=m[+d.dataset.i];inp.value=x.k;out.innerHTML="";onPick(x)}})};
+  inp.onfocus=draw;inp.oninput=function(){onPick(null);draw()};
+}
+function refBlock(box,st,note){
+  st.ref=st.fc=st.rc=null;
+  box.innerHTML=(note==="Create"?'<div class="sub" style="margin:6px 0 0;font-size:9px">Required because Channel is Referral</div>':"")+'<label>Referral Channel <i>*</i></label><select id="r_rc"><option value="">Select a referral channel</option>'+REFCH.map(function(c){return '<option>'+c+'</option>'}).join("")+'</select><div id="r_rr"></div>';
+  $("#r_rc").onchange=function(){
+    st.ref=st.fc=null;st.rc=this.value||null;
+    if(!this.value){$("#r_rr").innerHTML="";return}
+    var type=this.value;
+    $("#r_rr").innerHTML='<label>Referrer <i>*</i></label><input type="text" id="r_rs" placeholder="Search by name, email or phone" autocomplete="off"><div id="r_rl"></div><div class="sub" style="margin:3px 0 0;font-size:9px">You can only see referrers attributed to you.</div>'+
+      '<label>FC Referrer <i>*</i></label><input type="text" id="r_fs" placeholder="Search by email, first name, or last name..." autocomplete="off"><div id="r_fl"></div>';
+    sugList($("#r_rs"),$("#r_rl"),function(){return REFERRERS.filter(function(r){return r.type===type}).map(function(r){return {k:r.name,s:r.email+" · "+r.phone}})},function(x){st.ref=x});
+    sugList($("#r_fs"),$("#r_fl"),function(){return FC_STAFF.map(function(s){return {k:s,s:""}})},function(x){st.fc=x});
+  };
+}
+
+/* Create Lead modal */
+function openCreate(){
+  var st={},md=$("#md"),dirty=false;
+  md.innerHTML='<h3>Create Lead <button id="mx">×</button></h3>'+
+   '<div class="ctitle" style="color:var(--mut)">Lead source</div><label>Channel <i>*</i></label><select id="c_ch"><option value="">Select a channel</option><option>Referral</option><option>KAM Self Generated</option><option>Support Generated Leads</option></select><div id="r_ref"></div>'+
+   '<div class="ctitle" style="color:var(--mut);margin-top:12px">Business details</div><label>Company Name <i>*</i></label><input type="text" id="c_co">'+
+   '<label>Company Type <i>*</i></label><select id="c_ty"><option value="">Select a company type</option><option>Corporation</option><option>Partnership</option><option>One Person Corporation (OPC)</option><option>Sole Proprietorship</option></select>'+
+   '<label id="c_rnl">Registration Number <i>*</i></label><input type="text" id="c_rn"><div id="c_rnh" class="sub" style="margin:3px 0 0;font-size:9.5px">Select the company type first.</div><div id="c_rne"></div>'+
+   '<div class="ctitle" style="color:var(--mut);margin-top:12px">Contact person</div><label>First Name <i>*</i></label><input type="text" id="c_fn"><label>Middle Name (Optional)</label><input type="text" id="c_mn"><label>Last Name <i>*</i></label><input type="text" id="c_ln">'+
+   '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label>Email <i>*</i></label><input type="text" id="c_em"></div><div><label>Phone <i>*</i></label><input type="text" id="c_ph"></div></div>'+
+   '<div class="foot" id="c_foot"><button class="btn" id="c_cancel">Cancel</button><button class="btn dark" id="c_go">Create Lead</button></div>';
+  $("#ov").style.display="flex";
+  md.addEventListener("input",function(){dirty=true});
+  var close=function(){
+    if(!dirty){closeModal();return}
+    $("#c_foot").innerHTML='<div style="width:100%;text-align:right"><div class="sub" style="margin:0 0 6px">You have unsaved changes. Discard them and close?</div><button class="btn" id="c_keep">Keep editing</button> <button class="btn" id="c_dis" style="background:#8a0f2f;color:#fff;border-color:#8a0f2f">Discard</button></div>';
+    $("#c_dis").onclick=closeModal;
+    $("#c_keep").onclick=function(){$("#c_foot").innerHTML='<button class="btn" id="c_cancel">Cancel</button><button class="btn dark" id="c_go">Create Lead</button>';wire()};
+  };
+  $("#mx").onclick=close;
+  /* the number to enter depends on the company type: SEC for corporations, partnerships and OPCs; DTI for sole proprietorships */
+  $("#c_ty").onchange=function(){
+    var t=this.value,dti=t==="Sole Proprietorship";
+    $("#c_rnl").innerHTML=(!t?"Registration Number":dti?"DTI Business Name No.":"SEC Registration No.")+" <i>*</i>";
+    $("#c_rnh").textContent=!t?"Select the company type first.":dti?"From the DTI Certificate of Business Name Registration, or the DTI - BNRS search.":"From the SEC Certificate of Incorporation / Registration, or SEC Express.";
+  };
+  $("#c_ch").onchange=function(){dirty=true;var b=$("#r_ref");if(this.value==="Referral")refBlock(b,st,"Create");else{b.innerHTML="";st.rc=st.ref=st.fc=null}};
+  function wire(){
+    $("#c_cancel").onclick=close;
+    $("#c_go").onclick=function(){
+      var v=function(i){return $(i).value.trim()},need=[];
+      if(!v("#c_ch"))need.push("Channel");
+      if(v("#c_ch")==="Referral"){if(!st.rc)need.push("Referral Channel");if(!st.ref)need.push("Referrer");if(!st.fc)need.push("FC Referrer")}
+      [["#c_co","Company Name"],["#c_ty","Company Type"],["#c_rn","Registration Number"],["#c_fn","First Name"],["#c_ln","Last Name"],["#c_em","Email"],["#c_ph","Phone"]].forEach(function(f){if(!v(f[0]))need.push(f[1])});
+      if(need.length){toast("Please fill in: "+need.join(", "));return}
+      var dup=LEADS.filter(function(x){return x.reg&&normReg(x.reg)===normReg(v("#c_rn"))})[0];
+      if(dup){
+        $("#c_rne").innerHTML='<div style="color:#b3243a;font-size:11px;font-weight:600;margin-top:4px">A lead with this registration number already exists. You cannot create it again.</div>';
+        toast("Registration number already exists");ACQUI.emit("lead-create-blocked",{reg:v("#c_rn"),id:dup.id,name:dup.name});return;
+      }
+      var ch=v("#c_ch");
+      var chn=ch==="Referral"?"Referrals":ch==="KAM Self Generated"?"KAM - Self Generated Leads":ch;
+      var nid=String(371930+LEADS.length);
+      LEADS.unshift({id:nid,name:v("#c_co"),status:"For Engagement",risk:"-",channel:chn,entry:chn,refBy:ch==="Referral"?st.ref.k:undefined,fcRef:ch==="Referral"?st.fc.k:undefined,clo:0,eng:"2026-10-26",owner:"me",reg:v("#c_rn"),ctype:v("#c_ty"),contact:v("#c_fn")+" "+v("#c_ln")});
+      closeModal();toast("Lead created");ACQUI.emit("lead-created",{id:nid,ch:ch,type:v("#c_ty"),reg:v("#c_rn"),rc:st.rc||null,ref:st.ref?st.ref.k:null,fc:st.fc?st.fc.k:null,name:v("#c_co")});render();
+    };
+  }
+  wire();
+}
+
+/* Request this lead modal */
+function openRequest(id){
+  var st={ref:null,fc:null};
+  var md=$("#md");
+  md.innerHTML='<h3>Request this lead <button id="mx">×</button></h3><div class="idot">This sends a reassignment request for approval. If approved, the lead will be assigned to you.</div>'+
+   '<label>Approver <i>*</i></label><select id="r_app"><option value="">Select an approver</option>'+TEAM_LEADS.map(function(a){return '<option>'+a+'</option>'}).join("")+'</select>'+
+   '<label>Channel (Last Touch) <i>*</i></label><select id="r_ch"><option value="">Select a channel</option>'+CHANNELS.map(function(c){return '<option>'+c+'</option>'}).join("")+'</select>'+
+   '<div id="r_ref"></div><label>Notes</label><textarea id="r_n" placeholder="Add any notes (optional)..."></textarea>'+
+   '<div class="foot"><button class="btn dark" id="r_go">Send Request</button></div>';
+  $("#ov").style.display="flex";
+  $("#mx").onclick=closeModal;
+  $("#r_ch").onchange=function(){
+    var box=$("#r_ref");
+    if(this.value!=="Referrals"){box.innerHTML="";st.ref=st.fc=null;return}
+    refBlock(box,st,"Referral Channel");
+  };
+  $("#r_go").onclick=function(){
+    var need=[];
+    if(!$("#r_app").value)need.push("Approver");if(!$("#r_ch").value)need.push("Channel");
+    if($("#r_ch").value==="Referrals"){if(!st.rc)need.push("Referral Channel");if(!st.ref)need.push("Referrer");if(!st.fc)need.push("FC Referrer")}
+    if(need.length){toast("Please fill in: "+need.join(", "));return}
+    pending[id]={channel:$("#r_ch").value,ref:st.ref,fc:st.fc,rc:st.rc,approver:$("#r_app").value,notes:($("#r_n")?$("#r_n").value:""),created:nowStamp()};closeModal();toast("Request sent for approval");ACQUI.emit("request-sent",{id:id,req:pending[id]});render();
+  };
+}
+function closeModal(){$("#ov").style.display="none";$("#md").classList.remove("wide")}
+$("#ov").onclick=function(e){if(e.target.id==="ov")closeModal()};
+
+
+/* ===== router ===== */
+function render(){
+  var h=location.hash||"#/home",m=$("#main"),r=h.split("/");
+  var route=r[1]||"home";
+  document.querySelectorAll("#side .nv").forEach(function(b){b.classList.toggle("on",b.dataset.r===(route==="lead"?"leads":route==="referrer"?"referrers":route))});
+  window.scrollTo(0,0);
+  if(route==="leads"){m.innerHTML=pageLeads();afterLeads(m)}
+  else if(route==="originations"){m.innerHTML=pageOrig();afterOrig(m)}
+  else if(route==="referrers"){m.innerHTML=pageRef();afterRef(m)}
+  else if(route==="open-bcls"){m.innerHTML=pageBcl();afterBcl(m)}
+  else if(route==="lead"){m.innerHTML=pageLead(r[2]);afterLead(m,r[2])}
+  else if(route==="referrer"){var rn=decodeURIComponent(r[2]||"");m.innerHTML=pageReferrer(rn);afterReferrer(m)}
+  else{m.innerHTML=pageHome();afterHome(m)}
+  closeSP();
+  ACQUI.emit("render",{hash:h,route:route,id:r[2]});
+}
+var keepTab=null;
+window.addEventListener("hashchange",function(){if((location.hash||"").indexOf("#/lead/")===0)S.ltab="Company info";render()});
+
+/* side nav (toggle: icons only / icons + labels) */
+function drawSide(){
+  var open=document.body.classList.contains("sb-open");
+  $("#side").innerHTML='<div class="hd">'+(open?'<b>MENU</b>':'')+'<button id="sbt" title="Toggle menu">'+(open?"‹":"›")+'</button></div>'+
+   NAV.map(function(n){return '<button class="nv" data-r="'+n[2].slice(2)+'" data-tip="'+n[1]+'">'+ICONS[n[0]]+'<span class="l">'+n[1]+'</span></button>'}).join("");
+  $("#sbt").onclick=function(){document.body.classList.toggle("sb-open");drawSide();render();ACQUI.emit("menu-toggle",document.body.classList.contains("sb-open"))};
+  $("#side").querySelectorAll(".nv").forEach(function(b){b.onclick=function(){location.hash="#/"+b.dataset.r}});
+}
+drawSide();
+
+/* global search */
+var q=$("#q"),res=$("#sres"),qx=$("#qx");
+function doSearch(){
+  var v=q.value.trim().toLowerCase();qx.style.display=v?"block":"none";
+  if(!v){res.style.display="none";return}
+  var m=LEADS.filter(function(l){return l.name.toLowerCase().indexOf(v)>=0||l.id.indexOf(v)>=0}).slice(0,5);
+  res.innerHTML=m.length?m.map(function(l){return '<div class="sr" data-id="'+l.id+'"><div><b>'+esc(l.name)+'</b><small>Lead '+l.id+'</small></div><span class="badge '+(l.owner==="me"?"id":"")+'">'+(l.owner==="none"?"Unassigned":l.owner==="me"?"Yours":"Assigned")+' · Open</span></div>'}).join(""):'<div class="sr"><small>No leads found</small></div>';
+  res.style.display="block";
+  res.querySelectorAll("[data-id]").forEach(function(d){d.onclick=function(){q.value="";doSearch();ACQUI.emit("search-pick",d.dataset.id);location.hash="#/lead/"+d.dataset.id}});
+}
+q.oninput=doSearch;qx.onclick=function(){q.value="";doSearch()};
+document.addEventListener("click",function(e){if(!e.target.closest("#sbox"))res.style.display="none"});
+document.addEventListener("keydown",function(e){if(e.key==="Escape"){closeSP();closeModal()}});
+/* always start on Home (add ?keep=1 to the URL to stay on the page in the address bar) */
+if(!/[?&]keep=1/.test(location.search)){try{history.replaceState(null,"",location.pathname+location.search+"#/home")}catch(e){location.hash="#/home"}}
+render();
+
+
+/* ===== Bookmarks bar + mock SEC / DTI search sites (training mock-ups, dummy data, no official logos) =====
+   The bar mirrors the First Circle bookmarks people import on Day 1. Only "Document Uploading > SEC Express / DTI - BNRS" open something here. */
+(function(){
+  var bm=document.createElement("div");bm.id="bm";
+  var folder=function(n,items){return '<span class="bf" data-f="'+n+'">▸ '+n+'<div class="bdd">'+items.map(function(i){return '<div class="bit" data-bm="'+i+'">'+i+'</div>'}).join("")+'</div></span>'};
+  bm.innerHTML='<span class="bi" data-bm="Gmail">Gmail</span><span class="bi" data-bm="Onboarding Playbook">Onboarding Playbook</span>'+
+   folder("Notion Pages",["First Circle Home","Acquisition @ First Circle","Grab Policy"])+
+   '<span class="bi" data-bm="Connect Actual">Connect Actual</span><span class="bi" data-bm="Connect Demo">Connect Demo</span><span class="bi" data-bm="Hubspot">Hubspot</span>'+
+   folder("Forms",["First Circle Support Form - Zendesk"])+folder("SalesOps Tools",["FC Collaterals | Email Signature"])+
+   folder("Document Uploading",["Document Guidelines","Uploading Documents Instruction","FCC - BVP / Upload Here","SEC Express","DTI - BNRS","Document Resubmission Reasons","Connect User ID"])+
+   '<span class="bi" data-bm="BambooHR">BambooHR</span><span class="bi" data-bm="Metabase">Metabase</span><span class="bi" data-bm="Asana">Asana</span>';
+  document.body.insertBefore(bm,document.body.firstChild);
+  var brw=document.createElement("div");brw.id="brw";document.body.appendChild(brw);
+
+  document.addEventListener("click",function(e){
+    var f=e.target.closest(".bf"),it=e.target.closest("[data-bm]");
+    document.querySelectorAll(".bf.open").forEach(function(x){if(x!==f)x.classList.remove("open")});
+    if(f&&!it){f.classList.toggle("open");return}
+    if(it){
+      f&&f.classList.remove("open");
+      var n=it.getAttribute("data-bm");
+      ACQUI.emit("bookmark-open",n);
+      if(n==="SEC Express")openSec();else if(n==="DTI - BNRS")openDti();else toast("Not part of this simulation");
+    }
+  });
+
+  function win(title,addr,body){
+    brw.innerHTML='<div class="bwin"><div class="bbar"><span class="btab">'+title+'</span><span class="baddr">'+addr+'</span><button id="bclose" title="Close">×</button></div><div class="bbody">'+body+'</div></div>';
+    brw.style.display="block";$("#bclose").onclick=function(){brw.style.display="none";brw.innerHTML=""};
+  }
+  var mockBanner='<div class="mockb">Training mock-up with dummy companies and numbers. Not the real website.</div>';
+
+  /* --- SEC Express style search --- */
+  function openSec(){
+    win("SEC Express (mock-up)","training mock-up · SEC company search",mockBanner+
+     '<div class="secw"><div class="sechead"><b>Securities and Exchange Commission</b> <span>Home &nbsp; <u>Order</u> &nbsp; Payment &nbsp; Check Status &nbsp; FAQ &nbsp; Service Fees</span></div><div class="secband">Order</div>'+
+     '<div class="secbox"><label>Company Name or SEC Registration Number:</label><div class="secrow"><input id="secq" autocomplete="off"><button id="secgo">Search</button></div>'+
+     '<div class="capok" id="seccap"><span class="spin"></span> Verifying...</div></div><div id="secres"></div></div>');
+    var ok=false;setTimeout(function(){var c=$("#seccap");if(c){ok=true;c.innerHTML='<b class="tick">✓</b> Success!'}},900);
+    var run=function(){
+      if(!ok){toast("Please wait, verifying...");return}
+      var q=normReg($("#secq").value);if(!q){toast("Type a company name or SEC number");return}
+      var rows=REGISTRY.filter(function(r){return r.kind==="SEC"&&(normReg(r.name).indexOf(q)>=0||normReg(r.no)===q)}).slice(0,15);
+      $("#secres").innerHTML='<table class="sect"><thead><tr><th>SEC Registration Number</th><th>Company Name</th></tr></thead><tbody>'+
+        (rows.length?rows.map(function(r){return '<tr><td>'+r.no+'</td><td><a data-co="1">'+esc(r.name)+'</a></td></tr>'}).join(""):'<tr><td colspan="2" style="color:#667">No records found.</td></tr>')+'</tbody></table>';
+      $("#secres").querySelectorAll("[data-co]").forEach(function(a){a.onclick=function(){toast("Company details are not part of this simulation")}});
+      ACQUI.emit("sec-search",{q:$("#secq").value,n:rows.length});
+    };
+    $("#secgo").onclick=run;$("#secq").onkeydown=function(e){if(e.key==="Enter")run()};$("#secq").focus();
+  }
+
+  /* --- DTI BNRS style search (exact business name, captcha) --- */
+  function capCode(){var c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789",s="";for(var i=0;i<6;i++)s+=c.charAt(Math.floor(Math.random()*c.length));return s}
+  function openDti(){
+    var code=capCode(),verified=false;
+    win("BNRS Business Name Search (mock-up)","training mock-up · business name search",mockBanner+
+     '<div class="dtiw"><div class="dtiside"><div class="dtilogo">BNRS<br><small>mock-up</small></div><div class="dnav">NAVIGATION</div><div class="dit">⌂ HOME</div><div class="dit">⚙ BUSINESS NAME SERVICES ‹</div></div>'+
+     '<div class="dtimain"><div class="dtitop">≡</div><h3>⚙ SERVICES - BUSINESS NAME SEARCH</h3><div class="dtipanel"><div class="dtiph">▤ BUSINESS NAME SEARCH</div><div class="dtipb">'+
+     '<div class="dtirow"><div><label>Filter *</label><select disabled><option>BUSINESS NAME</option></select></div><div style="position:relative"><label>Value *</label><input id="dq" autocomplete="off"><div id="dsug"></div></div></div>'+
+     '<label>Criteria</label><div><input type="radio" checked> Exact Match</div><label>Sort By</label><div><select disabled><option>Business Name</option></select> <input type="radio" checked> Ascending <input type="radio"> Descending</div>'+
+     '<div class="dtirow2"><div class="dcap"><div id="dcode" class="dcode"></div><div class="dcin" id="dcin"><input id="dci"><button id="dcv" title="Verify">➤</button><button id="dcr" title="New code">⟳</button></div></div><button id="dsearch" class="dbtn">🔍 Search</button></div>'+
+     '<div id="dres"></div><hr><p class="dnote"><b>Note:</b><br>The verification of a specific <b>Business Name</b> is limited to exact name search only. Random searches are not allowed.</p></div></div></div></div>');
+    var setCode=function(){code=capCode();verified=false;$("#dcode").textContent=code;$("#dcin").innerHTML='<input id="dci"><button id="dcv" title="Verify">➤</button><button id="dcr" title="New code">⟳</button>';wireCap()};
+    function wireCap(){
+      $("#dcv").onclick=function(){if($("#dci").value.trim().toUpperCase()===code){verified=true;$("#dcin").innerHTML='<span class="vok">✓ Verified by CAPTCHA</span>'}else{toast("Wrong code, try again");setCode()}};
+      $("#dcr").onclick=setCode;
+    }
+    $("#dcode").textContent=code;wireCap();
+    var dq=$("#dq");
+    dq.oninput=function(){
+      var q=dq.value.trim().toLowerCase(),box=$("#dsug");
+      var m=q.length>=2?REGISTRY.filter(function(r){return r.kind==="DTI"&&r.name.toLowerCase().indexOf(q)>=0}).slice(0,6):[];
+      box.innerHTML=m.length?m.map(function(r){return '<div class="dsi">'+r.name.charAt(0)+r.name.slice(1).toLowerCase()+'</div>'}).join(""):"";
+      box.querySelectorAll(".dsi").forEach(function(d,i){d.onclick=function(){dq.value=m[i].name;box.innerHTML=""}});
+    };
+    $("#dsearch").onclick=function(){
+      var v=dq.value.trim().toUpperCase();$("#dsug").innerHTML="";
+      if(!v){toast("Type the business name");return}
+      if(!verified){toast("Please verify the captcha first");return}
+      $("#dres").innerHTML='<div class="dload"><span class="spin big"></span></div>';
+      setTimeout(function(){
+        var rows=REGISTRY.filter(function(r){return r.kind==="DTI"&&r.name===v});
+        $("#dres").innerHTML='<p><b>'+rows.length+'</b> search results found.</p>'+(rows.length?'<table class="dtit"><thead><tr><th>BUSINESS NAME</th><th>BUSINESS TERRITORY</th><th>OWNER\'S NAME</th><th>CERTIFICATE NO. / BNN</th><th>TRANSACTION/ REGISTRATION DATE</th><th>STATUS</th><th>BUSINESS SCOPE</th></tr></thead><tbody>'+
+          rows.map(function(r){return '<tr><td>'+esc(r.name)+'</td><td>'+r.territory+'</td><td>'+r.owner+'</td><td>'+r.no+'</td><td>'+r.date+'</td><td>'+r.status+'</td><td>'+r.scope+'</td></tr>'}).join("")+'</tbody></table>':"");
+        ACQUI.emit("dti-search",{q:v,n:rows.length});
+      },800);
+    };
+  }
+
+  /* --- dummy certificates (for scenarios where the owner sends the certificate) --- */
+  window.showCert=function(kind,no,name,owner){
+    var dti=kind==="dti";
+    var body=dti?
+      '<div class="cert cd"><div class="cwm">SAMPLE · TRAINING</div><small>This certifies that</small><h2>'+esc(name)+'</h2><small>(REGIONAL)</small><p>is a business name registered in this office pursuant to the provisions of the law, and in compliance with the applicable rules and regulations. This certificate is issued to</p><h3>'+esc(owner||"OWNER NAME")+'</h3><p>is valid for five (5) years from the date of registration.</p><h4>Certificate of Business Name Registration</h4><p><b>Business Name No. '+esc(no)+'</b></p></div>'
+     :'<div class="cert cs"><div class="cwm">SAMPLE · TRAINING</div><div class="cn"><small>REPUBLIC OF THE PHILIPPINES · SECURITIES AND EXCHANGE COMMISSION</small></div><p style="text-align:right"><b>COMPANY REG. NO. '+esc(no)+'</b></p><h4>CERTIFICATE OF INCORPORATION</h4><p>KNOW ALL MEN BY THESE PRESENTS:</p><p>This is to certify that the Articles of Incorporation and By-Laws of</p><h2>'+esc(name)+'</h2><p>were duly approved by the Commission on this date upon the issuance of this Certificate of Incorporation.</p></div>';
+    win(dti?"DTI certificate (sample)":"SEC certificate (sample)","training mock-up · certificate.pdf",mockBanner+'<div style="padding:18px">'+body+'</div>');
+  };
+})();
+
+/* Exit bubble for the tour and the practice check: leaving resets everything (progress here is not saved) */
+(function(){
+  var mode=document.body.getAttribute("data-mode");
+  if(mode!=="tour"&&mode!=="exam")return;
+  var b=document.createElement("div");b.id="exitbub";
+  b.innerHTML='<span class="live"></span><span>You are currently in training</span><button id="exitbtn">Exit</button>';
+  document.body.appendChild(b);
+  var dlg=document.createElement("div");dlg.id="exitdlg";
+  dlg.innerHTML='<div class="box"><h3>Exit training?</h3><p>If you exit now, your progress in this '+(mode==="tour"?"tour":"practice check")+' will be reset and you will have to start again.</p><div class="r"><button class="btn" id="exstay">Keep going</button><button class="btn dark" id="exleave">Exit</button></div></div>';
+  document.body.appendChild(dlg);
+  $("#exitbtn").onclick=function(){dlg.style.display="flex"};
+  $("#exstay").onclick=function(){dlg.style.display="none"};
+  $("#exleave").onclick=function(){if(window.ACQUI_STANDALONE)location.reload();else location.href="../dashboard.html"};
+})();
+</script>
+<script>
+/* Acqui Service navigation check: a mini hands-on exam with situational questions.
+   Question types: nav (find your way there in the sim), input (type the answer you find), mcq (pick the answer you find).
+   Scoring: every question starts at 1 point. A hint costs 0.5. Each wrong answer costs 0.25 (typed / multiple choice). Skip = 0. Never below 0.
+   Pass mark 80%. Nothing is saved yet: when this is attached to a day, send the result with LMS.saveResult (see finish()). */
+(function(){
+  /* An exam file can set window.ACQUI_EXAM = { title, intro, taskId, nextHref, nextLabel, tasks } before this file loads. Without it, this is the navigation check. */
+  var CFG = window.ACQUI_EXAM || {};
+  var PASS = 80, HINT_COST = 0.5, WRONG_COST = 0.25;
+  var st = document.createElement("style");
+  st.textContent =
+    "#ex{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;width:780px;max-width:94vw;background:#fff;border-radius:16px;box-shadow:0 14px 50px rgba(0,0,0,.4);padding:16px 22px;z-index:1000;border-top:5px solid var(--teal)}" +
+    "#ex.full{top:50%;bottom:auto;transform:translate(-50%,-50%);width:600px;padding:24px 28px;max-height:90vh;overflow:auto}" +
+    "#ex h2{margin:0 0 6px;font-size:20px}#ex .k{font-size:12px;color:var(--mut);letter-spacing:.5px;text-transform:uppercase;font-weight:700}" +
+    "#ex .task{font-size:18px;font-weight:600;line-height:1.45;margin:6px 0 12px}" +
+    "#ex .hint{background:#fff7e6;border:1px solid #f5a623;border-radius:10px;padding:8px 12px;font-size:14px;color:#7a4a00;margin-bottom:10px}" +
+    "#ex .row{display:flex;justify-content:space-between;align-items:center;gap:10px}" +
+    "#ex .btn{font-size:14px;padding:8px 16px}" +
+    "#ex .bar{height:6px;background:#e7efee;border-radius:4px;margin-bottom:10px;overflow:hidden}#ex .bar i{display:block;height:100%;background:var(--teal)}" +
+    "#ex input[type=text]{width:100%;height:40px;border:1px solid var(--line);border-radius:8px;padding:0 12px;font-size:16px;outline:none}#ex input[type=text]:focus{border-color:var(--teal)}" +
+    "#ex #exch{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}" +
+    "#ex .opt2{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:5px 13px;font-size:13px;cursor:pointer}#ex .opt2:hover{background:#f1f8f6}#ex .opt2.sel{border-color:var(--teal);background:#e9f6f3}" +
+    "#ex .msg{font-size:14px;font-weight:600;margin:8px 0}.bad{color:#b3243a}" +
+    "#ex .done{background:#e7f6ea;border:1px solid #9bd3a8;border-radius:12px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px}" +
+    "#ex .done b{font-size:18px;color:#1c7a40}#ex .done small{display:block;color:#456;font-size:12px;margin-top:2px}" +
+    "#exdim{position:fixed;inset:0;background:rgba(10,25,28,.55);z-index:900;display:none}" +
+    "#ex table{width:100%;border-collapse:collapse;margin:12px 0}#ex td{padding:8px 4px;font-size:14px;border-top:1px solid #eef2f2;vertical-align:top}" +
+    "#ex .big{font-size:40px;font-weight:800;margin:6px 0}.ok{color:#1c7a40}.no{color:#b3243a}";
+  document.head.appendChild(st);
+  var dim = document.createElement("div"); dim.id = "exdim"; document.body.appendChild(dim);
+  var box = document.createElement("div"); box.id = "ex"; document.body.appendChild(box);
+
+  function lead(id){ return LEADS.filter(function(l){ return l.id === id; })[0]; }
+  function shuffle(a){ a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+
+  /* nav: check(ev, data, ctx) -> true when done.  input: answer() -> accepted string(s).  mcq: choices + answer(). */
+  var DEFAULT_TASKS = [
+    { type: "nav", text: "You want to see your list of leads. Where do you go?",
+      hint: "Look at the menu on the left. The Lead List icon is a star.",
+      check: function(ev){ return ev === "render" && location.hash.indexOf("#/leads") === 0; } },
+    { type: "nav", text: "You want to see more information about Angel's Catering Services. How do you check?",
+      hint: "That lead is not on your list. Use the search bar at the top.",
+      check: function(ev){ return ev === "render" && location.hash === "#/lead/156661"; } },
+    { type: "input", text: "What is the Lead ID of Angel's Catering Services?",
+      hint: "The Lead ID is shown on the lead page, next to the lead name.",
+      answer: function(){ return ["156661"]; }, placeholder: "Type the Lead ID" },
+    { type: "nav", text: "You want to check your summary of originations. Where do you go?",
+      hint: "Originations is the card icon in the menu.",
+      check: function(ev){ return ev === "render" && location.hash.indexOf("#/originations") === 0; } },
+    { type: "nav", text: "You want to see your Open BCLs. Where do you go?",
+      hint: "It is the last icon in the menu.",
+      check: function(ev){ return ev === "render" && location.hash.indexOf("#/open-bcls") === 0; } },
+    { type: "nav", text: "You want to see the history of the BCL status of Metro Courier Services. How do you check?",
+      hint: "Open the lead, then look for the clock icon inside the BCL STATUS box.",
+      check: function(ev, d){ return ev === "status-history" && d.kind === "BCL" && d.id === "350115"; } },
+    { type: "mcq", text: "What is the status of lead 316266?",
+      hint: "You can search by Lead ID, not just by name.",
+      choices: ["For Engagement", "Prospecting", "Discovery", "Onboarded", "Utilized"],
+      answer: function(){ return [lead("316266").status]; } },
+    { type: "nav", text: "You want to see only your leads that are Onboarded. How do you do that?",
+      hint: "Go to the Lead List and use the Status filter.",
+      check: function(ev, d){ return ev === "filter" && d.key === "status" && d.vals.indexOf("Onboarded") >= 0 && location.hash.indexOf("#/leads") === 0; } },
+    { type: "input", text: "How many of your leads are Onboarded?",
+      hint: "Look at the number of entries at the bottom of the Lead List after you filter.",
+      answer: function(){ return [String(LEADS.filter(function(l){ return l.owner === "me" && l.status === "Onboarded"; }).length)]; }, placeholder: "Type a number" },
+    { type: "nav", text: "You are talking to your referrer, Bea Salonga. She asks which leads she has referred to you. Where do you go?",
+      hint: "Referrers is the person icon in the menu. Click her name.",
+      check: function(ev, d){ return ev === "referrer-open" && d === "Bea Salonga"; } },
+    { type: "input", text: "How many leads has Bea Salonga referred to you?",
+      hint: "It is shown when you open her name in Referrers.",
+      answer: function(){ return [String(LEADS.filter(function(l){ return l.refBy === "Bea Salonga"; }).length)]; }, placeholder: "Type a number" },
+    { type: "nav", text: "You want to see only the referrers of type RPP. How do you do that?",
+      hint: "Go to Referrers and use the Type filter.",
+      check: function(ev, d){ return ev === "filter" && d.key === "rty" && d.vals.indexOf("RPP") >= 0; } },
+    { type: "nav", text: "You want to see the details of one of your originations. How do you check?",
+      hint: "Go to Originations. Each row has an eye icon on the right.",
+      check: function(ev){ return ev === "orig-detail"; } },
+    { type: "nav", text: "You want to see only your originations from September 2026. How do you do that?",
+      hint: "On Originations, change the date filter on the right side to September 2026.",
+      check: function(ev, d){ return ev === "filter" && d.key === "cov" && d.by === "Monthly" && d.mo === 8 && d.yr === 2026; } },
+    { type: "input", text: "What is the total Amount of your originations in September 2026?",
+      hint: "The Total row is at the top of the Originations list. Filter to September 2026 first.",
+      answer: function(){ var t = ORIG.filter(function(o){ return o.ym === "2026-09"; }).reduce(function(a, o){ return a + o.amt; }, 0); return [String(t)]; }, placeholder: "Type the amount" }
+  ];
+
+  var TASKS = CFG.tasks || DEFAULT_TASKS;
+  var TASK_ID = CFG.taskId || "d5-acqui-practice", NEXT_HREF = CFG.nextHref || "acqui-tour.html", NEXT_LABEL = CFG.nextLabel || "Review the tour";
+  var n = 0, res = [], flags = {}, hintUsed = false, wrongs = 0, loss = 0, started = 0, state = "idle", picked = null;
+
+  function esc(s){ return String(s).replace(/</g, "&lt;"); }
+  function fmtPts(x){ return (Math.round(x * 100) / 100).toString(); }
+  function pointsNow(){ return Math.max(0, 1 - (hintUsed ? HINT_COST : 0) - loss); }
+
+  function intro(){
+    state = "idle"; dim.style.display = "block"; box.className = "full";
+    box.innerHTML = '<div class="k">Practice check · not graded</div><h2>' + esc(CFG.title || "Find your way around Acqui Service") + '</h2>' +
+      '<p style="font-size:15px;line-height:1.55;margin:8px 0 10px">' + (CFG.intro || ('You will get ' + TASKS.length + ' short situations, one at a time. Use the simulation behind this box to find the answer or the right place. Some questions ask you to type or pick what you find.')) + '</p>' +
+      '<p style="font-size:14px;line-height:1.55;margin:0 0 14px;color:#456">Every question starts with 1 point. A hint costs ' + HINT_COST + ' point, and each wrong answer costs ' + WRONG_COST + '. This is practice, so your score is not recorded as a grade. Aim for ' + PASS + '% or more.</p>' +
+      '<div class="row"><span>' + (window.ACQUI_STANDALONE ? '' : '<a href="../dashboard.html" style="font-size:13px;color:var(--teal)">Back to Day 5</a> · <a href="' + NEXT_HREF + '" style="font-size:13px;color:var(--teal)">' + NEXT_LABEL + ' first</a>') + '</span><button class="btn dark" id="exgo">Start</button></div>';
+    document.getElementById("exgo").onclick = begin;
+  }
+  function begin(){ n = 0; res = []; started = Date.now(); location.hash = "#/home"; dim.style.display = "none"; show(); }
+
+  function show(){
+    flags = {}; hintUsed = false; wrongs = 0; loss = 0; picked = null; state = "asking"; box.className = "";
+    var t = TASKS[n];
+    if (t.setup) t.setup();
+    var answerUi = "";
+    if (t.type === "input") answerUi = '<input type="text" id="exin" placeholder="' + esc(t.placeholder || "Type your answer") + '" autocomplete="off"><div id="exmsg"></div>';
+    if (t.type === "mcq") answerUi = '<div id="exch">' + shuffle(t.choices).map(function(c){ return '<div class="opt2" data-c="' + esc(c) + '"><span>○</span> ' + esc(c) + '</div>'; }).join("") + '</div><div id="exmsg"></div>';
+    if (t.type === "nav" || t.type === "act") answerUi = '<div id="exmsg"></div>';
+    box.innerHTML = '<div class="bar"><i style="width:' + (n / TASKS.length * 100) + '%"></i></div><div class="k">Question ' + (n + 1) + ' of ' + TASKS.length + '</div>' +
+      '<div class="task">' + (t.html ? t.text : esc(t.text)) + '</div>' + answerUi + '<div id="exh"></div>' +
+      '<div class="row"><span style="display:flex;gap:8px"><button class="btn" id="exhint">Show hint (-' + HINT_COST + ')</button>' + ((t.type === "input" || t.type === "mcq") ? '<button class="btn dark" id="exsub">Submit</button>' : '') + (t.alt ? '<button class="btn dark" id="exalt">' + esc(t.alt.label) + '</button>' : '') + '</span><button class="btn" id="exskip">Skip (0 points)</button></div>';
+    if (t.alt) document.getElementById("exalt").onclick = function(){ handle(t, t.alt.check({ flags: flags })); };
+    document.getElementById("exhint").onclick = function(){
+      if (!hintUsed) hintUsed = true;
+      document.getElementById("exh").innerHTML = '<div class="hint">Hint: ' + esc(t.hint) + '</div>';
+      this.textContent = "Hint used (-" + HINT_COST + ")";
+    };
+    document.getElementById("exskip").onclick = function(){
+      /* mini confirm bubble: skipping is 0 points, so give them a way back */
+      if (document.getElementById("exconf")) return;
+      var c = document.createElement("div"); c.id = "exconf";
+      c.style.cssText = "position:absolute;right:22px;bottom:68px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.25);padding:10px 14px;font-size:13px;z-index:2";
+      c.innerHTML = '<div style="margin-bottom:8px"><b>Skip this question?</b><br>You will get 0 points for it.</div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" id="exback">Go back</button><button class="btn dark" id="exsure">Yes, skip</button></div>';
+      box.style.position = "fixed"; box.appendChild(c);
+      document.getElementById("exback").onclick = function(){ c.remove(); };
+      document.getElementById("exsure").onclick = function(){ finishQ(0, "skipped"); };
+    };
+    if (t.type === "input") {
+      var inp = document.getElementById("exin");
+      document.getElementById("exsub").onclick = submit;
+      inp.onkeydown = function(e){ if (e.key === "Enter") submit(); };
+    }
+    if (t.type === "mcq") {
+      document.querySelectorAll("#exch .opt2").forEach(function(o){ o.onclick = function(){
+        picked = o.dataset.c;
+        document.querySelectorAll("#exch .opt2").forEach(function(x){ x.classList.remove("sel"); x.firstChild.textContent = "○"; });
+        o.classList.add("sel"); o.firstChild.textContent = "●";
+      }; });
+      document.getElementById("exsub").onclick = submit;
+    }
+  }
+  function norm(x){ return String(x).toLowerCase().replace(/[\s,\u20b1]/g, "").replace(/\.0+$/, ""); }
+  function submit(){
+    var t = TASKS[n], val = t.type === "input" ? document.getElementById("exin").value : picked;
+    var msg = document.getElementById("exmsg");
+    if (!val) { msg.innerHTML = '<div class="msg bad">Please give an answer first.</div>'; return; }
+    var ok = t.answer().some(function(a){ return norm(a) === norm(val); });
+    if (ok) { finishQ(pointsNow(), hintUsed ? "hint" : "ok"); }
+    else { wrongs++; msg.innerHTML = '<div class="msg bad">Not quite. Check the simulation and try again. (-' + WRONG_COST + ')</div>'; }
+  }
+
+  /* a question is finished: show the green "Done!" strip and wait for the learner to continue */
+  function finishQ(pts, how, why){
+    if (state !== "asking") return;
+    state = "done";
+    res.push({ text: TASKS[n].text.replace(/<[^>]+>/g, " "), pts: pts, how: how, hint: hintUsed, wrongs: wrongs, why: why || "" });
+    var last = n === TASKS.length - 1;
+    var note = how === "skipped" ? "Skipped" : how === "wrong" ? why : fmtPts(pts) + (pts === 1 ? " point" : " points") + (hintUsed || wrongs ? " (" + [hintUsed ? "hint -" + HINT_COST : "", wrongs ? wrongs + " wrong -" + fmtPts(loss) : ""].filter(Boolean).join(", ") + ")" : "");
+    box.innerHTML = '<div class="bar"><i style="width:' + ((n + 1) / TASKS.length * 100) + '%"></i></div><div class="k">Question ' + (n + 1) + ' of ' + TASKS.length + '</div>' +
+      '<div class="task" style="font-size:15px;color:#456">' + (TASKS[n].html ? TASKS[n].text : esc(TASKS[n].text)) + '</div>' +
+      '<div class="done"' + (how === "wrong" ? ' style="background:#fde8ea;border-color:#e5a3ad"' : '') + '><div><b' + (how === "wrong" ? ' style="color:#b3243a"' : '') + '>' + (how === "skipped" ? "Skipped" : how === "wrong" ? "✗ Not correct" : "✓ Done!") + '</b><small>' + note + '</small></div><button class="btn dark" id="exnext">' + (last ? "See my result" : "Next question →") + '</button></div>';
+    document.getElementById("exnext").onclick = function(){ n++; if (n >= TASKS.length) finish(); else show(); };
+  }
+
+  function finish(){
+    state = "idle";
+    var total = res.reduce(function(a, r){ return a + r.pts; }, 0), pct = Math.round(total / TASKS.length * 100), pass = pct >= PASS;
+    var secs = Math.round((Date.now() - started) / 1000);
+    box.className = "full"; dim.style.display = "block";
+    box.innerHTML = '<div class="k">Practice check · result</div><div class="big ' + (pass ? "ok" : "no") + '">' + pct + '%</div><div style="font-size:16px;font-weight:600">' + (pass ? "Passed" : "Not yet. Review the tour and try again.") + ' (' + fmtPts(total) + ' / ' + TASKS.length + ' points, ' + Math.floor(secs / 60) + 'm ' + (secs % 60) + 's)</div>' +
+      '<table>' + res.map(function(r){
+        var why = r.how === "skipped" ? "skipped" : r.how === "wrong" ? "wrong" : [r.hint ? "hint" : "", r.wrongs ? r.wrongs + " wrong" : ""].filter(Boolean).join(", ");
+        var bad = r.how === "skipped" || r.how === "wrong";
+        return '<tr><td style="width:24px" class="' + (bad ? "no" : "ok") + '">' + (bad ? "✗" : "✓") + '</td><td>' + esc(r.text) + '</td><td style="white-space:nowrap;color:var(--mut)">' + why + '</td><td style="text-align:right"><b>' + fmtPts(r.pts) + '</b></td></tr>'; }).join("") + '</table>' +
+      '<div class="row"><span>' + (window.ACQUI_STANDALONE ? '' : '<a href="../dashboard.html" style="font-size:13px;color:var(--teal)">Back to Day 5</a> · <a href="' + NEXT_HREF + '" style="font-size:13px;color:var(--teal)">' + NEXT_LABEL + '</a>') + '</span><button class="btn dark" id="exagain">Try again</button></div>';
+    document.getElementById("exagain").onclick = intro;
+    try { if (window.LMS && LMS.user && LMS.user() && !(LMS.preview && LMS.preview())) LMS.complete(TASK_ID); } catch (err) {}   /* practice: ticks the Day 5 task, no grade saved */
+    /* If this ever becomes graded: LMS.saveResult({ id:"d5-nav-check", label:"Acqui navigation check", score:total, max:TASKS.length, pct:pct, kind:"lms", passing:PASS }) */
+    window.ACQUI_EXAM_RESULT = { score: total, max: TASKS.length, pct: pct, passed: pass, seconds: secs, tasks: res };
+  }
+
+  /* result of a check: true = done. "text" = wrong, try again (-0.25). { fatal: "text" } = wrong for good (0 points). false = nothing yet. */
+  function handle(t, r){
+    if (state !== "asking") return;
+    if (r === true) { finishQ(pointsNow(), hintUsed ? "hint" : "ok"); return; }
+    if (r && r.fatal) { if (t.undo) t.undo(); finishQ(0, "wrong", r.fatal); return; }
+    if (typeof r === "string" || (r && r.msg)) {
+      var text = typeof r === "string" ? r : r.msg, cost = typeof r === "string" ? WRONG_COST : (r.cost || WRONG_COST);
+      wrongs++; loss += cost;
+      var m = document.getElementById("exmsg"); if (m) m.innerHTML = '<div class="msg bad">' + esc(text) + ' (-' + cost + ')</div>';
+      if (t.undo) t.undo();
+    }
+  }
+  ["render", "search-pick", "status-history", "lead-status-history", "orig-detail", "bcl-detail", "filter", "status-set", "referrer-open", "request-sent", "lead-created", "lead-create-blocked"].forEach(function(ev){
+    ACQUI.on(ev, function(d){
+      if (state !== "asking") return;
+      var t = TASKS[n]; if (!t || (t.type !== "nav" && t.type !== "act")) return;
+      if (ev === "render" && d && d.route === "lead") { flags.visited = flags.visited || {}; flags.visited[d.id] = true; }
+      var c = { flags: flags };
+      /* check on the next tick so the page has finished drawing */
+      setTimeout(function(){ if (state === "asking" && TASKS[n] === t) { c.d = d; t.d = d; var r = t.check(ev, d, c); if (r) { t._ev = d; handle(t, r); } } }, 30);
+    });
+  });
+  intro();
+})();
+</script>
+</body>
+</html>

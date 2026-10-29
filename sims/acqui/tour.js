@@ -37,7 +37,7 @@
   /* r: page. hash: exact page address (defaults to #/r). target: what lights up. click: learner must click the target.
      dim: none | light | strong. menu: open | closed (default closed). modal: orig | bcl. free: screen unlocked. good: "Good job!" badge. prefer: card positions to try. */
   var LEAD = "#/lead/350115", REF = "#/referrer/Bea%20Salonga";
-  var STEPS = [
+  var DEFAULT_STEPS = [
     { r:"home", dim:"light", say:"Hi, I'm {T}! This is Acqui Service, our CRM. It's where you see your leads, your referrers and your originations. I'll show you around in a few minutes. Click Next to start." },
     { r:"home", menu:"closed", target:"#sbt", click:true, circle:true, force:true, dim:"none", prefer:["tl","bl"], say:"On your left is the menu bar. It's a small one, so the names are hidden.", hint:"Click the arrow at the top of the menu to make it wider." },
     { r:"home", menu:"open", good:true, target:"#side", dim:"none", force:true, say:"Good job! Now you can see the names: Home, Leads, Originations, Referrers and Open BCLs. You can open or close this menu any time." },
@@ -55,6 +55,9 @@
     { r:"leads", free:true, dim:"none", say:"Look around the Lead List. Try a filter if you like. Click Next when you're ready." },
     { r:"leads", target:'[data-open="350115"]', click:true, circle:true, dim:"none", say:"Let's open one of your leads.", hint:"Click Open on Metro Courier Services." },
     { r:"lead", hash:LEAD, target:"#stats", dim:"strong", say:"This is a lead page. These two boxes are the BCL status and BA status of the lead. The clock icon shows the history: who changed it and when." },
+    { r:"lead", hash:LEAD, target:'[data-hist="BCL"]', click:true, circle:true, dim:"none", say:"Let's look at the history of the BCL status.", hint:"Click the clock icon in the BCL STATUS box." },
+    { r:"lead", hash:LEAD, modal:"bclhist", target:"#md", dim:"strong", say:"This is the BCL status history. You see every status the lead went through, when it changed and who changed it. BVP changes some statuses and you change others." },
+    { r:"lead", hash:LEAD, modal:"bclhist", target:"#mx", click:true, circle:true, dim:"none", say:"Let's close it.", hint:"Click the X." },
     { r:"lead", hash:LEAD, target:".lmeta", dim:"strong", say:"Here you see the lead ID and who owns the lead. If you click the status, like Onboarded, you can see the status history of the lead." },
     { r:"lead", hash:LEAD, target:"#stats + .card", dim:"strong", say:"The tasks for this lead are here." },
     { r:"lead", hash:LEAD, target:".ltabs", dim:"strong", say:"All the other information is in these tabs. Under Company info you will also find the referrer and the channel information of the lead." },
@@ -75,7 +78,10 @@
     { r:"referrer", hash:REF, target:"#rdetail", dim:"strong", say:"Here are all the leads this referrer gave you, with their status. That's useful when your referrer asks about their leads." },
     { r:"referrer", hash:REF, end:true, dim:"light", say:"That's it! Now you know the sections of Acqui Service and where to find things. Go ahead and click around, you can't break anything here. See you in the next lesson! - {T}" }
   ];
-  var i = 0, applyTimer = null, placeTimer = null, pendingModal = null, started = false;
+  /* a lecture file can set window.ACQUI_STEPS (its own steps) and window.ACQUI_TOUR_META before this file loads */
+  var STEPS = window.ACQUI_STEPS || DEFAULT_STEPS;
+  var META = window.ACQUI_TOUR_META || { taskId: "d5-acqui-tour", nextHref: "acqui-tour-exam.html", nextLabel: "Practice check" };
+  var i = 0, applyTimer = null, placeTimer = null, pendingModal = null, started = false, pollBusy = false;
 
   /* tick the Day 5 task when the tour is finished (only if signed in; skipped in admin preview) */
   function markDone(id){ try { if (window.LMS && LMS.user && LMS.user() && !(LMS.preview && LMS.preview())) LMS.complete(id); } catch (e) {} }
@@ -92,29 +98,35 @@
 
   function apply(tries){
     var s = STEPS[i], last = i === STEPS.length - 1;
-    if (last) markDone("d5-acqui-tour");
+    if (last) markDone(META.taskId);
     clear();
     if (pendingModal) {
       if (pendingModal === "bcl") { openBclDetail("170240"); }
       else if (pendingModal === "orig") { openOrigDetail("170240"); }
+      else if (pendingModal === "reqtask") { openReassignTask(s.reqId); }
+      else if (pendingModal === "bclhist") { var hb = document.querySelector('[data-hist="BCL"]'); if (hb) hb.click(); }
       pendingModal = null;
     }
     if (s.panel === "summary" && !document.getElementById("sp").classList.contains("open")) { var first = tabItems("Today's Tasks")[0]; if (first) openSummary(first.id); }
+    if (s.onEnter && !s._ran) { s._ran = true; try { s.onEnter(); } catch (e) {} }
+    if (s.search && typeof doSearch === "function") doSearch();
     var t = s.target ? document.querySelector(s.target) : null;
     if (s.target && !t && (tries || 0) < 15) { applyTimer = setTimeout(function(){ apply((tries || 0) + 1); }, 80); return; }
     var say = s.say.replace(/\{T\}/g, TRAINER);
     var prev = '<button class="btn" id="tb">Back</button>';
     var nav;
-    if (s.click) nav = '<small>' + (i + 1) + ' / ' + STEPS.length + '</small><span style="display:flex;gap:8px">' + prev + '<button class="btn" id="tskip">Skip this step</button></span>';
-    else if (last) nav = '<small>' + (i + 1) + ' / ' + STEPS.length + '</small><span style="display:flex;gap:8px">' + prev + '<button class="btn" id="trs">Restart</button><a class="btn" href="../dashboard.html" style="text-decoration:none">Back to Day 5</a><a class="btn dark" href="acqui-tour-exam.html" style="text-decoration:none">Practice check</a></span>';
+    var inter = s.click || s.until;
+    if (inter) nav = '<small>' + (i + 1) + ' / ' + STEPS.length + '</small><span style="display:flex;gap:8px">' + prev + '<button class="btn" id="tskip">Skip this step</button></span>';
+    else if (last) nav = '<small>' + (i + 1) + ' / ' + STEPS.length + '</small><span style="display:flex;gap:8px">' + prev + '<button class="btn" id="trs">Restart</button>' + (window.ACQUI_STANDALONE ? '' : '<a class="btn" href="../dashboard.html" style="text-decoration:none">Back to Day 5</a><a class="btn dark" href="' + META.nextHref + '" style="text-decoration:none">' + META.nextLabel + '</a>') + '</span>';
     else nav = '<small>' + (i + 1) + ' / ' + STEPS.length + '</small><span style="display:flex;gap:8px">' + (i ? prev : '') + '<button class="btn dark" id="tn">Next</button></span>';
-    card.innerHTML = '<button class="xx" id="tx" title="Close the tour">×</button>' + (s.good ? '<div class="good">✓ Good job!</div>' : '') +
+    card.innerHTML = (s.good ? '<div class="good">✓ Good job!</div>' : '') +
       '<div class="who"><div class="av">' + TRAINER.charAt(0).toUpperCase() + '</div><div><b>' + TRAINER.replace(/</g, "&lt;") + '</b><small>Your trainer</small></div></div>' +
-      '<div class="txt">' + say.replace(/^Good job! /, "").replace(/</g, "&lt;") + '</div>' + (s.click ? '<div class="try">Your turn: ' + s.hint + '</div>' : '') + '<div class="nav">' + nav + '</div>';
+      '<div class="txt">' + say.replace(/^Good job! /, "").replace(/</g, "&lt;") + '</div>' + (inter ? '<div class="try">Your turn: ' + s.hint + '</div><div id="tmsg" style="color:#b3243a;font-weight:600;font-size:14px;margin:-4px 0 10px"></div>' : '') + '<div class="nav">' + nav + '</div>';
     card.style.display = "block";
+    document.body.classList.toggle("sp-on", !!s.panel);
     if (t) {
       t.classList.add("tour-hl"); if (s.circle) t.classList.add("circle");
-      var lift = t.closest("#side,#top,#ov,#sp"); if (lift && lift !== t) lift.classList.add("tour-lift");
+      var lift = t.closest("#side,#top,#ov,#sp,#bm"); if (lift && lift !== t) lift.classList.add("tour-lift");
       if (s.dim === "strong") document.body.classList.add("dim-strong"); else if (s.dim === "light") document.body.classList.add("dim-light");
       try { t.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (e) {}
     } else if (s.dim === "light") { dim.style.display = "block"; }
@@ -137,7 +149,6 @@
       }
     }, t ? 380 : 0);
     var $ = function(x){ return document.getElementById(x); };
-    $("tx").onclick = end;
     if ($("tb")) $("tb").onclick = function(){ back(); };
     if ($("tn")) $("tn").onclick = function(){ go(i + 1); };
     if ($("tskip")) $("tskip").onclick = function(){ skip(); };
@@ -156,17 +167,20 @@
     started = true;
     i = Math.max(0, Math.min(STEPS.length - 1, n));
     var s = STEPS[i];
+    s._ran = false;
     clearTimeout(applyTimer);
+    pollBusy = false;
     enter(s);
     if (location.hash !== wantHash(s)) { location.hash = wantHash(s); }   /* the render hook then lights up the step */
     else { render(); }
   }
   /* Back skips over "your turn" steps, they cannot be re-done by going back */
-  function back(){ var n = i - 1; while (n > 0 && STEPS[n].click) n--; go(n); }
+  function back(){ var n = i - 1; while (n > 0 && (STEPS[n].click || STEPS[n].until || STEPS[n].modal === "keep")) n--; go(n); }
   /* Skip a "your turn" step: do the click for them */
   function skip(){
-    var s = STEPS[i], t = document.querySelector(s.target);
-    var from = i;
+    var s = STEPS[i], from = i;
+    if (s.until) { pollBusy = true; try { if (s.auto) s.auto(); } catch (e) {} setTimeout(function(){ if (i === from) go(i + 1); }, 350); return; }
+    var t = document.querySelector(s.target);
     if (t) { t.click(); } else { go(i + 1); }
   }
   function end(){ started = false; clearTimeout(applyTimer); clear(); card.style.display = "none"; dim.style.display = "none"; }
@@ -185,7 +199,9 @@
       card.classList.remove("shake"); void card.offsetWidth; card.classList.add("shake");
       return;
     }
-    if (s.click && s.target && e.target.closest(s.target)) {
+    var inTarget = s.target && e.target.closest(s.target), inAllow = s.allow && e.target.closest(s.allow);
+    if (s.until && (inTarget || inAllow)) return;          /* "fill this in" steps: the poll below moves on when it is done */
+    if (s.click && inTarget) {
       var from = i;
       setTimeout(function(){ if (i === from) go(i + 1); }, 250);   /* let the sim do its own thing first */
       return;
@@ -193,6 +209,15 @@
     e.preventDefault(); e.stopPropagation();
     card.classList.remove("shake"); void card.offsetWidth; card.classList.add("shake");
   }, true);
+
+  /* "your turn" steps with until(): move on when the learner has done it; wrongIf() shows a red nudge if they picked the wrong thing */
+  setInterval(function(){
+    if (!started || card.style.display !== "block") return;
+    var s = STEPS[i]; if (!s.until) return;
+    var m = document.getElementById("tmsg");
+    if (m && s.wrongIf) { var w = s.wrongIf(); m.textContent = w || ""; }
+    if (!pollBusy && s.until()) { pollBusy = true; var from = i; setTimeout(function(){ if (i === from) go(i + 1); }, 450); }
+  }, 250);
 
   go(0);
 })();

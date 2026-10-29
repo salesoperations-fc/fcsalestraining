@@ -37,7 +37,7 @@
 <script>
 const $ = id => document.getElementById(id);
 const examLabel = {};
-(window.LMS_DAYS||[]).forEach(d => { if (d.exam) examLabel[d.exam.id] = d.exam.label; });
+(window.LMS_DAYS||[]).forEach(d => { (d.exams||[]).forEach(e => examLabel[e.id] = e.label); });
 examLabel["exam-connect-sim"] = "Connect Simulation";
 (window.LMS_EXAM_LIST||[]).forEach(e => { examLabel[e.id] = e.title; });
 const taskLabel = {};

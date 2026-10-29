@@ -127,7 +127,7 @@ function compute(){
   const u = LMS.user(), catchDays = (LMS.config.catchUp || {})[LMS.batchOf(u && u.email)] || [];
   const days = window.LMS_DAYS.map(d => {
     const catchUp = catchDays.includes(d.day), manual = catchUp && done("catchup-d" + d.day);   // marked done by hand
-    const empty = !d.tasks.length && !(d.materials||[]).length && !d.exam;
+    const empty = !d.tasks.length && !(d.materials||[]).length && !d.exams.length;
     if (empty) {                       // no content yet: follows the lock chain but can't be completed (unless marked done by hand)
       if (manual) { prevComplete = true; return { ...d, empty:true, tasksDone:0, status:"complete", catchUp }; }
       const status = (prevComplete || catchUp) ? "current" : "locked";
@@ -136,7 +136,7 @@ function compute(){
       return { ...d, empty:true, tasksDone:0, status, catchUp };
     }
     const tasksDone = d.tasks.filter(t => done(t.id)).length;
-    const examDone = !d.exam || done(d.exam.id);
+    const examDone = d.exams.every(e => e.soon || done(e.id));   // exams marked soon (no questions yet) do not block the day
     const complete = manual || (tasksDone === d.tasks.length && examDone);
     const status = complete ? "complete" : (prevComplete || catchUp) ? "current" : "locked";
     if (status === "current" && current === null) current = d.day;
@@ -173,17 +173,18 @@ function dropdown(sel, P){
   const mats = (sel.materials||[]).length ? `<ul class="mats">${sel.materials.map(m => m.href
       ? `<li><a ${m.dl?'class="dl"':m.link?'class="lk"':""} href="${esc(m.href)}" ${m.download?`download="${esc(m.download)}"`:""} target="${(m.dl||/^https?:/.test(m.href))?"_blank":"_self"}" rel="noopener">${esc(m.label)}</a></li>`
       : `<li><span>${esc(m.label)}</span><span class="soon">Link coming soon</span></li>`).join("")}</ul>` : "";
-  let examHtml = "";
-  if (sel.exam){
-    const e = sel.exam, rec = P[e.id], sub = rec && rec.status === "done";
+  const examCard = e => {
+    if (e.soon) return `<div class="exam" style="display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:12px;padding:14px 16px;background:var(--marigold-soft)"><div><b>${esc(e.label)}</b><br><span class="small muted">Questions coming soon.</span></div><span class="pillsoon">Soon</span></div>`;
+    const rec = P[e.id], sub = rec && rec.status === "done";
     const scoreTxt = rec && rec.max ? `Score: ${rec.score}/${rec.max}` : (e.kind==="trainer" ? "Scored live by your trainer." : "");
-    if (sub) examHtml = `<div class="exam ok" style="display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:12px;padding:14px 16px;background:var(--green-soft)"><div><b>${ico("check",14)} ${esc(e.label)} done</b><br><span class="small muted">${scoreTxt}</span></div>${(e.kind==="lms"||e.kind==="sim")&&e.href?`<div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn sm" href="${esc(e.href)}">${e.kind==="sim"?"Review your result":"Review your answers"}</a>${LMS.canRetake()?`<a class="btn sm primary" href="${esc(e.href)}${e.kind==="lms"?"?retake=1":""}">Retake</a>`:""}</div>`:""}</div>`;
+    if (sub) return `<div class="exam ok" style="display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:12px;padding:14px 16px;background:var(--green-soft)"><div><b>${ico("check",14)} ${esc(e.label)} done</b><br><span class="small muted">${scoreTxt}</span></div>${(e.kind==="lms"||e.kind==="sim")&&e.href?`<div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn sm" href="${esc(e.href)}">${e.kind==="sim"?"Review your result":"Review your answers"}</a>${LMS.canRetake()?`<a class="btn sm primary" href="${esc(e.href)}${e.kind==="lms"?"?retake=1":""}">Retake</a>`:""}</div>`:""}</div>`;
     else {
       const open = e.href ? `<a class="btn sm" href="${esc(e.href)}" target="${/^https?:/.test(e.href)?"_blank":"_self"}" rel="noopener">${e.kind==="sim"?"Start simulation":e.kind==="lms"?"Start exam":"Open exam"}</a>` : "";
-      examHtml = `<div class="exam" style="display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:12px;padding:14px 16px;background:var(--marigold-soft)"><div><b>${esc(e.label)}</b><br><span class="small muted">${e.kind==="lms"?"Agree to every statement to submit.":e.kind==="sim"?`Your score is recorded when you finish. Pass mark ${e.passing}%.`:`Graded. Pass mark ${e.passing}%.`}</span></div>
+      return `<div class="exam" style="display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:12px;padding:14px 16px;background:var(--marigold-soft)"><div><b>${esc(e.label)}</b><br><span class="small muted">${e.kind==="lms"?(e.passing < 100 ? `Pass mark ${e.passing}%.` : "Agree to every statement to submit."):e.kind==="sim"?`Your score is recorded when you finish. Pass mark ${e.passing}%.`:`Graded. Pass mark ${e.passing}%.`}</span></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">${open}${e.kind==="lms"||e.kind==="sim"?"":`<button class="btn sm primary" data-submit="${e.id}">${e.kind==="trainer"?"Mark completed":"I've submitted it"}</button>`}</div></div>`;
     }
-  }
+  };
+  const examHtml = sel.exams.map(examCard).join("");
   // Optional per-day section that is not ready yet, shown with the task groups: comingSoon: { title, items: ["text" | { label, sub:["text"] }] } (a "Soon" bubble is added)
   const cs = sel.comingSoon, soonLi = i => typeof i === "string" ? `<li>${esc(i)}</li>` : `<li>${esc(i.label)}${(i.sub||[]).length ? `<ul>${i.sub.map(soonLi).join("")}</ul>` : ""}</li>`;
   const soonGrp = cs ? `<div class="soongrp" style="margin-bottom:20px"><h3>${esc(cs.title||"Coming soon")}<span class="pillsoon">Soon</span></h3><ul>${(cs.items||[]).map(soonLi).join("")}</ul></div>` : "";
@@ -219,15 +220,16 @@ function sessionsHtml(){
 }
 
 function gradedHtml(days, P){
-  const withExam = days.filter(d => d.exam);
+  const withExam = days.filter(d => d.exams.length);
   if (!withExam.length) return `<p class="muted small" style="margin:0">No graded exams yet.</p>`;
-  return `<ul class="gx">${withExam.map(d => {
-    const rec = P[d.exam.id], isDone = rec && rec.status === "done";
+  return `<ul class="gx">${withExam.map(d => d.exams.map(e => {
+    const rec = P[e.id], isDone = rec && rec.status === "done";
     // Just a mark: check = done, cross = not done yet (including upcoming/locked). No scores here.
+    const upcoming = d.status === "locked" || e.soon;
     const mark = isDone ? `<span class="mk done" role="img" aria-label="Done" title="Done">${CHECK_ICON}</span>`
-      : `<span class="mk todo" role="img" aria-label="${d.status === "locked" ? "Upcoming" : "Not done yet"}" title="${d.status === "locked" ? "Upcoming" : "Not done yet"}">${CROSS_ICON}</span>`;
-    return `<li><button data-day="${d.day}">${esc(d.exam.label)}<small>Day ${d.day}</small></button>${mark}</li>`;
-  }).join("")}</ul>`;
+      : `<span class="mk todo" role="img" aria-label="${upcoming ? "Upcoming" : "Not done yet"}" title="${upcoming ? "Upcoming" : "Not done yet"}">${CROSS_ICON}</span>`;
+    return `<li><button data-day="${d.day}">${esc(e.label)}<small>Day ${d.day}</small></button>${mark}</li>`;
+  }).join("")).join("")}</ul>`;
 }
 
 function render(){
@@ -264,7 +266,7 @@ document.addEventListener("click", e => {
   const d = e.target.closest("[data-day]"); if (d){ const n = +d.dataset.day; selected = selected === n ? null : n; render(); return; }
   const m = e.target.closest("[data-markday]");
   if (m){ const day = window.LMS_DAYS.find(x => x.day === +m.dataset.markday);
-    day.tasks.forEach(t => LMS.complete(t.id)); if (day.exam) LMS.complete(day.exam.id); LMS.complete("catchup-d" + day.day);
+    day.tasks.forEach(t => LMS.complete(t.id)); day.exams.forEach(e => { if (!e.soon) LMS.complete(e.id); }); LMS.complete("catchup-d" + day.day);
     advance(); return; }
   const s = e.target.closest("[data-submit]"); if (s){ LMS.complete(s.dataset.submit); advance(); return; }
   const o = e.target.closest("[data-open]"); if (o) LMS.start(o.dataset.open);

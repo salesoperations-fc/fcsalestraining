@@ -1,13 +1,20 @@
 window.ACQUI=window.ACQUI||{hooks:{},on:function(n,f){(this.hooks[n]=this.hooks[n]||[]).push(f)},emit:function(n,d){(this.hooks[n]||[]).forEach(function(f){try{f(d)}catch(e){console.error(e)}})}};
 /* ===== Fake data (no real clients) ===== */
 var ME = "Hanna Test";
-var TEAM_LEADS = ["Tina Teamlead (Team Lead)", "Sam Saleshead"];
+var TEAM_LEADS = ["Tina Teamlead (Team Lead)", "Alan Smyth"];
 var CHANNELS = ["Partnerships","Related Party","Referrals","Trading Relationships","Inputs Engine - Government Awards Web Scraping","Outbound - Sole Prop","Support Generated Leads","KAM - Self Generated Leads","Product - New Onboarding Channel","Solar"];
 var REFCH = ["RPP","Customer","Drip"];
-var LEAD_STATUS = ["For Engagement","Prospecting","Discovery","Presented","Completing Requirements","Risk Review","Onboarded","Utilized"];
+var LEAD_STATUS = ["For Engagement","Prospecting","Discovery","Presented","Completing Requirements","Risk Review","Onboarded","Utilized","Unserviceable"];
 var RISK_STATUS = ["Account Ready for Review","Information Missing","Information Resubmitted","For Clarification","Raised to Risk Management","Preliminary CLO Assessment","CLO Ready for Review","CLO Approved","CLO Rejected","Fully Verified with Provisional Limit","Fully Verified with Future Revenue","Off-boarded/Rejected","Blacklisted"];
 /* owner: "me" | "none" | other AM name */
 var LEADS = [
+ /* Lead reassignment lecture + practice: leads that already exist in Acqui Service and nobody works on */
+ {id:"190552",name:"Harbor View Lodging",status:"Risk Review",risk:"-",channel:"Inputs Engine - Government Awards Web Scraping",clo:0,eng:"2026-09-21",owner:"none",contact:"Lita Gomez"},
+ {id:"228764",name:"Lakeshore Hardware",status:"Prospecting",risk:"-",channel:"Inputs Engine - Government Awards Web Scraping",clo:0,eng:"2026-10-01",owner:"none",contact:"Ramon Cruz"},
+ {id:"297315",name:"Maple Leaf Printing",status:"Discovery",risk:"-",channel:"Inputs Engine - Government Awards Web Scraping",clo:0,eng:"2026-10-06",owner:"none",contact:"Joy Tan"},
+ {id:"184422",name:"Riverside Lumber Trading",status:"Risk Review",risk:"-",channel:"Inputs Engine - Government Awards Web Scraping",clo:0,eng:"2026-09-12",owner:"none",contact:"Ben Aquino"},
+ {id:"263118",name:"Greenfield Foods Corp.",status:"Prospecting",risk:"-",channel:"Inputs Engine - Government Awards Web Scraping",clo:0,eng:"2026-10-08",owner:"none",contact:"Gina Flores"},
+ {id:"341907",name:"Delta Packaging Inc.",status:"Discovery",risk:"-",channel:"Inputs Engine - Government Awards Web Scraping",clo:0,eng:"2026-10-09",owner:"none",contact:"Paolo Ramos"},
  {id:"350115",name:"Metro Courier Services",status:"Onboarded",risk:"Fully Verified with Future Revenue",ba:"Approved",rev:1665278,bclAmt:100000,channel:"Referrals",refBy:"Bea Salonga",fcRef:"Mary Test",clo:0,eng:"2026-10-27",owner:"me",contact:"Christina Lopez",
   bclH:[{s:"Fully Verified with Future Revenue",at:"Oct 27, 2026, 2:46 PM",by:"BVP"},{s:"Information Resubmitted",at:"Oct 26, 2026, 3:10 PM",by:"Hanna Test"},{s:"Information Missing",at:"Oct 26, 2026, 11:38 AM",by:"BVP"},{s:"Information Resubmitted",at:"Oct 26, 2026, 11:20 AM",by:"Hanna Test"},{s:"Information Missing",at:"Oct 26, 2026, 10:47 AM",by:"BVP"},{s:"Account Ready for Review",at:"Oct 26, 2026, 10:30 AM",by:"Hanna Test"}],
   leadH:[{s:"Onboarded",d:"Oct 27, 2026"},{s:"Risk Review",d:"Oct 26, 2026"},{s:"Completing Requirements",d:"Oct 21, 2026"},{s:"Discovery",d:"Jul 20, 2026"},{s:"For Engagement",d:"Jul 20, 2026"}]},
@@ -27,13 +34,22 @@ var LEADS = [
 ];
 /* referrers attributed to the AM (an AM only sees these when requesting a lead) */
 var REFERRERS = [
- {name:"Aaron Conda",type:"Drip",email:"aaron.conda@example.com",phone:"09170000001"},
- {name:"Bea Salonga",type:"RPP",email:"bea.salonga@example.com",phone:"09170000002"},
- {name:"Carlo Mendez",type:"Customer",email:"carlo.mendez@example.com",phone:"09170000003"},
- {name:"Dina Robles",type:"Drip",email:"dina.robles@example.com",phone:"09170000004"},
- {name:"Eli Ocampo",type:"RPP",email:"eli.ocampo@example.com",phone:"09170000005"},
- {name:"Faye Navarro",type:"Customer",email:"faye.navarro@example.com",phone:"09170000006"}
+ {id:41,name:"Aaron Conda",type:"Drip",email:"aaron.conda@example.com",phone:"09170000001"},
+ {id:47,name:"Bea Salonga",type:"RPP",email:"bea.salonga@example.com",phone:"09170000002"},
+ {id:52,name:"Carlo Mendez",type:"Customer",email:"carlo.mendez@example.com",phone:"09170000003"},
+ {id:58,name:"Dina Robles",type:"Drip",email:"dina.robles@example.com",phone:"09170000004"},
+ {id:63,name:"Eli Ocampo",type:"RPP",email:"eli.ocampo@example.com",phone:"09170000005"},
+ {id:66,name:"Faye Navarro",type:"Customer",email:"faye.navarro@example.com",phone:"09170000006"},
+ {id:12,name:"Mia Santos",type:"Drip",email:"mia.santos@example.com",phone:"09170000007"},
+ {id:14,name:"Noel Reyes",type:"Drip",email:"noel.reyes@example.com",phone:"09170000008"},
+ {id:15,name:"Pia Lacson",type:"Drip",email:"pia.lacson@example.com",phone:"09170000009"}
 ];
+/* Lessons on reassignment and lead creation assume ONE referrer is already enrolled and has no leads yet */
+window.ACQUI_ONE_REFERRER=function(){
+  var mia=REFERRERS.filter(function(r){return r.name==="Mia Santos"})[0];
+  REFERRERS.length=0;REFERRERS.push(mia);
+  LEADS.forEach(function(l){delete l.refBy;delete l.fcRef});
+};
 var FC_STAFF = ["1368 - Hanna Test","1407 - Mary Test","1113 - Nery Test","576 - Bert Test"];
 /* originations (drawdown triggered) and open BCLs (also without drawdown). ym = "YYYY-MM" */
 var ORIG = [
@@ -51,6 +67,26 @@ var BCLS = [
 ];
 var EYE='<svg viewBox="0 0 24 24" width="18" height="18" style="stroke:#556;fill:none;stroke-width:1.7"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
 var MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+/* ===== Dummy company registry for the mock SEC / DTI search sites (all names and numbers are made up) ===== */
+var REGISTRY=[];
+(function(){
+  var i=0;
+  LEADS.forEach(function(l){
+    if(/\(Test\)/.test(l.name)){l.reg="TEST-0001";return}
+    i++;var no="CS2024"+("000000"+(100200+i*53)).slice(-6);
+    REGISTRY.push({kind:"SEC",name:l.name.toUpperCase(),no:no});l.reg=no;
+  });
+  [["GOLDEN HARBOR TRADING CORP.","CS202605227"],["GOLDEN HARBOR TRADING AND SUPPLY INC.","CS202311890"],["GOLDEN HARBOUR TRADING CORP.","CS202204411"],["KAPITAN HOLDINGS INC.","CS202008800"],["GOLDEN HARBOR CONSTRUCTION CORP.","CS201907316"]]
+   .forEach(function(r){REGISTRY.push({kind:"SEC",name:r[0],no:r[1]})});
+  [["KAPITAN SARI-SARI WHOLESALE","7001234","RICO DELA CRUZ","REGIONAL - REGION III (CENTRAL LUZON)","Mar 12 2024"],
+   ["KAPITAN SARI-SARI STORE","6998811","ELENA RAMOS","REGIONAL - REGION IV-A (CALABARZON)","Aug 03 2023"],
+   ["KAPITAN SARI-SARI MART","7010055","MARIO BAUTISTA","REGIONAL - REGION VII (CENTRAL VISAYAS)","Jan 19 2024"],
+   ["ALING NENA BAKESHOP","6951220","NENA SALAZAR","BARANGAY","Jun 08 2022"],
+   ["JUAN SARI-SARI STORE","0012345","JUAN PEDRO DE LA CRUZ","REGIONAL - REGION VII (CENTRAL VISAYAS)","Aug 13 2020"]]
+   .forEach(function(r){REGISTRY.push({kind:"DTI",name:r[0],no:r[1],owner:r[2],territory:r[3],date:r[4],status:"REGISTERED",scope:/^REGIONAL/.test(r[3])?"REGIONAL":"BARANGAY"})});
+})();
+function normReg(s){return String(s||"").toLowerCase().replace(/[^a-z0-9]/g,"")}
 
 /* ===== helpers ===== */
 var $=function(s,r){return (r||document).querySelector(s)};
@@ -129,6 +165,20 @@ function pageHome(){
 }
 
 var TTAB="Today's Tasks";
+/* leads you asked to have reassigned to you (pending approval) show up as tasks */
+function reqItems(){return Object.keys(pending).map(function(id){var l=LEADS.filter(function(x){return x.id===id})[0];return l?{id:id,l:l,req:pending[id]}:null}).filter(Boolean)}
+function openReassignTask(id){
+  var l=LEADS.filter(function(x){return x.id===id})[0],q=pending[id];if(!l||!q)return;
+  var ref=q.channel==="Referrals"&&q.ref?q.rc+" — Referrer ID "+(REFERRERS.filter(function(r){return r.name===q.ref.k})[0]||{}).id:"";
+  $("#md").innerHTML='<h3 style="align-items:flex-start"><span>'+esc(l.name.toUpperCase())+' has been requested for reassignment by you<br><span class="chip blue" style="font-size:9px;font-weight:600">Reassignment Request</span></span> <button id="mx">×</button></h3>'+
+   '<div class="kv" style="grid-template-columns:110px 1fr;margin-bottom:10px"><span>Due:</span><span>Today</span><span>Created:</span><span>'+q.created+'</span><span>Company:</span><span>'+esc(l.name.toUpperCase())+'</span><span>Lead ID:</span><span>'+l.id+'</span><span>Requested channel:</span><span>'+esc(q.channel)+'</span>'+(ref?'<span>Requested referral:</span><span>'+esc(ref)+'</span>':"")+'</div>'+
+   '<div style="background:#e7f6ea;color:#1c7a40;border-radius:6px;padding:7px 10px;font-size:11px;margin-bottom:10px">Your reassignment request is awaiting approval.</div>'+
+   '<label>Notes <small style="float:right;font-weight:400;color:var(--mut)">Visible to the approver</small></label><textarea id="rt_n">'+esc(q.notes||"")+'</textarea>'+
+   '<div class="foot" style="justify-content:space-between"><button class="btn" id="rt_view">View lead ↗</button><button class="btn" id="rt_save">Save notes</button></div>';
+  $("#md").classList.remove("wide");$("#ov").style.display="flex";$("#mx").onclick=closeModal;
+  $("#rt_save").onclick=function(){q.notes=$("#rt_n").value;toast("Notes saved")};
+  $("#rt_view").onclick=function(){closeModal();location.hash="#/lead/"+id};
+}
 function taskList(){return mine().filter(function(l){return l.task&&!l.task.done})}
 function tabItems(t){
   return taskList().filter(function(l){var k=l.task;
@@ -150,12 +200,16 @@ function openSummary(id){
 }
 function drawTasks(root){
   var tabs=["Today's Tasks","All pending","Urgent/High","Medium","Low"];
-  $("#ttabs",root).innerHTML=tabs.map(function(t){var n=tabItems(t).length;return '<span data-t="'+t+'" class="'+(t===TTAB?"on":"")+'">'+t+' <span class="chip '+(t===TTAB?"blue":"")+'">'+n+'</span></span>'}).join("");
-  var it=tabItems(TTAB);
-  $("#tlist",root).innerHTML=it.length?'<table><tbody>'+it.map(function(l){var k=l.task;
+  var reqIn=function(t){return t==="Today's Tasks"||t==="All pending"||t==="Medium"};
+  $("#ttabs",root).innerHTML=tabs.map(function(t){var n=tabItems(t).length+(reqIn(t)?reqItems().length:0);return '<span data-t="'+t+'" class="'+(t===TTAB?"on":"")+'">'+t+' <span class="chip '+(t===TTAB?"blue":"")+'">'+n+'</span></span>'}).join("");
+  var it=tabItems(TTAB),rq=reqIn(TTAB)?reqItems():[];
+  var reqRows=rq.map(function(r){return '<tr class="row" data-reqrow="'+r.id+'" style="cursor:pointer"><td style="width:24px"></td><td><b style="font-weight:600">'+esc(r.l.name.toUpperCase())+' has been requested for reassignment…</b></td><td><span class="chip" style="background:#dff5ee;color:#0b6b5b;font-weight:700;font-size:9px">REASSIGNMENT REQUEST</span></td><td><span class="chip">'+r.l.status+'</span></td><td style="font-weight:600;color:#c46a00">Due today</td><td><button class="btn" data-reqview="'+r.id+'">View lead</button></td></tr>'}).join("");
+  $("#tlist",root).innerHTML=(it.length||rq.length)?'<table><tbody>'+reqRows+it.map(function(l){var k=l.task;
     return '<tr class="row"><td style="width:24px"><input type="checkbox" data-done="'+l.id+'"></td><td><span class="pill">'+k.pr.toUpperCase()+'</span> <b style="font-weight:600">'+esc(l.name)+' — Call</b></td><td><span class="pill b">CALL</span></td><td><span class="chip">'+l.status+'</span></td><td class="'+(k.due==="Overdue"?"neg":"")+'" style="font-weight:600">'+k.due+'</td><td><button class="btn" data-sum="'+l.id+'">Summary</button></td></tr>'}).join("")+'</tbody></table>'
     :'<div class="empty">No pending tasks'+(TTAB==="Today's Tasks"?" for today":"")+'.</div>';
   root.querySelectorAll("[data-t]").forEach(function(x){x.onclick=function(){TTAB=x.dataset.t;drawTasks(root)}});
+  root.querySelectorAll("[data-reqrow]").forEach(function(r){r.onclick=function(e){if(e.target.closest("[data-reqview]"))return;openReassignTask(r.dataset.reqrow);ACQUI.emit("request-task-open",r.dataset.reqrow)}});
+  root.querySelectorAll("[data-reqview]").forEach(function(b){b.onclick=function(){location.hash="#/lead/"+b.dataset.reqview}});
   root.querySelectorAll("[data-done]").forEach(function(c){c.onchange=function(){var l=LEADS.filter(function(x){return x.id===c.dataset.done})[0];l.task.done=true;toast("Task completed");drawTasks(root)}});
   root.querySelectorAll("[data-sum]").forEach(function(c){c.onclick=function(){openSummary(c.dataset.sum);ACQUI.emit("summary-open",c.dataset.sum)}});
 }
@@ -353,7 +407,7 @@ function pageLead(id){
   var head='<div class="crumb">Leads /</div><div class="lh"><div><h1>'+esc(l.name)+'<span class="rf">⟳</span></h1><div class="lmeta"><span class="p">Lead ID '+l.id+'</span><span class="dot">⧉ ·</span>'+
    (un?"":'Assigned to <b style="font-size:12px">'+esc(owner)+'</b> <span class="idot" id="amdot" title="Account manager">i</span>'+(l.hub?'<span class="dot">·</span><span class="syn">Synced from HubSpot</span>':""))+
    '<span class="dot">·</span><span class="p lst" data-lh title="Lead status history">'+CLOCK.replace("<svg",'<svg width="12" height="12" style="stroke:#2a8a82;fill:none;stroke-width:1.8"')+l.status+'</span><div class="pop am" id="ampop" style="position:absolute"></div></div></div>'+
-   '<div style="display:flex;gap:6px"><button class="btn" data-soon>Open in LMS ↗</button>'+(isMine?'<button class="btn" data-soon>⟳ Reassign</button>':'<button class="btn" data-soon>⟳ Assign</button>')+(isMine?'<button class="btn" data-soon>✉ Send email</button>':"")+'<button class="btn" data-soon>Contacts »</button></div></div>';
+   '<div style="display:flex;gap:6px"><button class="btn" data-soon>Open in LMS ↗</button>'+(isMine?'<button class="btn" data-soon>⟳ Reassign</button>':pending[l.id]?'<button class="btn" disabled>⟳ Reassign</button>':'<button class="btn" data-soon>⟳ Assign</button>')+(isMine?'<button class="btn" data-soon>✉ Send email</button>':"")+'<button class="btn" data-soon>Contacts »</button></div></div>';
   var rf=REFERRERS.filter(function(r){return r.name===l.refBy})[0];
   var rev=l.rev||(fv?850000:0),bamt=l.bclAmt||(fv?100000:0);
   var stat='<div class="card" id="stats" style="margin-top:8px"><div class="stats2">'+scard("BCL",bcl,isMine,l)+scard("BA",l.ba||null,isMine,l)+'<span class="ic" style="margin-top:14px"><svg viewBox="0 0 24 24" style="width:16px;height:16px"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.5"/></svg></span></div>'+
@@ -362,7 +416,7 @@ function pageLead(id){
   if(isMine){
     mid='<div class="card" style="background:#f3f6f6"><div class="ctitle" style="font-size:12px;text-transform:none;letter-spacing:0">Tasks</div>'+(l.task&&!l.task.done?'<div class="task"><div class="t"><span class="pill">'+l.task.pr.toUpperCase()+'</span><span class="pill b">Call</span>Call Lead ID '+l.id+'<small>No connected contact yet<br>'+(l.task.due)+'</small></div><div style="display:flex;flex-direction:column;gap:6px"><button class="btn" data-soon>+ Add Reminder</button><button class="btn" data-soon>+ Log activity ⌄</button></div></div>':'<div style="display:flex;justify-content:space-between;align-items:center"><span class="sub" style="margin:0;font-size:12px">No tasks yet.</span><span style="display:flex;gap:6px"><button class="btn" data-soon>+ Add Reminder</button><button class="btn" data-soon>+ Log activity ⌄</button></span></div>')+'</div>';
   } else if(pending[l.id]){
-    mid='<div class="banner"><div><b>Request pending approval</b><p>Your request for this lead was sent. You will be assigned once it is approved.</p></div><button class="btn" id="simappr">Sandbox: approve as Team Lead</button></div>';
+    mid='<div class="banner"><div><b>'+(un?"This lead is unassigned":"This lead is assigned to "+esc(l.owner))+'</b><p>Your reassignment request is pending approval.</p></div><span class="pillpending">Request pending</span></div>';
   } else {
     mid='<div class="banner"><div><b>'+(un?"This lead is unassigned":"This lead is assigned to "+esc(l.owner))+'</b><p>Request this lead to have it '+(un?"assigned":"reassigned")+' to you once approved.</p></div><button class="btn dark" id="reqbtn">Request this lead</button></div>';
   }
@@ -372,7 +426,7 @@ function pageLead(id){
   if(tab==="Company info"){
     var disb=l.disb||(l.status==="Utilized"?(l.entry||l.channel):"—");
     body='<div class="two"><div>'+
-     '<div class="card"><div class="ctitle">Company information</div><div class="kv"><span>Lead ID</span><span>'+l.id+'</span><span>Owner</span><span>'+esc(owner)+'</span><span>Business Name</span><span>'+esc(l.name)+'</span><span>Risk Address</span><span>—</span><span>Current Address</span><span>—</span></div>'+
+     '<div class="card"><div class="ctitle">Company information</div><div class="kv"><span>Lead ID</span><span>'+l.id+'</span><span>Owner</span><span>'+esc(owner)+'</span><span>Business Name</span><span>'+esc(l.name)+'</span><span>Registration No.</span><span>'+(l.reg&&!/^TEST/.test(l.reg)?esc(l.reg):"—")+'</span><span>Risk Address</span><span>—</span><span>Current Address</span><span>—</span></div>'+
      '<div style="display:flex;justify-content:space-between;margin:14px 0 6px;font-size:11px;color:var(--mut)"><span>Business Contacts</span><span class="link" data-soon>+ Add contact</span></div>'+
      '<div style="background:#f7fafa;border-radius:8px;padding:9px 12px;display:flex;justify-content:space-between;align-items:flex-start"><div><b style="font-size:12px">'+esc(l.contact)+'</b><div class="sub" style="margin:2px 0 0">Applicant</div></div><span style="display:flex;gap:14px;font-size:10px"><span class="link" data-soon>View contact info</span><span data-soon style="cursor:pointer">Edit</span><span data-soon style="cursor:pointer;color:#b3243a;font-weight:600">Remove</span></span></div>'+
      '<div class="kv" style="margin-top:12px"><span>B2B / B2C</span><span>B2B</span><span>Sales Qualified?</span><span>Yes</span><span>Industry</span><span>—</span><span>No. of Employees</span><span>—</span><span>Connect Link</span><span style="color:#2742c9">Connect homepage ↗</span><span>Selling Signals</span><span>—</span><span>Buying Signals</span><span>—</span></div></div>'+
@@ -391,7 +445,6 @@ function afterLead(root,id){
   root.querySelectorAll("[data-tab]").forEach(function(t){t.onclick=function(){S.ltab=t.dataset.tab;render()}});
   root.querySelectorAll("[data-soon]").forEach(function(b){b.onclick=function(){toast("Not part of this simulation")}});
   var rb=$("#reqbtn",root);if(rb)rb.onclick=function(){openRequest(id)};
-  var sa=$("#simappr",root);if(sa)sa.onclick=function(){var rq=pending[id];l.owner="me";l.touch=rq.channel;if(rq.channel==="Referrals"&&rq.ref){l.refBy=rq.ref.k;l.fcRef=rq.fc&&rq.fc.k}delete pending[id];toast("Approved. The lead is now assigned to you.");ACQUI.emit("request-approved",id);render()};
   var closePops=function(){root.querySelectorAll(".pop").forEach(function(p){p.classList.remove("open")})};
   root.addEventListener("click",function(e){if(!e.target.closest(".pop")&&!e.target.closest("[data-edit]")&&!e.target.closest("#amdot"))closePops()});
   root.querySelectorAll("[data-edit]").forEach(function(b){b.onclick=function(e){
@@ -450,8 +503,8 @@ function openCreate(){
   md.innerHTML='<h3>Create Lead <button id="mx">×</button></h3>'+
    '<div class="ctitle" style="color:var(--mut)">Lead source</div><label>Channel <i>*</i></label><select id="c_ch"><option value="">Select a channel</option><option>Referral</option><option>KAM Self Generated</option><option>Support Generated Leads</option></select><div id="r_ref"></div>'+
    '<div class="ctitle" style="color:var(--mut);margin-top:12px">Business details</div><label>Company Name <i>*</i></label><input type="text" id="c_co">'+
-   '<label>Company Type <i>*</i></label><select id="c_ty"><option value="">Select a company type</option><option>Corporation</option><option>Sole Proprietorship</option><option>Partnership</option></select>'+
-   '<label>Registration Number <i>*</i></label><input type="text" id="c_rn">'+
+   '<label>Company Type <i>*</i></label><select id="c_ty"><option value="">Select a company type</option><option>Corporation</option><option>Partnership</option><option>One Person Corporation (OPC)</option><option>Sole Proprietorship</option></select>'+
+   '<label id="c_rnl">Registration Number <i>*</i></label><input type="text" id="c_rn"><div id="c_rnh" class="sub" style="margin:3px 0 0;font-size:9.5px">Select the company type first.</div><div id="c_rne"></div>'+
    '<div class="ctitle" style="color:var(--mut);margin-top:12px">Contact person</div><label>First Name <i>*</i></label><input type="text" id="c_fn"><label>Middle Name (Optional)</label><input type="text" id="c_mn"><label>Last Name <i>*</i></label><input type="text" id="c_ln">'+
    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label>Email <i>*</i></label><input type="text" id="c_em"></div><div><label>Phone <i>*</i></label><input type="text" id="c_ph"></div></div>'+
    '<div class="foot" id="c_foot"><button class="btn" id="c_cancel">Cancel</button><button class="btn dark" id="c_go">Create Lead</button></div>';
@@ -464,6 +517,12 @@ function openCreate(){
     $("#c_keep").onclick=function(){$("#c_foot").innerHTML='<button class="btn" id="c_cancel">Cancel</button><button class="btn dark" id="c_go">Create Lead</button>';wire()};
   };
   $("#mx").onclick=close;
+  /* the number to enter depends on the company type: SEC for corporations, partnerships and OPCs; DTI for sole proprietorships */
+  $("#c_ty").onchange=function(){
+    var t=this.value,dti=t==="Sole Proprietorship";
+    $("#c_rnl").innerHTML=(!t?"Registration Number":dti?"DTI Business Name No.":"SEC Registration No.")+" <i>*</i>";
+    $("#c_rnh").textContent=!t?"Select the company type first.":dti?"From the DTI Certificate of Business Name Registration, or the DTI - BNRS search.":"From the SEC Certificate of Incorporation / Registration, or SEC Express.";
+  };
   $("#c_ch").onchange=function(){dirty=true;var b=$("#r_ref");if(this.value==="Referral")refBlock(b,st,"Create");else{b.innerHTML="";st.rc=st.ref=st.fc=null}};
   function wire(){
     $("#c_cancel").onclick=close;
@@ -473,10 +532,16 @@ function openCreate(){
       if(v("#c_ch")==="Referral"){if(!st.rc)need.push("Referral Channel");if(!st.ref)need.push("Referrer");if(!st.fc)need.push("FC Referrer")}
       [["#c_co","Company Name"],["#c_ty","Company Type"],["#c_rn","Registration Number"],["#c_fn","First Name"],["#c_ln","Last Name"],["#c_em","Email"],["#c_ph","Phone"]].forEach(function(f){if(!v(f[0]))need.push(f[1])});
       if(need.length){toast("Please fill in: "+need.join(", "));return}
+      var dup=LEADS.filter(function(x){return x.reg&&normReg(x.reg)===normReg(v("#c_rn"))})[0];
+      if(dup){
+        $("#c_rne").innerHTML='<div style="color:#b3243a;font-size:11px;font-weight:600;margin-top:4px">A lead with this registration number already exists. You cannot create it again.</div>';
+        toast("Registration number already exists");ACQUI.emit("lead-create-blocked",{reg:v("#c_rn"),id:dup.id,name:dup.name});return;
+      }
       var ch=v("#c_ch");
       var chn=ch==="Referral"?"Referrals":ch==="KAM Self Generated"?"KAM - Self Generated Leads":ch;
-      LEADS.unshift({id:String(371930+LEADS.length),name:v("#c_co"),status:"For Engagement",risk:"-",channel:chn,entry:chn,refBy:ch==="Referral"?st.ref.k:undefined,fcRef:ch==="Referral"?st.fc.k:undefined,clo:0,eng:"2026-10-26",owner:"me",contact:v("#c_fn")+" "+v("#c_ln")});
-      closeModal();toast("Lead created");render();
+      var nid=String(371930+LEADS.length);
+      LEADS.unshift({id:nid,name:v("#c_co"),status:"For Engagement",risk:"-",channel:chn,entry:chn,refBy:ch==="Referral"?st.ref.k:undefined,fcRef:ch==="Referral"?st.fc.k:undefined,clo:0,eng:"2026-10-26",owner:"me",reg:v("#c_rn"),ctype:v("#c_ty"),contact:v("#c_fn")+" "+v("#c_ln")});
+      closeModal();toast("Lead created");ACQUI.emit("lead-created",{id:nid,ch:ch,type:v("#c_ty"),reg:v("#c_rn"),rc:st.rc||null,ref:st.ref?st.ref.k:null,fc:st.fc?st.fc.k:null,name:v("#c_co")});render();
     };
   }
   wire();
@@ -503,7 +568,7 @@ function openRequest(id){
     if(!$("#r_app").value)need.push("Approver");if(!$("#r_ch").value)need.push("Channel");
     if($("#r_ch").value==="Referrals"){if(!st.rc)need.push("Referral Channel");if(!st.ref)need.push("Referrer");if(!st.fc)need.push("FC Referrer")}
     if(need.length){toast("Please fill in: "+need.join(", "));return}
-    pending[id]={channel:$("#r_ch").value,ref:st.ref,fc:st.fc,rc:st.rc,approver:$("#r_app").value};closeModal();toast("Request sent for approval");ACQUI.emit("request-sent",id);render();
+    pending[id]={channel:$("#r_ch").value,ref:st.ref,fc:st.fc,rc:st.rc,approver:$("#r_app").value,notes:($("#r_n")?$("#r_n").value:""),created:nowStamp()};closeModal();toast("Request sent for approval");ACQUI.emit("request-sent",{id:id,req:pending[id]});render();
   };
 }
 function closeModal(){$("#ov").style.display="none";$("#md").classList.remove("wide")}
@@ -553,8 +618,108 @@ q.oninput=doSearch;qx.onclick=function(){q.value="";doSearch()};
 document.addEventListener("click",function(e){if(!e.target.closest("#sbox"))res.style.display="none"});
 document.addEventListener("keydown",function(e){if(e.key==="Escape"){closeSP();closeModal()}});
 /* always start on Home (add ?keep=1 to the URL to stay on the page in the address bar) */
-if(!/[?&]keep=1/.test(location.search))history.replaceState(null,"",location.pathname+location.search+"#/home");
+if(!/[?&]keep=1/.test(location.search)){try{history.replaceState(null,"",location.pathname+location.search+"#/home")}catch(e){location.hash="#/home"}}
 render();
+
+
+/* ===== Bookmarks bar + mock SEC / DTI search sites (training mock-ups, dummy data, no official logos) =====
+   The bar mirrors the First Circle bookmarks people import on Day 1. Only "Document Uploading > SEC Express / DTI - BNRS" open something here. */
+(function(){
+  var bm=document.createElement("div");bm.id="bm";
+  var folder=function(n,items){return '<span class="bf" data-f="'+n+'">▸ '+n+'<div class="bdd">'+items.map(function(i){return '<div class="bit" data-bm="'+i+'">'+i+'</div>'}).join("")+'</div></span>'};
+  bm.innerHTML='<span class="bi" data-bm="Gmail">Gmail</span><span class="bi" data-bm="Onboarding Playbook">Onboarding Playbook</span>'+
+   folder("Notion Pages",["First Circle Home","Acquisition @ First Circle","Grab Policy"])+
+   '<span class="bi" data-bm="Connect Actual">Connect Actual</span><span class="bi" data-bm="Connect Demo">Connect Demo</span><span class="bi" data-bm="Hubspot">Hubspot</span>'+
+   folder("Forms",["First Circle Support Form - Zendesk"])+folder("SalesOps Tools",["FC Collaterals | Email Signature"])+
+   folder("Document Uploading",["Document Guidelines","Uploading Documents Instruction","FCC - BVP / Upload Here","SEC Express","DTI - BNRS","Document Resubmission Reasons","Connect User ID"])+
+   '<span class="bi" data-bm="BambooHR">BambooHR</span><span class="bi" data-bm="Metabase">Metabase</span><span class="bi" data-bm="Asana">Asana</span>';
+  document.body.insertBefore(bm,document.body.firstChild);
+  var brw=document.createElement("div");brw.id="brw";document.body.appendChild(brw);
+
+  document.addEventListener("click",function(e){
+    var f=e.target.closest(".bf"),it=e.target.closest("[data-bm]");
+    document.querySelectorAll(".bf.open").forEach(function(x){if(x!==f)x.classList.remove("open")});
+    if(f&&!it){f.classList.toggle("open");return}
+    if(it){
+      f&&f.classList.remove("open");
+      var n=it.getAttribute("data-bm");
+      ACQUI.emit("bookmark-open",n);
+      if(n==="SEC Express")openSec();else if(n==="DTI - BNRS")openDti();else toast("Not part of this simulation");
+    }
+  });
+
+  function win(title,addr,body){
+    brw.innerHTML='<div class="bwin"><div class="bbar"><span class="btab">'+title+'</span><span class="baddr">'+addr+'</span><button id="bclose" title="Close">×</button></div><div class="bbody">'+body+'</div></div>';
+    brw.style.display="block";$("#bclose").onclick=function(){brw.style.display="none";brw.innerHTML=""};
+  }
+  var mockBanner='<div class="mockb">Training mock-up with dummy companies and numbers. Not the real website.</div>';
+
+  /* --- SEC Express style search --- */
+  function openSec(){
+    win("SEC Express (mock-up)","training mock-up · SEC company search",mockBanner+
+     '<div class="secw"><div class="sechead"><b>Securities and Exchange Commission</b> <span>Home &nbsp; <u>Order</u> &nbsp; Payment &nbsp; Check Status &nbsp; FAQ &nbsp; Service Fees</span></div><div class="secband">Order</div>'+
+     '<div class="secbox"><label>Company Name or SEC Registration Number:</label><div class="secrow"><input id="secq" autocomplete="off"><button id="secgo">Search</button></div>'+
+     '<div class="capok" id="seccap"><span class="spin"></span> Verifying...</div></div><div id="secres"></div></div>');
+    var ok=false;setTimeout(function(){var c=$("#seccap");if(c){ok=true;c.innerHTML='<b class="tick">✓</b> Success!'}},900);
+    var run=function(){
+      if(!ok){toast("Please wait, verifying...");return}
+      var q=normReg($("#secq").value);if(!q){toast("Type a company name or SEC number");return}
+      var rows=REGISTRY.filter(function(r){return r.kind==="SEC"&&(normReg(r.name).indexOf(q)>=0||normReg(r.no)===q)}).slice(0,15);
+      $("#secres").innerHTML='<table class="sect"><thead><tr><th>SEC Registration Number</th><th>Company Name</th></tr></thead><tbody>'+
+        (rows.length?rows.map(function(r){return '<tr><td>'+r.no+'</td><td><a data-co="1">'+esc(r.name)+'</a></td></tr>'}).join(""):'<tr><td colspan="2" style="color:#667">No records found.</td></tr>')+'</tbody></table>';
+      $("#secres").querySelectorAll("[data-co]").forEach(function(a){a.onclick=function(){toast("Company details are not part of this simulation")}});
+      ACQUI.emit("sec-search",{q:$("#secq").value,n:rows.length});
+    };
+    $("#secgo").onclick=run;$("#secq").onkeydown=function(e){if(e.key==="Enter")run()};$("#secq").focus();
+  }
+
+  /* --- DTI BNRS style search (exact business name, captcha) --- */
+  function capCode(){var c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789",s="";for(var i=0;i<6;i++)s+=c.charAt(Math.floor(Math.random()*c.length));return s}
+  function openDti(){
+    var code=capCode(),verified=false;
+    win("BNRS Business Name Search (mock-up)","training mock-up · business name search",mockBanner+
+     '<div class="dtiw"><div class="dtiside"><div class="dtilogo">BNRS<br><small>mock-up</small></div><div class="dnav">NAVIGATION</div><div class="dit">⌂ HOME</div><div class="dit">⚙ BUSINESS NAME SERVICES ‹</div></div>'+
+     '<div class="dtimain"><div class="dtitop">≡</div><h3>⚙ SERVICES - BUSINESS NAME SEARCH</h3><div class="dtipanel"><div class="dtiph">▤ BUSINESS NAME SEARCH</div><div class="dtipb">'+
+     '<div class="dtirow"><div><label>Filter *</label><select disabled><option>BUSINESS NAME</option></select></div><div style="position:relative"><label>Value *</label><input id="dq" autocomplete="off"><div id="dsug"></div></div></div>'+
+     '<label>Criteria</label><div><input type="radio" checked> Exact Match</div><label>Sort By</label><div><select disabled><option>Business Name</option></select> <input type="radio" checked> Ascending <input type="radio"> Descending</div>'+
+     '<div class="dtirow2"><div class="dcap"><div id="dcode" class="dcode"></div><div class="dcin" id="dcin"><input id="dci"><button id="dcv" title="Verify">➤</button><button id="dcr" title="New code">⟳</button></div></div><button id="dsearch" class="dbtn">🔍 Search</button></div>'+
+     '<div id="dres"></div><hr><p class="dnote"><b>Note:</b><br>The verification of a specific <b>Business Name</b> is limited to exact name search only. Random searches are not allowed.</p></div></div></div></div>');
+    var setCode=function(){code=capCode();verified=false;$("#dcode").textContent=code;$("#dcin").innerHTML='<input id="dci"><button id="dcv" title="Verify">➤</button><button id="dcr" title="New code">⟳</button>';wireCap()};
+    function wireCap(){
+      $("#dcv").onclick=function(){if($("#dci").value.trim().toUpperCase()===code){verified=true;$("#dcin").innerHTML='<span class="vok">✓ Verified by CAPTCHA</span>'}else{toast("Wrong code, try again");setCode()}};
+      $("#dcr").onclick=setCode;
+    }
+    $("#dcode").textContent=code;wireCap();
+    var dq=$("#dq");
+    dq.oninput=function(){
+      var q=dq.value.trim().toLowerCase(),box=$("#dsug");
+      var m=q.length>=2?REGISTRY.filter(function(r){return r.kind==="DTI"&&r.name.toLowerCase().indexOf(q)>=0}).slice(0,6):[];
+      box.innerHTML=m.length?m.map(function(r){return '<div class="dsi">'+r.name.charAt(0)+r.name.slice(1).toLowerCase()+'</div>'}).join(""):"";
+      box.querySelectorAll(".dsi").forEach(function(d,i){d.onclick=function(){dq.value=m[i].name;box.innerHTML=""}});
+    };
+    $("#dsearch").onclick=function(){
+      var v=dq.value.trim().toUpperCase();$("#dsug").innerHTML="";
+      if(!v){toast("Type the business name");return}
+      if(!verified){toast("Please verify the captcha first");return}
+      $("#dres").innerHTML='<div class="dload"><span class="spin big"></span></div>';
+      setTimeout(function(){
+        var rows=REGISTRY.filter(function(r){return r.kind==="DTI"&&r.name===v});
+        $("#dres").innerHTML='<p><b>'+rows.length+'</b> search results found.</p>'+(rows.length?'<table class="dtit"><thead><tr><th>BUSINESS NAME</th><th>BUSINESS TERRITORY</th><th>OWNER\'S NAME</th><th>CERTIFICATE NO. / BNN</th><th>TRANSACTION/ REGISTRATION DATE</th><th>STATUS</th><th>BUSINESS SCOPE</th></tr></thead><tbody>'+
+          rows.map(function(r){return '<tr><td>'+esc(r.name)+'</td><td>'+r.territory+'</td><td>'+r.owner+'</td><td>'+r.no+'</td><td>'+r.date+'</td><td>'+r.status+'</td><td>'+r.scope+'</td></tr>'}).join("")+'</tbody></table>':"");
+        ACQUI.emit("dti-search",{q:v,n:rows.length});
+      },800);
+    };
+  }
+
+  /* --- dummy certificates (for scenarios where the owner sends the certificate) --- */
+  window.showCert=function(kind,no,name,owner){
+    var dti=kind==="dti";
+    var body=dti?
+      '<div class="cert cd"><div class="cwm">SAMPLE · TRAINING</div><small>This certifies that</small><h2>'+esc(name)+'</h2><small>(REGIONAL)</small><p>is a business name registered in this office pursuant to the provisions of the law, and in compliance with the applicable rules and regulations. This certificate is issued to</p><h3>'+esc(owner||"OWNER NAME")+'</h3><p>is valid for five (5) years from the date of registration.</p><h4>Certificate of Business Name Registration</h4><p><b>Business Name No. '+esc(no)+'</b></p></div>'
+     :'<div class="cert cs"><div class="cwm">SAMPLE · TRAINING</div><div class="cn"><small>REPUBLIC OF THE PHILIPPINES · SECURITIES AND EXCHANGE COMMISSION</small></div><p style="text-align:right"><b>COMPANY REG. NO. '+esc(no)+'</b></p><h4>CERTIFICATE OF INCORPORATION</h4><p>KNOW ALL MEN BY THESE PRESENTS:</p><p>This is to certify that the Articles of Incorporation and By-Laws of</p><h2>'+esc(name)+'</h2><p>were duly approved by the Commission on this date upon the issuance of this Certificate of Incorporation.</p></div>';
+    win(dti?"DTI certificate (sample)":"SEC certificate (sample)","training mock-up · certificate.pdf",mockBanner+'<div style="padding:18px">'+body+'</div>');
+  };
+})();
 
 /* Exit bubble for the tour and the practice check: leaving resets everything (progress here is not saved) */
 (function(){
@@ -568,5 +733,5 @@ render();
   document.body.appendChild(dlg);
   $("#exitbtn").onclick=function(){dlg.style.display="flex"};
   $("#exstay").onclick=function(){dlg.style.display="none"};
-  $("#exleave").onclick=function(){location.href="../dashboard.html"};
+  $("#exleave").onclick=function(){if(window.ACQUI_STANDALONE)location.reload();else location.href="../dashboard.html"};
 })();
