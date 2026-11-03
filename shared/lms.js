@@ -120,6 +120,30 @@ window.LMS_CONFIG = {
   /* Preview mode: an admin opening an exam with ?preview=1 can take it for real but nothing is saved or sent.
      The page still gets its result back, so the score shows at the end. */
   function isPreview(){ try { return new URLSearchParams(location.search).get("preview") === "1" && window.LMS.isAdmin(); } catch(e){ return false; } }
+  /* "Fake security" for admins: after signing in they must type a password before the page shows.
+     NOT real protection (the site is public and this runs in the browser); it only stops casual poking.
+     The repo keeps a SHA-256 hash, not the password itself. To change it: replace ADMIN_GATE_HASH with the hash of the new password. */
+  const ADMIN_GATE_HASH = "131d35aeef06649ddae6b8e4e822911b17a204b6f8b70a96970a32c3ac1b899f";
+  function adminGate(){
+    try {
+      const u = currentUser();
+      if (!u || C.demo || !window.LMS.isAdmin()) return;
+      if (sessionStorage.getItem(`${KEY}.adminok`) === u.email.toLowerCase()) return;
+      const box = document.createElement("div");
+      box.style.cssText = "position:fixed;inset:0;z-index:99999;background:#0F2A2E;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif";
+      box.innerHTML = '<form style="background:#fff;border-radius:16px;padding:28px;width:340px;max-width:92vw;box-shadow:0 14px 50px rgba(0,0,0,.4)"><h2 style="margin:0 0 6px;font-size:20px">Trainer access</h2><p style="margin:0 0 16px;color:#5B6B6E;font-size:14px">Enter the trainer password to continue.</p><input type="password" autocomplete="off" placeholder="Password" style="width:100%;box-sizing:border-box;padding:11px 12px;border:1px solid #CFD9DB;border-radius:10px;font:inherit;margin-bottom:10px"><div class="e" style="color:#b3243a;font-size:13px;min-height:18px;margin-bottom:8px"></div><button type="submit" style="width:100%;padding:11px;border:0;border-radius:10px;background:#0E6F6A;color:#fff;font:inherit;font-weight:700;cursor:pointer">Continue</button><button type="button" class="so" style="width:100%;margin-top:8px;padding:9px;border:0;background:none;color:#5B6B6E;font:inherit;cursor:pointer">Sign out</button></form>';
+      const mount = () => { document.body.appendChild(box); box.querySelector("input").focus(); };
+      if (document.body) mount(); else document.addEventListener("DOMContentLoaded", mount);
+      box.querySelector(".so").onclick = () => window.LMS.signOut();
+      box.querySelector("form").onsubmit = async ev => {
+        ev.preventDefault();
+        const pw = box.querySelector("input").value;
+        const h = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(pw)))).map(b => b.toString(16).padStart(2, "0")).join("");
+        if (h === ADMIN_GATE_HASH) { try { sessionStorage.setItem(`${KEY}.adminok`, u.email.toLowerCase()); } catch(e){} box.remove(); }
+        else { box.querySelector(".e").textContent = "Wrong password."; box.querySelector("input").select(); }
+      };
+    } catch(e){}
+  }
   function progressKey(){ const u = currentUser(); return `progress.${u ? u.email : "anon"}`; }
 
   const LMS = {
@@ -171,6 +195,7 @@ window.LMS_CONFIG = {
     /** Send people to the sign-in page if they're not signed in. */
     requireSignIn(){
       if (!currentUser() || (!C.demo && !isAllowed(currentUser().email))){ location.href = (location.pathname.includes("/lessons/")||location.pathname.includes("/sims/")) ? "../index.html" : "index.html"; return false; }
+      adminGate();
       return true;
     },
 

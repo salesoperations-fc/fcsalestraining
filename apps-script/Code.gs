@@ -28,7 +28,8 @@ const BATCHES = {                 // batch number (start date, MMDDYY) -> onboar
 // Who may open the Grades page (admins are allowed in automatically). Optional extra passcode: leave "" for none.
 const ADMIN_EMAILS = [
   "salesoperations@firstcircle.com", "nice.junsay@firstcircle.com", "hanna.jo@firstcircle.com",
-  "reyster.barron@firstcircle.com", "charles.allen@firstcircle.com", "alan.smyth@firstcircle.com", "michael.limandibhratha@firstcircle.com"
+  "reyster.barron@firstcircle.com", "charles.allen@firstcircle.com", "alan.smyth@firstcircle.com", "michael.limandibhratha@firstcircle.com",
+  "sophia.pesa@firstcircle.com", "ayrton.arteficio@firstcircle.com"
 ];
 const ADMIN_PASSCODE = "";
 
