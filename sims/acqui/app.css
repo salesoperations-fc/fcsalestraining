@@ -192,6 +192,18 @@ body{padding-top:28px}
 .xdlg .box{background:#fff;border-radius:14px;padding:22px 24px;width:380px;max-width:92vw;box-shadow:0 14px 50px rgba(0,0,0,.4)}
 .xdlg h3{margin:0 0 8px;font-size:17px}.xdlg p{margin:0 0 16px;font-size:14px;line-height:1.5;color:#456}.xdlg .r{display:flex;justify-content:flex-end;gap:8px}.xdlg .btn{font-size:14px;padding:8px 16px}
 /* exam with a chat panel on the right (class set by exam.js) */
-body.has-xp #main{padding-right:364px}
+body.has-xp #main{box-sizing:border-box;width:calc(100% - 340px);max-width:none;padding-right:24px}body.has-xp #top{width:calc(100% - 340px);box-sizing:border-box}
 body.has-xp #bm{right:340px}body.has-xp #brw{right:340px}body.has-xp #cv{right:340px}body.has-xp #ov{right:340px}
 body.has-xp #sp{right:340px}body.has-xp #exitbub{right:14px !important}
+
+/* My Profile preview */
+.crumb{font-size:11px;color:var(--mut)}
+.pchips{display:flex;align-items:center;gap:8px;color:var(--mut);font-size:11px;margin:4px 0 14px}.pcopy{stroke:#667;fill:none;stroke-width:1.7;cursor:pointer}
+.pcall{background:#fff3dc;border:1px solid #f5a623;color:#7a4a00;border-radius:8px;padding:10px 14px;font-size:12px;line-height:1.5;margin-bottom:12px;max-width:760px}
+#main .card{max-width:760px}.ptitle{font-size:10px;font-weight:700;letter-spacing:.8px;color:#8a9a9d;margin-bottom:10px}.pnote{font-size:11.5px;color:var(--mut);margin-bottom:10px}
+.prow{display:grid;grid-template-columns:120px 1fr;padding:8px 0;border-top:1px solid #f0f4f3;font-size:12px}.prow:first-of-type{border-top:0}.prow span{color:#8a9a9d}
+.prowin{display:flex;gap:8px;align-items:center;margin-top:4px}.prowin input{flex:1;height:34px;border:1px solid var(--line);border-radius:6px;padding:0 10px;font-size:12px;outline:none}.prowin input:focus{border-color:var(--teal)}
+.prowin .btn:disabled{opacity:.45;cursor:not-allowed}.pcc{height:34px;display:grid;place-items:center;padding:0 12px;border:1px solid var(--line);border-radius:6px;background:#f4f8f8;font-size:12px}
+.ploc{font-size:11.5px;color:var(--mut);margin-top:8px}.pmap{color:#1c7a40;font-weight:600;cursor:pointer}
+.ptog{display:flex;justify-content:space-between;align-items:center;gap:20px}
+.tgl{width:40px;height:22px;border-radius:999px;border:0;background:#c9d3d3;position:relative;cursor:pointer;flex:none}.tgl i{position:absolute;left:2px;top:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s}.tgl.on{background:var(--teal)}.tgl.on i{left:20px}

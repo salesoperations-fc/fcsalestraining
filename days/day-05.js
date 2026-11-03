@@ -8,6 +8,7 @@ LMS_DAY_DEFS[5] = {
   // The sims tick the task themselves when finished (if signed in). Source: sims/acqui-*.html, shared code in sims/acqui/ (see build-standalone.py for the shareable single-file versions).
   tasks: [
     { id: "d5-acqui-tour",         group: "Introduction to Acqui Service", label: "LECTURE: Tour of Acqui Service",                                        href: "sims/acqui-tour.html" },
+    { id: "d5-acqui-profile",       group: "Introduction to Acqui Service", label: "Fill in your profile in the real Acqui Service (home address and mobile number)", href: "sims/acqui-sim.html?keep=1#/profile" },
     { id: "d5-acqui-practice",     group: "Introduction to Acqui Service", label: "PRACTICE: Find your way around Acqui Service",                 href: "sims/acqui-tour-exam.html" },
     { id: "d5-reassign-lecture",   group: "Getting Leads in Acqui Service", label: "LECTURE: Lead Reassignment in Acqui Service",                       href: "sims/acqui-reassign-lecture.html" },
     { id: "d5-create-lecture",     group: "Getting Leads in Acqui Service", label: "LECTURE: Lead Creation in Acqui Service",          href: "sims/acqui-create-lecture.html" },

@@ -199,9 +199,21 @@ body{padding-top:28px}
 .xdlg .box{background:#fff;border-radius:14px;padding:22px 24px;width:380px;max-width:92vw;box-shadow:0 14px 50px rgba(0,0,0,.4)}
 .xdlg h3{margin:0 0 8px;font-size:17px}.xdlg p{margin:0 0 16px;font-size:14px;line-height:1.5;color:#456}.xdlg .r{display:flex;justify-content:flex-end;gap:8px}.xdlg .btn{font-size:14px;padding:8px 16px}
 /* exam with a chat panel on the right (class set by exam.js) */
-body.has-xp #main{padding-right:364px}
+body.has-xp #main{box-sizing:border-box;width:calc(100% - 340px);max-width:none;padding-right:24px}body.has-xp #top{width:calc(100% - 340px);box-sizing:border-box}
 body.has-xp #bm{right:340px}body.has-xp #brw{right:340px}body.has-xp #cv{right:340px}body.has-xp #ov{right:340px}
 body.has-xp #sp{right:340px}body.has-xp #exitbub{right:14px !important}
+
+/* My Profile preview */
+.crumb{font-size:11px;color:var(--mut)}
+.pchips{display:flex;align-items:center;gap:8px;color:var(--mut);font-size:11px;margin:4px 0 14px}.pcopy{stroke:#667;fill:none;stroke-width:1.7;cursor:pointer}
+.pcall{background:#fff3dc;border:1px solid #f5a623;color:#7a4a00;border-radius:8px;padding:10px 14px;font-size:12px;line-height:1.5;margin-bottom:12px;max-width:760px}
+#main .card{max-width:760px}.ptitle{font-size:10px;font-weight:700;letter-spacing:.8px;color:#8a9a9d;margin-bottom:10px}.pnote{font-size:11.5px;color:var(--mut);margin-bottom:10px}
+.prow{display:grid;grid-template-columns:120px 1fr;padding:8px 0;border-top:1px solid #f0f4f3;font-size:12px}.prow:first-of-type{border-top:0}.prow span{color:#8a9a9d}
+.prowin{display:flex;gap:8px;align-items:center;margin-top:4px}.prowin input{flex:1;height:34px;border:1px solid var(--line);border-radius:6px;padding:0 10px;font-size:12px;outline:none}.prowin input:focus{border-color:var(--teal)}
+.prowin .btn:disabled{opacity:.45;cursor:not-allowed}.pcc{height:34px;display:grid;place-items:center;padding:0 12px;border:1px solid var(--line);border-radius:6px;background:#f4f8f8;font-size:12px}
+.ploc{font-size:11.5px;color:var(--mut);margin-top:8px}.pmap{color:#1c7a40;font-weight:600;cursor:pointer}
+.ptog{display:flex;justify-content:space-between;align-items:center;gap:20px}
+.tgl{width:40px;height:22px;border-radius:999px;border:0;background:#c9d3d3;position:relative;cursor:pointer;flex:none}.tgl i{position:absolute;left:2px;top:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s}.tgl.on{background:var(--teal)}.tgl.on i{left:20px}
 </style>
 </head>
 <body data-mode="exam">
@@ -317,9 +329,10 @@ var ICONS={
  star:'<svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.8-4.4 4.3 1 6.1L12 16.9 6.6 19.8l1-6.1L3.2 9.4l6.1-.8z"/></svg>',
  card:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg>',
  user:'<svg viewBox="0 0 24 24"><circle cx="10" cy="8" r="4"/><path d="M3 20c0-4 3-6 7-6m3 4 2 2 4-4"/></svg>',
- layers:'<svg viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg>'
+ layers:'<svg viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg>',
+ me:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>'
 };
-var NAV=[["home","Home","#/home"],["star","Leads","#/leads"],["card","Originations","#/originations"],["user","Referrers","#/referrers"],["layers","Open BCLs","#/open-bcls"]];
+var NAV=[["home","Home","#/home"],["star","Leads","#/leads"],["card","Originations","#/originations"],["user","Referrers","#/referrers"],["layers","Open BCLs","#/open-bcls"],["me","My Profile","#/profile"]];
 function toast(m){var t=$("#toast");t.textContent=m;t.style.display="block";clearTimeout(toast.h);toast.h=setTimeout(function(){t.style.display="none"},2600)}
 
 /* shared state */
@@ -718,6 +731,7 @@ function refBlock(box,st,note){
 
 /* Create Lead modal */
 function openCreate(){
+  if(window.ACQUI_GATE&&!ACQUI_GATE())return;
   var st={},md=$("#md"),dirty=false;
   md.innerHTML='<h3>Create Lead <button id="mx">×</button></h3>'+
    '<div class="ctitle" style="color:var(--mut)">Lead source</div><label>Channel <i>*</i></label><select id="c_ch"><option value="">Select a channel</option><option>Referral</option><option>KAM Self Generated</option><option>Support Generated Leads</option></select><div id="r_ref"></div>'+
@@ -729,6 +743,7 @@ function openCreate(){
    '<div class="foot" id="c_foot"><button class="btn" id="c_cancel">Cancel</button><button class="btn dark" id="c_go">Create Lead</button></div>';
   $("#ov").style.display="flex";
   md.addEventListener("input",function(){dirty=true});
+  $("#c_ph").addEventListener("input",function(){var d=this.value.replace(/\D/g,"");if(d!==this.value)this.value=d});   /* phone: numbers only (pasted spaces and dashes are dropped) */
   var close=function(){
     if(!dirty){closeModal();return}
     $("#c_foot").innerHTML='<div style="width:100%;text-align:right"><div class="sub" style="margin:0 0 6px">You have unsaved changes. Discard them and close?</div><button class="btn" id="c_keep">Keep editing</button> <button class="btn" id="c_dis" style="background:#8a0f2f;color:#fff;border-color:#8a0f2f">Discard</button></div>';
@@ -768,12 +783,13 @@ function openCreate(){
 
 /* Request this lead modal */
 function openRequest(id){
+  if(window.ACQUI_GATE&&!ACQUI_GATE())return;
   var st={ref:null,fc:null};
   var md=$("#md");
   md.innerHTML='<h3>Request this lead <button id="mx">×</button></h3><div class="idot">This sends a reassignment request for approval. If approved, the lead will be assigned to you.</div>'+
    '<label>Approver <i>*</i></label><select id="r_app"><option value="">Select an approver</option>'+TEAM_LEADS.map(function(a){return '<option>'+a+'</option>'}).join("")+'</select>'+
    '<label>Channel (Last Touch) <i>*</i></label><select id="r_ch"><option value="">Select a channel</option>'+CHANNELS.map(function(c){return '<option>'+c+'</option>'}).join("")+'</select>'+
-   '<div id="r_ref"></div><label>Notes</label><textarea id="r_n" placeholder="Add a note for your approver. Example: Referred by (name), a close friend of the owner. They already talked and the owner agreed to be referred. No activity or progress on this lead so far."></textarea>'+
+   '<div id="r_ref"></div><label>Notes</label><textarea id="r_n" placeholder="Add a note for the approver"></textarea>'+
    '<div class="foot"><button class="btn dark" id="r_go">Send Request</button></div>';
   $("#ov").style.display="flex";
   $("#mx").onclick=closeModal;
@@ -794,6 +810,40 @@ function closeModal(){$("#ov").style.display="none";$("#md").classList.remove("w
 $("#ov").onclick=function(e){if(e.target.id==="ov")closeModal()};
 
 
+/* ===== My Profile (preview of the real page: nothing is saved, the real Acqui Service has to be filled in) ===== */
+function profileInfo(){
+  var u=null,email="hanna.test@example.com",name=ME,start="—";
+  try{if(window.LMS&&LMS.user&&LMS.user()){u=LMS.user();email=String(u.email||email).toLowerCase();
+    var part=email.split("@")[0],nm=part.split(/[._]+/).filter(Boolean).map(function(w){return w.charAt(0).toUpperCase()+w.slice(1)}).join(" ");if(nm)name=nm;
+    var b=LMS.batchOf?LMS.batchOf(email):"";
+    if(/^\d{6}$/.test(b)&&b!=="000000"&&b!=="000001"){var mo=+b.slice(0,2)-1,dd=+b.slice(2,4),yy=2000+(+b.slice(4,6));if(mo>=0&&mo<12)start=MONTHS[mo].slice(0,3)+" "+dd+", "+yy}}}catch(e){}
+  return {name:name,email:email,start:start};
+}
+function pageProfile(){
+  var p=profileInfo();
+  var row=function(k,v){return '<div class="prow"><span>'+k+'</span><b>'+esc(v)+'</b></div>'};
+  return '<div class="crumb">My Profile</div><h1 style="font-size:24px">'+esc(p.name)+'</h1>'+
+   '<div class="pchips"><span class="chip">User ID —</span><svg class="pcopy" id="pcopy" viewBox="0 0 24 24" width="14" height="14"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8"/></svg><span>·</span><span>—</span></div>'+
+   '<div class="pcall"><b>Fill in your home address and mobile number in the real Acqui Service.</b> This page is only a preview. Nothing you type here is saved or sent anywhere.</div>'+
+   '<div class="card"><div class="ptitle">ACCOUNT MANAGER</div>'+row("Name",p.name)+row("Email",p.email)+row("Start date",p.start)+row("Team","—")+row("Team lead","—")+'</div>'+
+   '<div class="card"><div class="ptitle">HOME ADDRESS</div><div class="pnote">Used to match you with leads near you. Enter the full address, including the city and province.</div>'+
+   '<label>Home address</label><div class="prowin"><input type="text" id="pa" placeholder="House no., street, barangay, city, province"><button class="btn" id="pasave" disabled>Save</button></div><div id="paloc"></div></div>'+
+   '<div class="card"><div class="ptitle">MOBILE NUMBER</div><div class="pnote">Used to set you up in Connect when your lead assignments change. Enter a PH mobile number.</div>'+
+   '<label>Mobile number</label><div class="prowin"><span class="pcc">+63</span><input type="text" id="pm" placeholder="9XX XXX XXXX" maxlength="10"><button class="btn" id="pmsave" disabled>Save</button></div></div>'+
+   '<div class="card"><div class="ptitle">AUTOMATED TASKS</div><div class="ptog"><div class="pnote" style="margin:0;max-width:640px">With 5 or more new BCLs in the last 31 days you can turn off the call tasks created for you every night. Your reminders and the tasks from originations, onboarding and cheques keep coming either way.</div>'+
+   '<button class="tgl" id="ptg" title="Off"><i></i></button></div></div>';
+}
+function afterProfile(root){
+  var a=$("#pa",root),m=$("#pm",root),sa=$("#pasave",root),sm=$("#pmsave",root);
+  $("#pcopy",root).onclick=function(){toast("Copied (practice only)")};
+  a.oninput=function(){sa.disabled=!a.value.trim();$("#paloc",root).innerHTML=""};
+  sa.onclick=function(){toast("Practice only. Not saved. Do this in the real Acqui Service.");sa.disabled=true;
+    $("#paloc",root).innerHTML='<div class="ploc">Located at 14.5547, 121.0244. <a class="pmap" id="pmap">View on map</a></div>';$("#pmap",root).onclick=function(){toast("The map is not part of this preview")}};
+  m.oninput=function(){var d=m.value.replace(/\D/g,"");if(d!==m.value)m.value=d;sm.disabled=d.length<10};
+  sm.onclick=function(){toast("Practice only. Not saved. Do this in the real Acqui Service.");sm.disabled=true};
+  $("#ptg",root).onclick=function(){this.classList.toggle("on");this.title=this.classList.contains("on")?"On":"Off"};
+}
+
 /* ===== router ===== */
 function render(){
   var h=location.hash||"#/home",m=$("#main"),r=h.split("/");
@@ -803,6 +853,7 @@ function render(){
   if(route==="leads"){m.innerHTML=pageLeads();afterLeads(m)}
   else if(route==="originations"){m.innerHTML=pageOrig();afterOrig(m)}
   else if(route==="referrers"){m.innerHTML=pageRef();afterRef(m)}
+  else if(route==="profile"){m.innerHTML=pageProfile();afterProfile(m)}
   else if(route==="open-bcls"){m.innerHTML=pageBcl();afterBcl(m)}
   else if(route==="lead"){m.innerHTML=pageLead(r[2]);afterLead(m,r[2])}
   else if(route==="referrer"){var rn=decodeURIComponent(r[2]||"");m.innerHTML=pageReferrer(rn);afterReferrer(m)}
@@ -900,13 +951,7 @@ render();
       $("#dcr").onclick=setCode;
     }
     $("#dcode").textContent=code;wireCap();
-    var dq=$("#dq");
-    dq.oninput=function(){
-      var q=dq.value.trim().toLowerCase(),box=$("#dsug");
-      var m=q.length>=2?REGISTRY.filter(function(r){return r.kind==="DTI"&&r.name.toLowerCase().indexOf(q)>=0}).slice(0,6):[];
-      box.innerHTML=m.length?m.map(function(r){return '<div class="dsi">'+r.name.charAt(0)+r.name.slice(1).toLowerCase()+'</div>'}).join(""):"";
-      box.querySelectorAll(".dsi").forEach(function(d,i){d.onclick=function(){dq.value=m[i].name;box.innerHTML=""}});
-    };
+    var dq=$("#dq");   /* no suggestions: the exact business name has to be typed */
     $("#dsearch").onclick=function(){
       var v=dq.value.trim().toUpperCase();$("#dsug").innerHTML="";
       if(!v){toast("Type the business name");return}
@@ -976,7 +1021,10 @@ render();
   function clearPending(id){ if (typeof pending !== "undefined") delete pending[id]; }
   /* trying to Create Lead for a lead that already exists is blocked in the app: a deduction (question 5 halves the points instead) */
   function dupMsg(ev){ return ev === "lead-create-blocked" ? { msg: "That lead already exists. You can't create it again. Request the lead instead.", cost: 0.5 } : null; }
-  var notesOk = function(q){ return String(q.notes || "").trim().length >= 10; };
+  /* Riverside Lumber Trading is a finished account: Onboarded, fully verified BCL, BA approved, with revenue estimate and limits */
+  function onboarded(){ var l = L("184422"); l.status = "Onboarded"; l.risk = "Fully Verified with Future Revenue"; l.ba = "Approved"; l.rev = 1200000; l.bclAmt = 500000; l.clo = 500000; clearPending("184422"); }
+  var notesOk = function(q){ return String(q.notes || "").trim().length > 0; };
+  var phoneN = function(x){ return String(x || "").replace(/\D/g, "").replace(/^(0|63)/, ""); };   /* 0917... = 917... = +63917... */
   var isFake = function(reg){ return !REGISTRY.some(function(r){ return norm(r.no) === norm(reg); }); };
 
   /* request this lead: weights for the fields, notes = bonus */
@@ -988,14 +1036,14 @@ render();
       var q = d.req;
       if (d.id !== id) return "That request is for a different lead. The lead you need is " + name + ".";
       var items = referral ? [
-        { label: "Approver chosen", w: 0.1, ok: !!q.approver },
-        { label: "Channel (Last Touch): Referrals", w: 0.3, ok: q.channel === "Referrals" },
-        { label: "Referral Channel: Drip", w: 0.2, ok: q.rc === "Drip" },
-        { label: "Referrer: Mia Santos", w: 0.2, ok: !!q.ref && q.ref.k === "Mia Santos" },
-        { label: "FC Referrer: you", w: 0.2, ok: !!q.fc && /^1368/.test(q.fc.k) }
+        { label: "Approver chosen", w: 0.1, ok: !!q.approver, exp: "any approver" },
+        { label: "Channel (Last Touch)", w: 0.3, ok: q.channel === "Referrals", exp: "Referrals" },
+        { label: "Referral Channel", w: 0.2, ok: q.rc === "Drip", exp: "Drip" },
+        { label: "Referrer", w: 0.2, ok: !!q.ref && q.ref.k === "Mia Santos", exp: "Mia Santos" },
+        { label: "FC Referrer", w: 0.2, ok: !!q.fc && /^1368/.test(q.fc.k), exp: "you" }
       ] : [
-        { label: "Approver chosen", w: 0.2, ok: !!q.approver },
-        { label: "Channel (Last Touch): KAM - Self Generated Leads", w: 0.8, ok: q.channel === "KAM - Self Generated Leads" }
+        { label: "Approver chosen", w: 0.2, ok: !!q.approver, exp: "any approver" },
+        { label: "Channel (Last Touch)", w: 0.8, ok: q.channel === "KAM - Self Generated Leads", exp: "KAM - Self Generated Leads" }
       ];
       var r = { items: items, bonus: [{ label: "Added a note for the approver", w: 0.1, ok: notesOk(q) }] };
       if (c.flags.dup) { r.factor = 0.5; r.factorLabel = "You created a lead that already exists. You should have requested it"; }
@@ -1003,7 +1051,7 @@ render();
     };
   }
 
-  /* a few companies, picked at random: SEC (corporation) or DTI (sole proprietorship). Question 3 gets the certificate in the camera roll, question 4 only the name. */
+  /* a few companies, picked at random: SEC (corporation) or DTI (sole proprietorship). Question 3 gets the certificate in the camera roll, question 4 (always Hanna's Squishy Store) only the name. */
   var POOL = [
     { kind: "sec", name: "Golden Harbor Trading Corp.", no: "CS202605227", owner: "Marco Villanueva", email: "marco.villanueva@example.com", phone: "09181234567" },
     { kind: "sec", name: "Bluewave Cold Storage Inc.", no: "CS202604118", owner: "Lia Fernandez", email: "lia.fernandez@example.com", phone: "09175551212" },
@@ -1019,27 +1067,28 @@ render();
     sec("BLUEWAVE COLD STORAGE AND LOGISTICS INC.", "CS202309912"); sec("BLUE WAVE COLD STORAGE CORP.", "CS202111204");
     dti("MANG TONYO HARDWARE SUPPLY", "7003399", "TONY REYES"); dti("HANNA'S SQUISHY SHOP", "7004400", "HANNA JO");
   })();
-  var pick2 = POOL.slice().sort(function(){ return Math.random() - 0.5; }), A = pick2[0], B = pick2[1];
+  var B = POOL[POOL.length - 1];   /* Hanna's Squishy Store is always the referral lead (question 4) */
+  var A = POOL.slice(0, -1).sort(function(){ return Math.random() - 0.5; })[0];
   var certOf = function(c){ return c.kind === "sec" ? ["sec", c.no, c.name.toUpperCase()] : ["dti", c.no, c.name.toUpperCase(), c.owner.toUpperCase()]; };
 
   /* create lead: weights for the fields. A wrong or fake registration number still goes through; it just loses points (fake: -0.25 more) */
   function create(c, ch, ref, w){
+    var sec = c.kind === "sec";
     return function(ev, d){
       if (ev === "lead-create-blocked") return dupMsg(ev);
       if (ev !== "lead-created") return false;
-      var sec = c.kind === "sec";
-      var items = [{ label: "Channel: " + ch, w: w.ch, ok: d.ch === ch }];
+      var items = [{ label: "Channel", w: w.ch, ok: d.ch === ch, exp: ch }];
       if (ref) items.push(
-        { label: "Referral Channel: Drip", w: w.rc, ok: d.rc === "Drip" },
-        { label: "Referrer: Mia Santos", w: w.ref, ok: d.ref === "Mia Santos" },
-        { label: "FC Referrer: you", w: w.fc, ok: /^1368/.test(d.fc || "") });
+        { label: "Referral Channel", w: w.rc, ok: d.rc === "Drip", exp: "Drip" },
+        { label: "Referrer", w: w.ref, ok: d.ref === "Mia Santos", exp: "Mia Santos" },
+        { label: "FC Referrer", w: w.fc, ok: /^1368/.test(d.fc || ""), exp: "you" });
       items.push(
-        { label: "Company name: " + c.name, w: w.name, ok: norm(d.name) === norm(c.name) },
-        { label: "Company type: " + (sec ? "Corporation" : "Sole Proprietorship"), w: w.type, ok: d.type === (sec ? "Corporation" : "Sole Proprietorship") },
-        { label: (sec ? "SEC Registration No." : "DTI Business Name No.") + ": " + c.no, w: w.reg, ok: norm(d.reg) === norm(c.no) },
-        { label: "Contact name: " + c.owner, w: w.cn, ok: norm(d.fn + d.ln) === norm(c.owner) },
-        { label: "Contact email", w: w.em, ok: norm(d.em) === norm(c.email) },
-        { label: "Contact phone", w: w.ph, ok: norm(d.ph) === norm(c.phone) });
+        { label: "Company name", w: w.name, ok: norm(d.name) === norm(c.name), exp: c.name },
+        { label: "Company type", w: w.type, ok: d.type === (sec ? "Corporation" : "Sole Proprietorship"), exp: sec ? "Corporation" : "Sole Proprietorship" },
+        { label: sec ? "SEC Registration No." : "DTI Business Name No.", w: w.reg, ok: norm(d.reg) === norm(c.no), exp: c.no },
+        { label: "Contact name", w: w.cn, ok: norm(d.fn + d.ln) === norm(c.owner), exp: c.owner },
+        { label: "Contact email", w: w.em, ok: norm(d.em) === norm(c.email), exp: c.email },
+        { label: "Contact phone", w: w.ph, ok: phoneN(d.ph) === phoneN(c.phone) && phoneN(d.ph) !== "", exp: c.phone });
       var r = { items: items };
       if (norm(d.reg) !== norm(c.no) && isFake(d.reg)) r.extra = [{ label: "You typed a registration number that doesn't exist (fake number)", loss: 0.25 }];
       return r;
@@ -1047,49 +1096,42 @@ render();
   }
 
   window.ACQUI_EXAM = {
-    askName: true,
+    askName: true, scale: 10,
     title: "Lead reassignment and creation in Acqui Service",
     taskId: "d5-reassign-practice",
     nextHref: "acqui-reassign-lecture.html", nextLabel: "Review the lecture",
     intro: "You will get 5 situations. Read the messages on the right, then do what you would really do in Acqui Service. Use the three tabs at the top: Acqui Service, the SEC website and the DTI website.",
-    scoring: "Every question is worth 1 point. You get points for each part you do right: the channel, the referrer, the registration number, the contact details... A note for your approver earns a small bonus. A fake registration number is a deduction. A hint costs 0.5 point. You can use Finish test any time. Questions you did not answer get 0.",
+    scoring: "Every question is worth 10 points, 50 in total. You get points for each part you do right: the channel, the referrer, the registration number, the contact details... Adding a note for the approver earns +1 bonus (the total is capped at 50). A fake registration number is a deduction. A hint costs 5 points. You can use Finish test any time. Questions you did not answer get 0.",
     tasks: [
-      { type: "act", html: true,
-        text: "Ben is a friend of yours. Do the right thing for <b>Riverside Lumber Trading</b>.",
-        chat: { thread: "ben", who: { name: "Ben Aquino", sub: "Owner, Riverside Lumber Trading" }, msgs: [
-          { from: "sys", text: "You know Ben personally, so this is a self-generated lead. You checked Acqui Service: his business is already there." },
-          { from: "them", text: "Hi {ME}! It's Ben. Thanks again for lunch last week 🙂" },
-          { from: "them", text: "Like I said, we need a business loan for Riverside Lumber Trading. Can you handle it for us?" } ] },
+      { type: "act", html: true, choice: true, proceed: false, leadId: "184422",
+        text: "Decide what to do about <b>Riverside Lumber Trading</b>",
+        chat: { thread: "s1", who: { name: "Your situation", sub: "Self-generated lead", av: "!" }, msgs: [
+          { from: "sys", text: "You know a business owner personally: Ben Aquino, owner of Riverside Lumber Trading. They need a business loan and asked if you can handle it." } ] },
         hint: "Search the lead and check its status. Leads in Risk Review, Onboarded, Unserviceable or Utilized cannot be requested.",
-        setup: function(){ L("184422").status = "Onboarded"; clearPending("184422"); },
-        reset: function(){ L("184422").status = "Onboarded"; clearPending("184422"); },
-        alt: { label: "I won't request this lead", check: function(c){ return (c.flags.visited || {})["184422"] ? true : "Look up the lead first before you decide."; } },
+        setup: function(){ onboarded(); }, reset: function(){ onboarded(); },
         grade: function(ev, d){ if (dupMsg(ev)) return dupMsg(ev); return ev === "request-sent" && d.id === "184422" ? { fatal: "Riverside Lumber Trading is already Onboarded. Leads in Risk Review, Onboarded, Unserviceable or Utilized cannot be requested. Always check the status first." } : false; },
         undo: function(){ unrequest(this._ev); } },
 
-      { type: "act", html: true,
-        text: "Gina's family has been your friend for years. Make <b>Greenfield Foods Corp.</b> yours.",
-        chat: { thread: "gina", who: { name: "Gina Flores", sub: "Owner, Greenfield Foods Corp." }, msgs: [
-          { from: "sys", text: "Gina's family has been your friend for years, so this is a self-generated lead. You checked Acqui Service: the business is already there and nobody is working on it." },
-          { from: "them", text: "Hi {ME}! Dad told me to message you directly 😊" },
-          { from: "them", text: "We'd like to work with you on a loan for Greenfield Foods Corp." } ] },
+      { type: "act", html: true, choice: true, proceed: true, leadId: "263118",
+        text: "Decide what to do about <b>Greenfield Foods Corp.</b>",
+        chat: { thread: "s2", who: { name: "Your situation", sub: "Self-generated lead", av: "!" }, msgs: [
+          { from: "sys", text: "You know a business owner personally: Gina Flores, owner of Greenfield Foods Corp. Your families have been friends for years. They want to work with you on a loan." } ] },
         hint: "Search the lead, check the status, then use Request this lead. How did you get it? That's the Channel (Last Touch).",
         setup: function(){ clearPending("263118"); }, reset: function(){ clearPending("263118"); },
         grade: request("263118", "Greenfield Foods Corp.", false),
         undo: function(){ unrequest(this._ev); } },
 
-      { type: "act", html: true,
-        text: "<b>" + A.name + "</b> isn't in Acqui Service yet. Enroll the company as a new lead.",
-        chat: { thread: "owner3", who: { name: A.owner, sub: "Owner, " + A.name }, msgs: [
-          { from: "sys", text: "You met " + A.owner.split(" ")[0] + " at a business forum, so this is a self-generated lead. You took a photo of the " + (A.kind === "sec" ? "SEC" : "DTI") + " certificate. It's in your camera roll." },
-          { from: "them", text: "Great meeting you, {ME}! You can reach me at " + A.email + " or " + A.phone + "." },
-          { from: "me", text: "Thanks! Saving the certificate so I have it.", att: { name: "IMG_0412.jpg", sub: "Camera roll · tap to open", cert: certOf(A) } } ] },
+      { type: "act", html: true, choice: true, proceed: true, leadId: "",
+        text: "Decide what to do about <b>" + A.name + "</b>",
+        chat: { thread: "s3", who: { name: "Your situation", sub: "Self-generated lead", av: "!" }, msgs: [
+          { from: "sys", text: "You met a business owner at a forum and you know them personally: " + A.owner + ", owner of " + A.name + ". Email: " + A.email + ". Phone: " + A.phone + ". You took a photo of their " + (A.kind === "sec" ? "SEC" : "DTI") + " certificate. It's in your camera roll." },
+          { from: "me", text: "", att: { name: "IMG_0412.jpg", sub: "Camera roll · tap to open", cert: certOf(A) } } ] },
         hint: "Read the registration number in the photo (tap it in the chat). Pick the Company Type that matches the certificate.",
         reset: function(){ removeByName(A.name); },
         grade: create(A, "KAM Self Generated", false, { ch: 0.1, name: 0.1, type: 0.15, reg: 0.35, cn: 0.1, em: 0.1, ph: 0.1 }),
         undo: function(){ removeLead(this._ev); } },
 
-      { type: "act", html: true, noHint: true,
+      { type: "act", html: true, noHint: true, choice: true, proceed: true, leadId: "",
         text: "Take care of Mia's referral.",
         chat: { thread: "mia", who: { name: "Mia Santos", sub: "Your referrer · she refers a lot" }, msgs: [
           { from: "them", text: "Hi {ME}! Busy week, I've got a few friends who need financing 🙌" },
@@ -1100,7 +1142,7 @@ render();
         grade: create(B, "Referral", true, { ch: 0.1, rc: 0.1, ref: 0.1, fc: 0.05, name: 0.1, type: 0.1, reg: 0.25, cn: 0.08, em: 0.06, ph: 0.06 }),
         undo: function(){ removeLead(this._ev); } },
 
-      { type: "act", html: true, noHint: true,
+      { type: "act", html: true, noHint: true, choice: true, proceed: true, leadId: "341907",
         text: "Take care of Mia's next referral.",
         chat: { thread: "mia", who: { name: "Mia Santos", sub: "Your referrer · she refers a lot" }, msgs: [
           { from: "me", text: "Got it Mia, I'll take care of " + B.owner.split(" ")[0] + "!" },
@@ -1121,7 +1163,7 @@ render();
 (function(){
   /* An exam file can set window.ACQUI_EXAM = { title, intro, taskId, nextHref, nextLabel, tasks } before this file loads. Without it, this is the navigation check. */
   var CFG = window.ACQUI_EXAM || {};
-  var PASS = 80, HINT_COST = 0.5, WRONG_COST = 0.25;
+  var PASS = 80, HINT_COST = 0.5, WRONG_COST = 0.25, SCALE = CFG.scale || 1;   /* costs are fractions of one question; SCALE = points per question */
   var st = document.createElement("style");
   st.textContent =
     "#ex{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;width:780px;max-width:94vw;background:#fff;border-radius:16px;box-shadow:0 14px 50px rgba(0,0,0,.4);padding:16px 22px;z-index:1000;border-top:5px solid var(--teal)}" +
@@ -1140,7 +1182,7 @@ render();
     "#ex .done b{font-size:18px;color:#1c7a40}#ex .done small{display:block;color:#456;font-size:12px;margin-top:2px}" +
     "#exdim{position:fixed;inset:0;background:rgba(10,25,28,.55);z-index:900;display:none}" +
     "#ex table{width:100%;border-collapse:collapse;margin:12px 0}#ex td{padding:8px 4px;font-size:14px;border-top:1px solid #eef2f2;vertical-align:top}" +
-    "body.has-xp #ex:not(.full){left:calc((100% - 340px) / 2)}" +
+    
     "#ex .bd{margin-top:8px;font-size:13px;font-weight:400;color:#345}#ex .bd div{display:flex;justify-content:space-between;gap:10px;padding:1px 0}#ex .bd .y{color:#1c7a40}#ex .bd .n{color:#b3243a}" +
     "#xp{position:fixed;top:0;right:0;bottom:0;width:340px;background:#fff;border-left:1px solid var(--line);z-index:960;display:none;flex-direction:column;padding-top:72px}" +
     "body.has-xp.xp-on #xp{display:flex}" +
@@ -1150,11 +1192,13 @@ render();
     "#xp .xb{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:#fafbfb}" +
     "#xp .m{background:#fff;border:1px solid var(--line);border-radius:4px 14px 14px 14px;padding:9px 12px;font-size:13px;line-height:1.5;max-width:90%;align-self:flex-start}" +
     "#xp .m.me{align-self:flex-end;background:#e9f6f3;border-color:#bfe3db;border-radius:14px 4px 14px 14px}" +
-    "#xp .m.sys{align-self:center;background:none;border:0;color:#6b7c7a;font-size:11.5px;text-align:center;padding:0;max-width:96%}" +
+    "#xp .m.sys{align-self:stretch;background:#fff8e6;border:1px solid #f0dca8;color:#4a3b10;font-size:13px;line-height:1.55;text-align:left;padding:10px 12px;max-width:100%;border-radius:10px}" +
     "#xp .m.old{opacity:.55}#xp .m.new{animation:xpin .35s}@keyframes xpin{from{opacity:0;transform:translateY(8px)}}" +
     "#xp .att{display:flex;gap:10px;align-items:center;margin-top:8px;border:1px solid var(--line);border-radius:10px;padding:6px;cursor:pointer;background:#f6fbf6}#xp .att:hover{background:#eaf6ea}" +
     "#xp .th{width:54px;height:54px;border-radius:6px;background:#f4fbf4;border:1px solid #9fcfa6;display:grid;place-items:center;font-size:8px;color:#4a7a50;text-align:center;line-height:1.3;flex:none}" +
     "#xp .att small{display:block;color:var(--mut);font-size:11px}" +
+    "#xp #ex{position:static;transform:none;width:auto;max-width:none;border-radius:0;box-shadow:none;border-top:5px solid var(--teal);padding:12px 16px;max-height:58vh;overflow:auto;flex:none}#xp #ex .qt{font-size:15px;margin:4px 0 10px}#xp #ex .btn{font-size:13px;padding:7px 12px}" +
+    "#ex .copts{display:flex;flex-direction:column;gap:6px;margin-top:8px}#ex .copts .btn{text-align:left}#ex .copts .btn.on{background:var(--teal);color:#fff;border-color:var(--teal)}" +
     "#xp .xf{padding:10px 16px;border-top:1px solid var(--line);font-size:11.5px;color:var(--mut);line-height:1.5}" +
     "#ex .big{font-size:40px;font-weight:800;margin:6px 0}.ok{color:#1c7a40}.no{color:#b3243a}";
   document.head.appendChild(st);
@@ -1162,6 +1206,7 @@ render();
   var box = document.createElement("div"); box.id = "ex"; document.body.appendChild(box);
 
   var panel = document.createElement("div"); panel.id = "xp"; document.body.appendChild(panel);
+  panel.innerHTML = '<div class="xh" id="xph"></div><div class="xb" id="xpb"></div><div id="xpq"></div>';
   var thread = { id: "", msgs: [] };
   /* chat: { thread, who:{name, sub}, msgs:[{from:"them"|"me"|"sys", text, att:{name, sub, cert:[kind,no,name,owner]}}] }.
      Messages from earlier questions of the same thread stay above, dimmed. */
@@ -1171,11 +1216,11 @@ render();
     if (thread.id !== c.thread) { thread.id = c.thread; thread.msgs = []; }
     thread.msgs = thread.msgs.filter(function(m){ return m.q !== n; });
     c.msgs.forEach(function(m){ thread.msgs.push({ q: n, m: m }); });
-    panel.innerHTML = '<div class="xh"><div class="av">' + esc(c.who.av || c.who.name.split(" ").map(function(w){ return w[0]; }).join("").slice(0, 2)) + '</div><div><b>' + esc(c.who.name) + '</b><small>' + esc(c.who.sub || "") + '</small></div></div>' +
-      '<div class="xb" id="xpb">' + thread.msgs.map(function(x, i){
+    document.getElementById("xph").innerHTML = '<div class="av">' + esc(c.who.av || c.who.name.split(" ").map(function(w){ return w[0]; }).join("").slice(0, 2)) + '</div><div><b>' + esc(c.who.name) + '</b><small>' + esc(c.who.sub || "") + '</small></div>';
+    document.getElementById("xpb").innerHTML = thread.msgs.map(function(x, i){
         var m = x.m, att = m.att ? '<div class="att" data-i="' + i + '"><div class="th">' + (m.att.cert[0] === "dti" ? "DTI" : "SEC") + '<br>CERT</div><div><b style="font-size:12px">' + esc(m.att.name) + '</b><small>' + esc(m.att.sub || "Photo · tap to open") + '</small></div></div>' : "";
         return '<div class="m ' + (m.from === "me" ? "me" : m.from === "sys" ? "sys" : "") + (x.q < n ? " old" : " new") + '">' + (m.text ? esc(m.text.replace(/\{ME\}/g, (AM_NAME || ME).split(" ")[0])) : "") + att + '</div>';
-      }).join("") + '</div><div class="xf">Read the messages, then do what you would really do in Acqui Service.</div>';
+      }).join("");
     panel.querySelectorAll(".att").forEach(function(a){ a.onclick = function(){ showCert.apply(null, thread.msgs[+a.getAttribute("data-i")].m.att.cert); }; });
     var xb = document.getElementById("xpb"); if (xb) xb.scrollTop = xb.scrollHeight;
   }
@@ -1197,7 +1242,7 @@ render();
       hint: "Originations is the card icon in the menu.",
       check: function(ev){ return ev === "render" && location.hash.indexOf("#/originations") === 0; } },
     { type: "nav", text: "You want to see your Open BCLs. Where do you go?",
-      hint: "It is the last icon in the menu.",
+      hint: "It is the layers icon, below Referrers.",
       check: function(ev){ return ev === "render" && location.hash.indexOf("#/open-bcls") === 0; } },
     { type: "nav", text: "You want to see the history of the BCL status of Metro Courier Services. How do you check?",
       hint: "Open the lead, then look for the clock icon inside the BCL STATUS box.",
@@ -1237,16 +1282,17 @@ render();
   var AM_NAME = "", n = 0, res = [], flags = {}, hintUsed = false, wrongs = 0, loss = 0, started = 0, state = "idle", picked = null;
 
   function esc(s){ return String(s).replace(/</g, "&lt;"); }
-  function fmtPts(x){ return (Math.round(x * 100) / 100).toString(); }
+  function fmtPts(x){ return (Math.round(x * SCALE * 100) / 100).toString(); }
   function pointsNow(raw){ return Math.max(0, (raw == null ? 1 : raw) - (hintUsed ? HINT_COST : 0) - loss); }
 
   function intro(){
     state = "idle"; dim.style.display = "block"; box.className = "full"; document.body.classList.remove("xp-on");
     box.innerHTML = '<div class="k">Practice check · not graded</div><h2>' + esc(CFG.title || "Find your way around Acqui Service") + '</h2>' +
       '<p style="font-size:15px;line-height:1.55;margin:8px 0 10px">' + (CFG.intro || ('You will get ' + TASKS.length + ' short situations, one at a time. Use the simulation behind this box to find the answer or the right place. Some questions ask you to type or pick what you find.')) + '</p>' +
-      '<p style="font-size:14px;line-height:1.55;margin:0 0 14px;color:#456">' + (CFG.scoring || ('Every question starts with 1 point. A hint costs ' + HINT_COST + ' point, and each wrong answer costs ' + WRONG_COST + '.')) + ' This is practice, so your score is not recorded as a grade. Aim for ' + PASS + '% or more.</p>' +
+      '<p style="font-size:14px;line-height:1.55;margin:0 0 14px;color:#456">' + (CFG.scoring || ('Every question starts with 1 point. A hint costs ' + fmtPts(HINT_COST) + ' point, and each wrong answer costs ' + fmtPts(WRONG_COST) + '.')) + ' This is practice, so your score is not recorded as a grade. Aim for ' + PASS + '% or more.</p>' +
       (CFG.askName ? '<div style="background:#f4f8f8;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0 0 14px"><div style="font-size:13px;line-height:1.5;color:#345;margin-bottom:8px"><b>Honor code.</b> I will answer this test on my own. I will not ask anyone for help, and I will not share the questions or answers.</div><label style="font-size:13px;font-weight:700">AM name: <input type="text" id="exname" placeholder="Type your name" autocomplete="off" style="margin-top:4px"></label><div style="font-size:11px;color:var(--mut);margin-top:4px">This is the name you will use in the Acqui Service simulation.</div></div>' : '') +
       '<div class="row"><span>' + (window.ACQUI_STANDALONE ? '' : '<a href="../dashboard.html" style="font-size:13px;color:var(--teal)">Back to Day 5</a> · <a href="' + NEXT_HREF + '" style="font-size:13px;color:var(--teal)">' + NEXT_LABEL + ' first</a>') + '</span><button class="btn dark" id="exgo">Start</button></div>';
+    document.body.appendChild(box);
     document.getElementById("exgo").onclick = function(){
       if (CFG.askName) {
         var nm = document.getElementById("exname").value.trim();
@@ -1263,26 +1309,61 @@ render();
     var t = TASKS[n];
     if (t.setup) t.setup();
     drawPanel(t.chat);
+    if (t.chat) document.getElementById("xpq").appendChild(box); else document.body.appendChild(box);
     var answerUi = "";
     if (t.type === "input") answerUi = '<input type="text" id="exin" placeholder="' + esc(t.placeholder || "Type your answer") + '" autocomplete="off"><div id="exmsg"></div>';
     if (t.type === "mcq") answerUi = '<div id="exch">' + shuffle(t.choices).map(function(c){ return '<div class="opt2" data-c="' + esc(c) + '"><span>○</span> ' + esc(c) + '</div>'; }).join("") + '</div><div id="exmsg"></div>';
     if (t.type === "nav" || t.type === "act") answerUi = '<div id="exmsg"></div>';
     box.innerHTML = '<div class="bar"><i style="width:' + (n / TASKS.length * 100) + '%"></i></div><div class="k">Question ' + (n + 1) + ' of ' + TASKS.length + '</div>' +
       '<div class="qt">' + (t.html ? t.text : esc(t.text)) + '</div>' + answerUi + '<div id="exh"></div>' +
-      '<div class="row"><span style="display:flex;gap:8px">' + (t.noHint ? '' : '<button class="btn" id="exhint">Show hint (-' + HINT_COST + ')</button>') + ((t.type === "input" || t.type === "mcq") ? '<button class="btn dark" id="exsub">Submit</button>' : '') + (t.alt ? '<button class="btn dark" id="exalt">' + esc(t.alt.label) + '</button>' : '') + '</span><button class="btn" id="exskip">Skip (0 points)</button></div>';
+      (t.choice ? ((t.noHint ? '' : '<button class="btn" id="exhint" style="margin-top:8px">Show hint (-' + fmtPts(HINT_COST) + ')</button>') + '<div class="copts"><button class="btn" id="exproc">Proceed with getting lead</button><button class="btn" id="exstop">Do not proceed with getting lead</button><button class="btn" id="exskip2">Skip task (0 pts)</button><button class="btn dark" id="exdec" disabled style="text-align:center;opacity:.5">Submit</button></div>') : '<div class="row"><span style="display:flex;gap:8px">' + (t.noHint ? '' : '<button class="btn" id="exhint">Show hint (-' + fmtPts(HINT_COST) + ')</button>') + ((t.type === "input" || t.type === "mcq") ? '<button class="btn dark" id="exsub">Submit</button>' : '') + (t.alt ? '<button class="btn dark" id="exalt">' + esc(t.alt.label) + '</button>' : '') + '</span><button class="btn" id="exskip">Skip (0 points)</button></div>');
+    if (t.choice) {
+      var sel = "", decided = false, ids = ["exproc", "exstop", "exskip2"];
+      ids.forEach(function(id){ document.getElementById(id).onclick = function(){
+        if (decided) {   /* after Proceed is submitted, Skip is still possible, with a confirm */
+          if (id === "exskip2" && !document.getElementById("exconf")) {
+            var c = document.createElement("div"); c.id = "exconf";
+            c.style.cssText = "margin-top:8px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.25);padding:10px 14px;font-size:13px";
+            c.innerHTML = '<div style="margin-bottom:8px"><b>Skip this question?</b><br>You will get 0 points for it.</div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" id="exback">Go back</button><button class="btn dark" id="exsure">Yes, skip</button></div>';
+            box.appendChild(c);
+            document.getElementById("exback").onclick = function(){ c.remove(); };
+            document.getElementById("exsure").onclick = function(){ finishQ(0, "skipped"); };
+          }
+          return;
+        }
+        sel = id;
+        ids.forEach(function(x){ document.getElementById(x).classList.toggle("on", x === id); });
+        var d = document.getElementById("exdec"); d.disabled = false; d.style.opacity = 1;
+        document.getElementById("exmsg").innerHTML = '<div class="msg" style="color:#456">Press Submit to confirm your decision.</div>';
+      }; });
+      document.getElementById("exdec").onclick = function(){
+        if (!sel || decided) return;
+        if (sel === "exskip2") { finishQ(0, "skipped"); return; }
+        if (sel === "exstop") {
+          if (t.proceed === false) {
+            if (!(flags.visited || {})[t.leadId]) { handle(t, "Look up the lead first before you decide."); return; }
+            finishQ(pointsNow(), hintUsed ? "hint" : "ok");
+          } else finishQ(0, "wrong", "You could have gone ahead with this one. Always search the lead first, then decide.");
+          return;
+        }
+        decided = true; flags.proceed = true;
+        ["exproc", "exstop"].forEach(function(x){ document.getElementById(x).disabled = true; }); this.style.display = "none";
+        document.getElementById("exmsg").innerHTML = '<div class="msg" style="color:#1c7a40">Decision submitted. Now do it in Acqui Service.</div>';
+      };
+    }
     if (t.alt) document.getElementById("exalt").onclick = function(){ handle(t, t.alt.check({ flags: flags })); };
     if (!t.noHint) document.getElementById("exhint").onclick = function(){
       if (!hintUsed) hintUsed = true;
       document.getElementById("exh").innerHTML = '<div class="hint">Hint: ' + esc(t.hint) + '</div>';
-      this.textContent = "Hint used (-" + HINT_COST + ")";
+      this.textContent = "Hint used (-" + fmtPts(HINT_COST) + ")";
     };
     document.getElementById("exskip").onclick = function(){
       /* mini confirm bubble: skipping is 0 points, so give them a way back */
       if (document.getElementById("exconf")) return;
       var c = document.createElement("div"); c.id = "exconf";
-      c.style.cssText = "position:absolute;right:22px;bottom:68px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.25);padding:10px 14px;font-size:13px;z-index:2";
+      c.style.cssText = "margin-top:8px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.25);padding:10px 14px;font-size:13px;z-index:2";
       c.innerHTML = '<div style="margin-bottom:8px"><b>Skip this question?</b><br>You will get 0 points for it.</div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" id="exback">Go back</button><button class="btn dark" id="exsure">Yes, skip</button></div>';
-      box.style.position = "fixed"; box.appendChild(c);
+      box.appendChild(c);
       document.getElementById("exback").onclick = function(){ c.remove(); };
       document.getElementById("exsure").onclick = function(){ finishQ(0, "skipped"); };
     };
@@ -1307,7 +1388,7 @@ render();
     if (!val) { msg.innerHTML = '<div class="msg bad">Please give an answer first.</div>'; return; }
     var ok = t.answer().some(function(a){ return norm(a) === norm(val); });
     if (ok) { finishQ(pointsNow(), hintUsed ? "hint" : "ok"); }
-    else { wrongs++; msg.innerHTML = '<div class="msg bad">Not quite. Check the simulation and try again. (-' + WRONG_COST + ')</div>'; }
+    else { wrongs++; msg.innerHTML = '<div class="msg bad">Not quite. Check the simulation and try again. (-' + fmtPts(WRONG_COST) + ')</div>'; }
   }
 
   /* a question is finished: show the green "Done!" strip and wait for the learner to continue */
@@ -1316,7 +1397,7 @@ render();
     state = "done";
     res.push({ text: TASKS[n].text.replace(/<[^>]+>/g, " "), pts: pts, how: how, hint: hintUsed, wrongs: wrongs, why: why || "", detail: detail || "" });
     var last = n === TASKS.length - 1;
-    var note = how === "skipped" ? "Skipped" : how === "wrong" ? why : how === "graded" ? fmtPts(pts) + " / 1 point" + (hintUsed || wrongs ? " (" + [hintUsed ? "hint -" + HINT_COST : "", wrongs ? wrongs + " wrong -" + fmtPts(loss) : ""].filter(Boolean).join(", ") + ")" : "") : fmtPts(pts) + (pts === 1 ? " point" : " points") + (hintUsed || wrongs ? " (" + [hintUsed ? "hint -" + HINT_COST : "", wrongs ? wrongs + " wrong -" + fmtPts(loss) : ""].filter(Boolean).join(", ") + ")" : "");
+    var note = how === "skipped" ? "Skipped" : how === "wrong" ? why : how === "graded" ? fmtPts(pts) + " / " + SCALE + " points" + (hintUsed || wrongs ? " (" + [hintUsed ? "hint -" + fmtPts(HINT_COST) : "", wrongs ? wrongs + " wrong -" + fmtPts(loss) : ""].filter(Boolean).join(", ") + ")" : "") : fmtPts(pts) + (fmtPts(pts) === "1" ? " point" : " points") + (hintUsed || wrongs ? " (" + [hintUsed ? "hint -" + fmtPts(HINT_COST) : "", wrongs ? wrongs + " wrong -" + fmtPts(loss) : ""].filter(Boolean).join(", ") + ")" : "");
     box.innerHTML = '<div class="bar"><i style="width:' + ((n + 1) / TASKS.length * 100) + '%"></i></div><div class="k">Question ' + (n + 1) + ' of ' + TASKS.length + '</div>' +
       '<div class="qt" style="font-size:15px;color:#456">' + (TASKS[n].html ? TASKS[n].text : esc(TASKS[n].text)) + '</div>' +
       '<div class="done"' + (how === "wrong" ? ' style="background:#fde8ea;border-color:#e5a3ad"' : '') + '><div><b' + (how === "wrong" ? ' style="color:#b3243a"' : '') + '>' + (how === "skipped" ? "Skipped" : how === "wrong" ? "✗ Not correct" : how === "graded" ? (pts >= 0.8 ? "✓ Done!" : pts >= 0.5 ? "Done. Some parts were missed" : "Done. Most parts were missed") : "✓ Done!") + '</b><small>' + note + '</small>' + (detail || "") + '</div><button class="btn dark" id="exnext">' + (last ? "See my result" : "Next question →") + '</button></div>';
@@ -1325,10 +1406,10 @@ render();
 
   function finish(){
     state = "idle";
-    var total = res.reduce(function(a, r){ return a + r.pts; }, 0), pct = Math.round(total / TASKS.length * 100), pass = pct >= PASS;
+    var total = res.reduce(function(a, r){ return a + r.pts; }, 0), capped = Math.min(total, TASKS.length), pct = Math.round(capped / TASKS.length * 100), pass = pct >= PASS;
     var secs = Math.round((Date.now() - started) / 1000);
-    box.className = "full"; dim.style.display = "block";
-    box.innerHTML = '<div class="k">Practice check · result' + (AM_NAME ? ' · ' + esc(AM_NAME) : '') + '</div><div class="big ' + (pass ? "ok" : "no") + '">' + pct + '%</div><div style="font-size:16px;font-weight:600">' + (pass ? "Passed" : "Not yet. Review the tour and try again.") + ' (' + fmtPts(total) + ' / ' + TASKS.length + ' points, ' + Math.floor(secs / 60) + 'm ' + (secs % 60) + 's)</div>' +
+    box.className = "full"; dim.style.display = "block"; document.body.appendChild(box);
+    box.innerHTML = '<div class="k">Practice check · result' + (AM_NAME ? ' · ' + esc(AM_NAME) : '') + '</div><div class="big ' + (pass ? "ok" : "no") + '">' + pct + '%</div><div style="font-size:16px;font-weight:600">' + (pass ? "Passed" : "Not yet. Review the tour and try again.") + ' (' + fmtPts(capped) + ' / ' + (TASKS.length * SCALE) + ' points' + (total > TASKS.length ? ', bonus included, capped at ' + (TASKS.length * SCALE) : '') + ', ' + Math.floor(secs / 60) + 'm ' + (secs % 60) + 's)</div>' +
       '<table>' + res.map(function(r){
         var why = r.how === "skipped" ? "skipped" : r.how === "wrong" ? "wrong" : r.how === "graded" ? (r.pts < 1 ? "partly right" : "") : [r.hint ? "hint" : "", r.wrongs ? r.wrongs + " wrong" : ""].filter(Boolean).join(", ");
         var bad = r.how === "skipped" || r.how === "wrong" || (r.how === "graded" && r.pts < 0.5);
@@ -1337,17 +1418,17 @@ render();
     document.getElementById("exagain").onclick = intro;
     try { if (window.LMS && LMS.user && LMS.user() && !(LMS.preview && LMS.preview())) LMS.complete(TASK_ID); } catch (err) {}   /* practice: ticks the Day 5 task, no grade saved */
     /* If this ever becomes graded: LMS.saveResult({ id:"d5-nav-check", label:"Acqui navigation check", score:total, max:TASKS.length, pct:pct, kind:"lms", passing:PASS }) */
-    window.ACQUI_EXAM_RESULT = { name: AM_NAME, score: total, max: TASKS.length, pct: pct, passed: pass, seconds: secs, tasks: res };
+    window.ACQUI_EXAM_RESULT = { name: AM_NAME, score: capped, max: TASKS.length, pct: pct, passed: pass, seconds: secs, tasks: res };
   }
 
   /* a graded answer: r.items = [{label, w, ok}] (the weights add up to 1), r.bonus = same, r.extra = [{label, loss}], r.factor = multiplier (e.g. 0.5) */
   function gradeIt(t, r){
     var sum = function(a, f){ return (a || []).reduce(function(x, i){ return x + f(i); }, 0); };
-    var raw = Math.min(1, sum(r.items, function(i){ return i.ok ? i.w : 0; }) + sum(r.bonus, function(i){ return i.ok ? i.w : 0; })) - sum(r.extra, function(i){ return i.loss; });
+    var raw = sum(r.items, function(i){ return i.ok ? i.w : 0; }) + sum(r.bonus, function(i){ return i.ok ? i.w : 0; }) - sum(r.extra, function(i){ return i.loss; });
     raw = Math.max(0, raw) * (r.factor || 1);
-    var line = function(label, ok, val){ return '<div class="' + (ok ? "y" : "n") + '"><span>' + (ok ? "✓ " : "✗ ") + esc(label) + '</span><span>' + val + '</span></div>'; };
+    var line = function(label, ok, val, exp){ return '<div class="' + (ok ? "y" : "n") + '"><span>' + (ok ? "✓ " : "✗ ") + esc(label) + '</span><span>' + (!ok && exp ? "Expected: " + esc(exp) + " · " : "") + val + '</span></div>'; };
     var d = '<div class="bd">' +
-      r.items.map(function(i){ return line(i.label, i.ok, i.ok ? "+" + fmtPts(i.w) : "0"); }).join("") +
+      r.items.map(function(i){ return line(i.label, i.ok, i.ok ? "+" + fmtPts(i.w) : "0", i.exp); }).join("") +
       (r.bonus || []).map(function(i){ return line(i.label, i.ok, i.ok ? "bonus +" + fmtPts(i.w) : "no bonus"); }).join("") +
       (r.extra || []).map(function(i){ return i.loss ? line(i.label, false, "-" + fmtPts(i.loss)) : ""; }).join("") +
       (r.factor && r.factor < 1 ? '<div class="n"><span>✗ ' + esc(r.factorLabel || "Score reduced") + '</span><span>x ' + r.factor + '</span></div>' : "") + '</div>';
@@ -1363,7 +1444,7 @@ render();
     if (typeof r === "string" || (r && r.msg)) {
       var text = typeof r === "string" ? r : r.msg, cost = typeof r === "string" ? WRONG_COST : (r.cost || WRONG_COST);
       wrongs++; loss += cost;
-      var m = document.getElementById("exmsg"); if (m) m.innerHTML = '<div class="msg bad">' + esc(text) + ' (-' + cost + ')</div>';
+      var m = document.getElementById("exmsg"); if (m) m.innerHTML = '<div class="msg bad">' + esc(text) + ' (-' + fmtPts(cost) + ')</div>';
       if (t.undo) t.undo();
     }
   }
@@ -1385,6 +1466,11 @@ render();
     for (var i = res.length; i < TASKS.length; i++) res.push({ text: TASKS[i].text.replace(/<[^>]+>/g, " "), pts: 0, how: "skipped", hint: false, wrongs: 0, why: "", detail: "" });
     state = "idle"; finish();
   });
+  /* Request this lead / Create Lead stay blocked until the learner picks "Proceed with getting lead" */
+  window.ACQUI_GATE = function(){
+    var t = TASKS[n]; if (state !== "asking" || !t || !t.choice || flags.proceed) return true;
+    toast("First choose one of the options in the panel: proceed or not."); return false;
+  };
   intro();
 })();
 </script>

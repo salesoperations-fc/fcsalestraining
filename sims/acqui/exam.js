@@ -5,7 +5,7 @@
 (function(){
   /* An exam file can set window.ACQUI_EXAM = { title, intro, taskId, nextHref, nextLabel, tasks } before this file loads. Without it, this is the navigation check. */
   var CFG = window.ACQUI_EXAM || {};
-  var PASS = 80, HINT_COST = 0.5, WRONG_COST = 0.25;
+  var PASS = 80, HINT_COST = 0.5, WRONG_COST = 0.25, SCALE = CFG.scale || 1;   /* costs are fractions of one question; SCALE = points per question */
   var st = document.createElement("style");
   st.textContent =
     "#ex{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;width:780px;max-width:94vw;background:#fff;border-radius:16px;box-shadow:0 14px 50px rgba(0,0,0,.4);padding:16px 22px;z-index:1000;border-top:5px solid var(--teal)}" +
@@ -24,7 +24,7 @@
     "#ex .done b{font-size:18px;color:#1c7a40}#ex .done small{display:block;color:#456;font-size:12px;margin-top:2px}" +
     "#exdim{position:fixed;inset:0;background:rgba(10,25,28,.55);z-index:900;display:none}" +
     "#ex table{width:100%;border-collapse:collapse;margin:12px 0}#ex td{padding:8px 4px;font-size:14px;border-top:1px solid #eef2f2;vertical-align:top}" +
-    "body.has-xp #ex:not(.full){left:calc((100% - 340px) / 2)}" +
+    
     "#ex .bd{margin-top:8px;font-size:13px;font-weight:400;color:#345}#ex .bd div{display:flex;justify-content:space-between;gap:10px;padding:1px 0}#ex .bd .y{color:#1c7a40}#ex .bd .n{color:#b3243a}" +
     "#xp{position:fixed;top:0;right:0;bottom:0;width:340px;background:#fff;border-left:1px solid var(--line);z-index:960;display:none;flex-direction:column;padding-top:72px}" +
     "body.has-xp.xp-on #xp{display:flex}" +
@@ -34,11 +34,13 @@
     "#xp .xb{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:#fafbfb}" +
     "#xp .m{background:#fff;border:1px solid var(--line);border-radius:4px 14px 14px 14px;padding:9px 12px;font-size:13px;line-height:1.5;max-width:90%;align-self:flex-start}" +
     "#xp .m.me{align-self:flex-end;background:#e9f6f3;border-color:#bfe3db;border-radius:14px 4px 14px 14px}" +
-    "#xp .m.sys{align-self:center;background:none;border:0;color:#6b7c7a;font-size:11.5px;text-align:center;padding:0;max-width:96%}" +
+    "#xp .m.sys{align-self:stretch;background:#fff8e6;border:1px solid #f0dca8;color:#4a3b10;font-size:13px;line-height:1.55;text-align:left;padding:10px 12px;max-width:100%;border-radius:10px}" +
     "#xp .m.old{opacity:.55}#xp .m.new{animation:xpin .35s}@keyframes xpin{from{opacity:0;transform:translateY(8px)}}" +
     "#xp .att{display:flex;gap:10px;align-items:center;margin-top:8px;border:1px solid var(--line);border-radius:10px;padding:6px;cursor:pointer;background:#f6fbf6}#xp .att:hover{background:#eaf6ea}" +
     "#xp .th{width:54px;height:54px;border-radius:6px;background:#f4fbf4;border:1px solid #9fcfa6;display:grid;place-items:center;font-size:8px;color:#4a7a50;text-align:center;line-height:1.3;flex:none}" +
     "#xp .att small{display:block;color:var(--mut);font-size:11px}" +
+    "#xp #ex{position:static;transform:none;width:auto;max-width:none;border-radius:0;box-shadow:none;border-top:5px solid var(--teal);padding:12px 16px;max-height:58vh;overflow:auto;flex:none}#xp #ex .qt{font-size:15px;margin:4px 0 10px}#xp #ex .btn{font-size:13px;padding:7px 12px}" +
+    "#ex .copts{display:flex;flex-direction:column;gap:6px;margin-top:8px}#ex .copts .btn{text-align:left}#ex .copts .btn.on{background:var(--teal);color:#fff;border-color:var(--teal)}" +
     "#xp .xf{padding:10px 16px;border-top:1px solid var(--line);font-size:11.5px;color:var(--mut);line-height:1.5}" +
     "#ex .big{font-size:40px;font-weight:800;margin:6px 0}.ok{color:#1c7a40}.no{color:#b3243a}";
   document.head.appendChild(st);
@@ -46,6 +48,7 @@
   var box = document.createElement("div"); box.id = "ex"; document.body.appendChild(box);
 
   var panel = document.createElement("div"); panel.id = "xp"; document.body.appendChild(panel);
+  panel.innerHTML = '<div class="xh" id="xph"></div><div class="xb" id="xpb"></div><div id="xpq"></div>';
   var thread = { id: "", msgs: [] };
   /* chat: { thread, who:{name, sub}, msgs:[{from:"them"|"me"|"sys", text, att:{name, sub, cert:[kind,no,name,owner]}}] }.
      Messages from earlier questions of the same thread stay above, dimmed. */
@@ -55,11 +58,11 @@
     if (thread.id !== c.thread) { thread.id = c.thread; thread.msgs = []; }
     thread.msgs = thread.msgs.filter(function(m){ return m.q !== n; });
     c.msgs.forEach(function(m){ thread.msgs.push({ q: n, m: m }); });
-    panel.innerHTML = '<div class="xh"><div class="av">' + esc(c.who.av || c.who.name.split(" ").map(function(w){ return w[0]; }).join("").slice(0, 2)) + '</div><div><b>' + esc(c.who.name) + '</b><small>' + esc(c.who.sub || "") + '</small></div></div>' +
-      '<div class="xb" id="xpb">' + thread.msgs.map(function(x, i){
+    document.getElementById("xph").innerHTML = '<div class="av">' + esc(c.who.av || c.who.name.split(" ").map(function(w){ return w[0]; }).join("").slice(0, 2)) + '</div><div><b>' + esc(c.who.name) + '</b><small>' + esc(c.who.sub || "") + '</small></div>';
+    document.getElementById("xpb").innerHTML = thread.msgs.map(function(x, i){
         var m = x.m, att = m.att ? '<div class="att" data-i="' + i + '"><div class="th">' + (m.att.cert[0] === "dti" ? "DTI" : "SEC") + '<br>CERT</div><div><b style="font-size:12px">' + esc(m.att.name) + '</b><small>' + esc(m.att.sub || "Photo · tap to open") + '</small></div></div>' : "";
         return '<div class="m ' + (m.from === "me" ? "me" : m.from === "sys" ? "sys" : "") + (x.q < n ? " old" : " new") + '">' + (m.text ? esc(m.text.replace(/\{ME\}/g, (AM_NAME || ME).split(" ")[0])) : "") + att + '</div>';
-      }).join("") + '</div><div class="xf">Read the messages, then do what you would really do in Acqui Service.</div>';
+      }).join("");
     panel.querySelectorAll(".att").forEach(function(a){ a.onclick = function(){ showCert.apply(null, thread.msgs[+a.getAttribute("data-i")].m.att.cert); }; });
     var xb = document.getElementById("xpb"); if (xb) xb.scrollTop = xb.scrollHeight;
   }
@@ -81,7 +84,7 @@
       hint: "Originations is the card icon in the menu.",
       check: function(ev){ return ev === "render" && location.hash.indexOf("#/originations") === 0; } },
     { type: "nav", text: "You want to see your Open BCLs. Where do you go?",
-      hint: "It is the last icon in the menu.",
+      hint: "It is the layers icon, below Referrers.",
       check: function(ev){ return ev === "render" && location.hash.indexOf("#/open-bcls") === 0; } },
     { type: "nav", text: "You want to see the history of the BCL status of Metro Courier Services. How do you check?",
       hint: "Open the lead, then look for the clock icon inside the BCL STATUS box.",
@@ -121,16 +124,17 @@
   var AM_NAME = "", n = 0, res = [], flags = {}, hintUsed = false, wrongs = 0, loss = 0, started = 0, state = "idle", picked = null;
 
   function esc(s){ return String(s).replace(/</g, "&lt;"); }
-  function fmtPts(x){ return (Math.round(x * 100) / 100).toString(); }
+  function fmtPts(x){ return (Math.round(x * SCALE * 100) / 100).toString(); }
   function pointsNow(raw){ return Math.max(0, (raw == null ? 1 : raw) - (hintUsed ? HINT_COST : 0) - loss); }
 
   function intro(){
     state = "idle"; dim.style.display = "block"; box.className = "full"; document.body.classList.remove("xp-on");
     box.innerHTML = '<div class="k">Practice check · not graded</div><h2>' + esc(CFG.title || "Find your way around Acqui Service") + '</h2>' +
       '<p style="font-size:15px;line-height:1.55;margin:8px 0 10px">' + (CFG.intro || ('You will get ' + TASKS.length + ' short situations, one at a time. Use the simulation behind this box to find the answer or the right place. Some questions ask you to type or pick what you find.')) + '</p>' +
-      '<p style="font-size:14px;line-height:1.55;margin:0 0 14px;color:#456">' + (CFG.scoring || ('Every question starts with 1 point. A hint costs ' + HINT_COST + ' point, and each wrong answer costs ' + WRONG_COST + '.')) + ' This is practice, so your score is not recorded as a grade. Aim for ' + PASS + '% or more.</p>' +
+      '<p style="font-size:14px;line-height:1.55;margin:0 0 14px;color:#456">' + (CFG.scoring || ('Every question starts with 1 point. A hint costs ' + fmtPts(HINT_COST) + ' point, and each wrong answer costs ' + fmtPts(WRONG_COST) + '.')) + ' This is practice, so your score is not recorded as a grade. Aim for ' + PASS + '% or more.</p>' +
       (CFG.askName ? '<div style="background:#f4f8f8;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0 0 14px"><div style="font-size:13px;line-height:1.5;color:#345;margin-bottom:8px"><b>Honor code.</b> I will answer this test on my own. I will not ask anyone for help, and I will not share the questions or answers.</div><label style="font-size:13px;font-weight:700">AM name: <input type="text" id="exname" placeholder="Type your name" autocomplete="off" style="margin-top:4px"></label><div style="font-size:11px;color:var(--mut);margin-top:4px">This is the name you will use in the Acqui Service simulation.</div></div>' : '') +
       '<div class="row"><span>' + (window.ACQUI_STANDALONE ? '' : '<a href="../dashboard.html" style="font-size:13px;color:var(--teal)">Back to Day 5</a> · <a href="' + NEXT_HREF + '" style="font-size:13px;color:var(--teal)">' + NEXT_LABEL + ' first</a>') + '</span><button class="btn dark" id="exgo">Start</button></div>';
+    document.body.appendChild(box);
     document.getElementById("exgo").onclick = function(){
       if (CFG.askName) {
         var nm = document.getElementById("exname").value.trim();
@@ -147,26 +151,61 @@
     var t = TASKS[n];
     if (t.setup) t.setup();
     drawPanel(t.chat);
+    if (t.chat) document.getElementById("xpq").appendChild(box); else document.body.appendChild(box);
     var answerUi = "";
     if (t.type === "input") answerUi = '<input type="text" id="exin" placeholder="' + esc(t.placeholder || "Type your answer") + '" autocomplete="off"><div id="exmsg"></div>';
     if (t.type === "mcq") answerUi = '<div id="exch">' + shuffle(t.choices).map(function(c){ return '<div class="opt2" data-c="' + esc(c) + '"><span>○</span> ' + esc(c) + '</div>'; }).join("") + '</div><div id="exmsg"></div>';
     if (t.type === "nav" || t.type === "act") answerUi = '<div id="exmsg"></div>';
     box.innerHTML = '<div class="bar"><i style="width:' + (n / TASKS.length * 100) + '%"></i></div><div class="k">Question ' + (n + 1) + ' of ' + TASKS.length + '</div>' +
       '<div class="qt">' + (t.html ? t.text : esc(t.text)) + '</div>' + answerUi + '<div id="exh"></div>' +
-      '<div class="row"><span style="display:flex;gap:8px">' + (t.noHint ? '' : '<button class="btn" id="exhint">Show hint (-' + HINT_COST + ')</button>') + ((t.type === "input" || t.type === "mcq") ? '<button class="btn dark" id="exsub">Submit</button>' : '') + (t.alt ? '<button class="btn dark" id="exalt">' + esc(t.alt.label) + '</button>' : '') + '</span><button class="btn" id="exskip">Skip (0 points)</button></div>';
+      (t.choice ? ((t.noHint ? '' : '<button class="btn" id="exhint" style="margin-top:8px">Show hint (-' + fmtPts(HINT_COST) + ')</button>') + '<div class="copts"><button class="btn" id="exproc">Proceed with getting lead</button><button class="btn" id="exstop">Do not proceed with getting lead</button><button class="btn" id="exskip2">Skip task (0 pts)</button><button class="btn dark" id="exdec" disabled style="text-align:center;opacity:.5">Submit</button></div>') : '<div class="row"><span style="display:flex;gap:8px">' + (t.noHint ? '' : '<button class="btn" id="exhint">Show hint (-' + fmtPts(HINT_COST) + ')</button>') + ((t.type === "input" || t.type === "mcq") ? '<button class="btn dark" id="exsub">Submit</button>' : '') + (t.alt ? '<button class="btn dark" id="exalt">' + esc(t.alt.label) + '</button>' : '') + '</span><button class="btn" id="exskip">Skip (0 points)</button></div>');
+    if (t.choice) {
+      var sel = "", decided = false, ids = ["exproc", "exstop", "exskip2"];
+      ids.forEach(function(id){ document.getElementById(id).onclick = function(){
+        if (decided) {   /* after Proceed is submitted, Skip is still possible, with a confirm */
+          if (id === "exskip2" && !document.getElementById("exconf")) {
+            var c = document.createElement("div"); c.id = "exconf";
+            c.style.cssText = "margin-top:8px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.25);padding:10px 14px;font-size:13px";
+            c.innerHTML = '<div style="margin-bottom:8px"><b>Skip this question?</b><br>You will get 0 points for it.</div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" id="exback">Go back</button><button class="btn dark" id="exsure">Yes, skip</button></div>';
+            box.appendChild(c);
+            document.getElementById("exback").onclick = function(){ c.remove(); };
+            document.getElementById("exsure").onclick = function(){ finishQ(0, "skipped"); };
+          }
+          return;
+        }
+        sel = id;
+        ids.forEach(function(x){ document.getElementById(x).classList.toggle("on", x === id); });
+        var d = document.getElementById("exdec"); d.disabled = false; d.style.opacity = 1;
+        document.getElementById("exmsg").innerHTML = '<div class="msg" style="color:#456">Press Submit to confirm your decision.</div>';
+      }; });
+      document.getElementById("exdec").onclick = function(){
+        if (!sel || decided) return;
+        if (sel === "exskip2") { finishQ(0, "skipped"); return; }
+        if (sel === "exstop") {
+          if (t.proceed === false) {
+            if (!(flags.visited || {})[t.leadId]) { handle(t, "Look up the lead first before you decide."); return; }
+            finishQ(pointsNow(), hintUsed ? "hint" : "ok");
+          } else finishQ(0, "wrong", "You could have gone ahead with this one. Always search the lead first, then decide.");
+          return;
+        }
+        decided = true; flags.proceed = true;
+        ["exproc", "exstop"].forEach(function(x){ document.getElementById(x).disabled = true; }); this.style.display = "none";
+        document.getElementById("exmsg").innerHTML = '<div class="msg" style="color:#1c7a40">Decision submitted. Now do it in Acqui Service.</div>';
+      };
+    }
     if (t.alt) document.getElementById("exalt").onclick = function(){ handle(t, t.alt.check({ flags: flags })); };
     if (!t.noHint) document.getElementById("exhint").onclick = function(){
       if (!hintUsed) hintUsed = true;
       document.getElementById("exh").innerHTML = '<div class="hint">Hint: ' + esc(t.hint) + '</div>';
-      this.textContent = "Hint used (-" + HINT_COST + ")";
+      this.textContent = "Hint used (-" + fmtPts(HINT_COST) + ")";
     };
     document.getElementById("exskip").onclick = function(){
       /* mini confirm bubble: skipping is 0 points, so give them a way back */
       if (document.getElementById("exconf")) return;
       var c = document.createElement("div"); c.id = "exconf";
-      c.style.cssText = "position:absolute;right:22px;bottom:68px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.25);padding:10px 14px;font-size:13px;z-index:2";
+      c.style.cssText = "margin-top:8px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.25);padding:10px 14px;font-size:13px;z-index:2";
       c.innerHTML = '<div style="margin-bottom:8px"><b>Skip this question?</b><br>You will get 0 points for it.</div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" id="exback">Go back</button><button class="btn dark" id="exsure">Yes, skip</button></div>';
-      box.style.position = "fixed"; box.appendChild(c);
+      box.appendChild(c);
       document.getElementById("exback").onclick = function(){ c.remove(); };
       document.getElementById("exsure").onclick = function(){ finishQ(0, "skipped"); };
     };
@@ -191,7 +230,7 @@
     if (!val) { msg.innerHTML = '<div class="msg bad">Please give an answer first.</div>'; return; }
     var ok = t.answer().some(function(a){ return norm(a) === norm(val); });
     if (ok) { finishQ(pointsNow(), hintUsed ? "hint" : "ok"); }
-    else { wrongs++; msg.innerHTML = '<div class="msg bad">Not quite. Check the simulation and try again. (-' + WRONG_COST + ')</div>'; }
+    else { wrongs++; msg.innerHTML = '<div class="msg bad">Not quite. Check the simulation and try again. (-' + fmtPts(WRONG_COST) + ')</div>'; }
   }
 
   /* a question is finished: show the green "Done!" strip and wait for the learner to continue */
@@ -200,7 +239,7 @@
     state = "done";
     res.push({ text: TASKS[n].text.replace(/<[^>]+>/g, " "), pts: pts, how: how, hint: hintUsed, wrongs: wrongs, why: why || "", detail: detail || "" });
     var last = n === TASKS.length - 1;
-    var note = how === "skipped" ? "Skipped" : how === "wrong" ? why : how === "graded" ? fmtPts(pts) + " / 1 point" + (hintUsed || wrongs ? " (" + [hintUsed ? "hint -" + HINT_COST : "", wrongs ? wrongs + " wrong -" + fmtPts(loss) : ""].filter(Boolean).join(", ") + ")" : "") : fmtPts(pts) + (pts === 1 ? " point" : " points") + (hintUsed || wrongs ? " (" + [hintUsed ? "hint -" + HINT_COST : "", wrongs ? wrongs + " wrong -" + fmtPts(loss) : ""].filter(Boolean).join(", ") + ")" : "");
+    var note = how === "skipped" ? "Skipped" : how === "wrong" ? why : how === "graded" ? fmtPts(pts) + " / " + SCALE + " points" + (hintUsed || wrongs ? " (" + [hintUsed ? "hint -" + fmtPts(HINT_COST) : "", wrongs ? wrongs + " wrong -" + fmtPts(loss) : ""].filter(Boolean).join(", ") + ")" : "") : fmtPts(pts) + (fmtPts(pts) === "1" ? " point" : " points") + (hintUsed || wrongs ? " (" + [hintUsed ? "hint -" + fmtPts(HINT_COST) : "", wrongs ? wrongs + " wrong -" + fmtPts(loss) : ""].filter(Boolean).join(", ") + ")" : "");
     box.innerHTML = '<div class="bar"><i style="width:' + ((n + 1) / TASKS.length * 100) + '%"></i></div><div class="k">Question ' + (n + 1) + ' of ' + TASKS.length + '</div>' +
       '<div class="qt" style="font-size:15px;color:#456">' + (TASKS[n].html ? TASKS[n].text : esc(TASKS[n].text)) + '</div>' +
       '<div class="done"' + (how === "wrong" ? ' style="background:#fde8ea;border-color:#e5a3ad"' : '') + '><div><b' + (how === "wrong" ? ' style="color:#b3243a"' : '') + '>' + (how === "skipped" ? "Skipped" : how === "wrong" ? "✗ Not correct" : how === "graded" ? (pts >= 0.8 ? "✓ Done!" : pts >= 0.5 ? "Done. Some parts were missed" : "Done. Most parts were missed") : "✓ Done!") + '</b><small>' + note + '</small>' + (detail || "") + '</div><button class="btn dark" id="exnext">' + (last ? "See my result" : "Next question →") + '</button></div>';
@@ -209,10 +248,10 @@
 
   function finish(){
     state = "idle";
-    var total = res.reduce(function(a, r){ return a + r.pts; }, 0), pct = Math.round(total / TASKS.length * 100), pass = pct >= PASS;
+    var total = res.reduce(function(a, r){ return a + r.pts; }, 0), capped = Math.min(total, TASKS.length), pct = Math.round(capped / TASKS.length * 100), pass = pct >= PASS;
     var secs = Math.round((Date.now() - started) / 1000);
-    box.className = "full"; dim.style.display = "block";
-    box.innerHTML = '<div class="k">Practice check · result' + (AM_NAME ? ' · ' + esc(AM_NAME) : '') + '</div><div class="big ' + (pass ? "ok" : "no") + '">' + pct + '%</div><div style="font-size:16px;font-weight:600">' + (pass ? "Passed" : "Not yet. Review the tour and try again.") + ' (' + fmtPts(total) + ' / ' + TASKS.length + ' points, ' + Math.floor(secs / 60) + 'm ' + (secs % 60) + 's)</div>' +
+    box.className = "full"; dim.style.display = "block"; document.body.appendChild(box);
+    box.innerHTML = '<div class="k">Practice check · result' + (AM_NAME ? ' · ' + esc(AM_NAME) : '') + '</div><div class="big ' + (pass ? "ok" : "no") + '">' + pct + '%</div><div style="font-size:16px;font-weight:600">' + (pass ? "Passed" : "Not yet. Review the tour and try again.") + ' (' + fmtPts(capped) + ' / ' + (TASKS.length * SCALE) + ' points' + (total > TASKS.length ? ', bonus included, capped at ' + (TASKS.length * SCALE) : '') + ', ' + Math.floor(secs / 60) + 'm ' + (secs % 60) + 's)</div>' +
       '<table>' + res.map(function(r){
         var why = r.how === "skipped" ? "skipped" : r.how === "wrong" ? "wrong" : r.how === "graded" ? (r.pts < 1 ? "partly right" : "") : [r.hint ? "hint" : "", r.wrongs ? r.wrongs + " wrong" : ""].filter(Boolean).join(", ");
         var bad = r.how === "skipped" || r.how === "wrong" || (r.how === "graded" && r.pts < 0.5);
@@ -221,17 +260,17 @@
     document.getElementById("exagain").onclick = intro;
     try { if (window.LMS && LMS.user && LMS.user() && !(LMS.preview && LMS.preview())) LMS.complete(TASK_ID); } catch (err) {}   /* practice: ticks the Day 5 task, no grade saved */
     /* If this ever becomes graded: LMS.saveResult({ id:"d5-nav-check", label:"Acqui navigation check", score:total, max:TASKS.length, pct:pct, kind:"lms", passing:PASS }) */
-    window.ACQUI_EXAM_RESULT = { name: AM_NAME, score: total, max: TASKS.length, pct: pct, passed: pass, seconds: secs, tasks: res };
+    window.ACQUI_EXAM_RESULT = { name: AM_NAME, score: capped, max: TASKS.length, pct: pct, passed: pass, seconds: secs, tasks: res };
   }
 
   /* a graded answer: r.items = [{label, w, ok}] (the weights add up to 1), r.bonus = same, r.extra = [{label, loss}], r.factor = multiplier (e.g. 0.5) */
   function gradeIt(t, r){
     var sum = function(a, f){ return (a || []).reduce(function(x, i){ return x + f(i); }, 0); };
-    var raw = Math.min(1, sum(r.items, function(i){ return i.ok ? i.w : 0; }) + sum(r.bonus, function(i){ return i.ok ? i.w : 0; })) - sum(r.extra, function(i){ return i.loss; });
+    var raw = sum(r.items, function(i){ return i.ok ? i.w : 0; }) + sum(r.bonus, function(i){ return i.ok ? i.w : 0; }) - sum(r.extra, function(i){ return i.loss; });
     raw = Math.max(0, raw) * (r.factor || 1);
-    var line = function(label, ok, val){ return '<div class="' + (ok ? "y" : "n") + '"><span>' + (ok ? "✓ " : "✗ ") + esc(label) + '</span><span>' + val + '</span></div>'; };
+    var line = function(label, ok, val, exp){ return '<div class="' + (ok ? "y" : "n") + '"><span>' + (ok ? "✓ " : "✗ ") + esc(label) + '</span><span>' + (!ok && exp ? "Expected: " + esc(exp) + " · " : "") + val + '</span></div>'; };
     var d = '<div class="bd">' +
-      r.items.map(function(i){ return line(i.label, i.ok, i.ok ? "+" + fmtPts(i.w) : "0"); }).join("") +
+      r.items.map(function(i){ return line(i.label, i.ok, i.ok ? "+" + fmtPts(i.w) : "0", i.exp); }).join("") +
       (r.bonus || []).map(function(i){ return line(i.label, i.ok, i.ok ? "bonus +" + fmtPts(i.w) : "no bonus"); }).join("") +
       (r.extra || []).map(function(i){ return i.loss ? line(i.label, false, "-" + fmtPts(i.loss)) : ""; }).join("") +
       (r.factor && r.factor < 1 ? '<div class="n"><span>✗ ' + esc(r.factorLabel || "Score reduced") + '</span><span>x ' + r.factor + '</span></div>' : "") + '</div>';
@@ -247,7 +286,7 @@
     if (typeof r === "string" || (r && r.msg)) {
       var text = typeof r === "string" ? r : r.msg, cost = typeof r === "string" ? WRONG_COST : (r.cost || WRONG_COST);
       wrongs++; loss += cost;
-      var m = document.getElementById("exmsg"); if (m) m.innerHTML = '<div class="msg bad">' + esc(text) + ' (-' + cost + ')</div>';
+      var m = document.getElementById("exmsg"); if (m) m.innerHTML = '<div class="msg bad">' + esc(text) + ' (-' + fmtPts(cost) + ')</div>';
       if (t.undo) t.undo();
     }
   }
@@ -269,5 +308,10 @@
     for (var i = res.length; i < TASKS.length; i++) res.push({ text: TASKS[i].text.replace(/<[^>]+>/g, " "), pts: 0, how: "skipped", hint: false, wrongs: 0, why: "", detail: "" });
     state = "idle"; finish();
   });
+  /* Request this lead / Create Lead stay blocked until the learner picks "Proceed with getting lead" */
+  window.ACQUI_GATE = function(){
+    var t = TASKS[n]; if (state !== "asking" || !t || !t.choice || flags.proceed) return true;
+    toast("First choose one of the options in the panel: proceed or not."); return false;
+  };
   intro();
 })();

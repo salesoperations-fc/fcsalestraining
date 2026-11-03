@@ -2,10 +2,10 @@
    - Overview steps leave the screen lit. Detail steps gray out everything except the part being explained.
    - "Your turn" steps wait for the learner to click the highlighted spot.
    - "Look around" steps unlock the screen so the learner can explore before moving on.
-   Narrator: Reyster (fixed). */
+   Narrator: set on the Settings page (default Reyster). */
 (function(){
-  /* The narrator is always Reyster (not editable). */
-  var TRAINER = "Reyster";
+  /* The narrator's name comes from the Settings page (admins edit it); Reyster until set. Read each time a step shows, so a freshly loaded value is used. */
+  function trainer(){ try { return (window.LMS && LMS.setting && LMS.setting("trainer", "Reyster")) || "Reyster"; } catch (e) { return "Reyster"; } }
 
   var st = document.createElement("style");
   st.textContent =
@@ -40,7 +40,7 @@
   var DEFAULT_STEPS = [
     { r:"home", dim:"light", say:"Hi, I'm {T}! This is Acqui Service, our CRM. It's where you see your leads, your referrers and your originations. I'll show you around in a few minutes. Click Next to start." },
     { r:"home", menu:"closed", target:"#sbt", click:true, circle:true, force:true, dim:"none", prefer:["tl","bl"], say:"On your left is the menu bar. It's a small one, so the names are hidden.", hint:"Click the arrow at the top of the menu to make it wider." },
-    { r:"home", menu:"open", good:true, target:"#side", dim:"none", force:true, say:"Good job! Now you can see the names: Home, Leads, Originations, Referrers and Open BCLs. You can open or close this menu any time." },
+    { r:"home", menu:"open", good:true, target:"#side", dim:"none", force:true, say:"Good job! Now you can see the names: Home, Leads, Originations, Referrers, Open BCLs and My Profile. You can open or close this menu any time." },
     { r:"home", menu:"open", target:"#sbt", click:true, circle:true, force:true, dim:"none", prefer:["tl","bl"], say:"Let's make it small again so we have more room.", hint:"Click the arrow again." },
     { r:"home", good:true, dim:"none", say:"Good job! Now let's go through each tab, one by one. The screen you're on right now is Home. It's the first screen you see when you open Acqui Service. Click Next." },
     { r:"home", target:"#tasks", dim:"strong", say:"This is the Tasks section. The calls and follow-ups you need to do on your leads are here. You can view them for today, all pending, or by priority." },
@@ -112,7 +112,7 @@
     if (s.search && typeof doSearch === "function") doSearch();
     var t = s.target ? document.querySelector(s.target) : null;
     if (s.target && !t && (tries || 0) < 15) { applyTimer = setTimeout(function(){ apply((tries || 0) + 1); }, 80); return; }
-    var say = s.say.replace(/\{T\}/g, TRAINER);
+    var say = s.say.replace(/\{T\}/g, trainer());
     var prev = '<button class="btn" id="tb">Back</button>';
     var nav;
     var inter = s.click || s.until;
@@ -120,7 +120,7 @@
     else if (last) nav = '<small>' + (i + 1) + ' / ' + STEPS.length + '</small><span style="display:flex;gap:8px">' + prev + '<button class="btn" id="trs">Restart</button>' + (window.ACQUI_STANDALONE ? '' : '<a class="btn" href="../dashboard.html" style="text-decoration:none">Back to Day 5</a><a class="btn dark" href="' + META.nextHref + '" style="text-decoration:none">' + META.nextLabel + '</a>') + '</span>';
     else nav = '<small>' + (i + 1) + ' / ' + STEPS.length + '</small><span style="display:flex;gap:8px">' + (i ? prev : '') + '<button class="btn dark" id="tn">Next</button></span>';
     card.innerHTML = (s.good ? '<div class="good">✓ Good job!</div>' : '') +
-      '<div class="who"><div class="av">' + TRAINER.charAt(0).toUpperCase() + '</div><div><b>' + TRAINER.replace(/</g, "&lt;") + '</b><small>Your trainer</small></div></div>' +
+      '<div class="who"><div class="av">' + trainer().charAt(0).toUpperCase() + '</div><div><b>' + trainer().replace(/</g, "&lt;") + '</b><small>Your trainer</small></div></div>' +
       '<div class="txt">' + say.replace(/^Good job! /, "").replace(/</g, "&lt;") + '</div>' + (inter ? '<div class="try">Your turn: ' + s.hint + '</div><div id="tmsg" style="color:#b3243a;font-weight:600;font-size:14px;margin:-4px 0 10px"></div>' : '') + '<div class="nav">' + nav + '</div>';
     card.style.display = "block";
     document.body.classList.toggle("sp-on", !!s.panel);

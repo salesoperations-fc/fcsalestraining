@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settings | AM Onboarding Hub</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 2a10 10 0 0 1 10 10h-7a3 3 0 0 0-3-3z' fill='%23F0605D'/><path d='M22 12a10 10 0 0 1-10 10v-7a3 3 0 0 0 3-3z' fill='%232BB3A8'/><path d='M12 22A10 10 0 0 1 2 12h7a3 3 0 0 0 3 3z' fill='%23F5B83D'/><path d='M2 12A10 10 0 0 1 12 2v7a3 3 0 0 0-3 3z' fill='%238FD3E0'/></svg>">
+<link rel="stylesheet" href="shared/theme.css">
+<script src="shared/lms.js"></script>
+<script src="shared/shell.js"></script>
+<style>
+  .lead{margin:8px 0 22px;color:var(--ink-2);font-size:15px;max-width:640px}
+  .card{border:1px solid var(--line);border-radius:14px;padding:20px;background:#fff;max-width:560px}
+  .card h3{font-size:16px;margin-bottom:4px}
+  .card p{margin:0 0 14px;font-size:14px;color:var(--ink-2)}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .row input{flex:1;min-width:200px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit}
+  #msg{margin-top:12px;font-size:14px;min-height:20px}
+</style>
+</head>
+<body>
+<div id="strip"></div>
+<div class="shell">
+  <aside class="side" id="side"></aside>
+  <main class="main"><div class="wrap" id="app"></div></main>
+</div>
+<script>
+if (LMS.requireSignIn()) {
+  renderSide("settings");
+  const app = document.getElementById("app");
+  if (!LMS.isAdmin()) app.innerHTML = `<h1>Settings</h1><p class="lead">This page is for trainers only.</p>`;
+  else {
+    app.innerHTML = `<h1>Settings</h1><p class="lead">Changes apply to everyone the next time they open the page.</p>
+      <div class="card"><h3>Trainer name</h3><p>The name that narrates the Acqui Service tour and lectures (the "Your trainer" card).</p>
+        <div class="row"><input id="trainer" maxlength="40" placeholder="Reyster"><button class="btn primary" id="save">Save</button></div>
+        <div id="msg" class="muted"></div></div>`;
+    const inp = document.getElementById("trainer"), msg = document.getElementById("msg");
+    inp.value = LMS.setting("trainer", "Reyster");
+    LMS.settingsDone.then(s => { if (s && document.activeElement !== inp) inp.value = LMS.setting("trainer", "Reyster"); });
+    document.getElementById("save").onclick = async () => {
+      const v = inp.value.trim() || "Reyster";
+      msg.textContent = "Saving...";
+      const r = await LMS.setSetting("trainer", v);
+      msg.textContent = r && r.ok ? `Saved. The trainer is now ${v}.` : (r && r.error === "unknown-action" ? "The Apps Script hasn't been updated yet (deploy the new Code.gs)." : "Couldn't save. Try again in a moment.");
+      msg.style.color = r && r.ok ? "var(--green, #1a7f5a)" : "#b3243a";
+    };
+  }
+}
+</script>
+</body>
+</html>

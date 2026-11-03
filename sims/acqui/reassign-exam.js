@@ -14,7 +14,10 @@
   function clearPending(id){ if (typeof pending !== "undefined") delete pending[id]; }
   /* trying to Create Lead for a lead that already exists is blocked in the app: a deduction (question 5 halves the points instead) */
   function dupMsg(ev){ return ev === "lead-create-blocked" ? { msg: "That lead already exists. You can't create it again. Request the lead instead.", cost: 0.5 } : null; }
-  var notesOk = function(q){ return String(q.notes || "").trim().length >= 10; };
+  /* Riverside Lumber Trading is a finished account: Onboarded, fully verified BCL, BA approved, with revenue estimate and limits */
+  function onboarded(){ var l = L("184422"); l.status = "Onboarded"; l.risk = "Fully Verified with Future Revenue"; l.ba = "Approved"; l.rev = 1200000; l.bclAmt = 500000; l.clo = 500000; clearPending("184422"); }
+  var notesOk = function(q){ return String(q.notes || "").trim().length > 0; };
+  var phoneN = function(x){ return String(x || "").replace(/\D/g, "").replace(/^(0|63)/, ""); };   /* 0917... = 917... = +63917... */
   var isFake = function(reg){ return !REGISTRY.some(function(r){ return norm(r.no) === norm(reg); }); };
 
   /* request this lead: weights for the fields, notes = bonus */
@@ -26,14 +29,14 @@
       var q = d.req;
       if (d.id !== id) return "That request is for a different lead. The lead you need is " + name + ".";
       var items = referral ? [
-        { label: "Approver chosen", w: 0.1, ok: !!q.approver },
-        { label: "Channel (Last Touch): Referrals", w: 0.3, ok: q.channel === "Referrals" },
-        { label: "Referral Channel: Drip", w: 0.2, ok: q.rc === "Drip" },
-        { label: "Referrer: Mia Santos", w: 0.2, ok: !!q.ref && q.ref.k === "Mia Santos" },
-        { label: "FC Referrer: you", w: 0.2, ok: !!q.fc && /^1368/.test(q.fc.k) }
+        { label: "Approver chosen", w: 0.1, ok: !!q.approver, exp: "any approver" },
+        { label: "Channel (Last Touch)", w: 0.3, ok: q.channel === "Referrals", exp: "Referrals" },
+        { label: "Referral Channel", w: 0.2, ok: q.rc === "Drip", exp: "Drip" },
+        { label: "Referrer", w: 0.2, ok: !!q.ref && q.ref.k === "Mia Santos", exp: "Mia Santos" },
+        { label: "FC Referrer", w: 0.2, ok: !!q.fc && /^1368/.test(q.fc.k), exp: "you" }
       ] : [
-        { label: "Approver chosen", w: 0.2, ok: !!q.approver },
-        { label: "Channel (Last Touch): KAM - Self Generated Leads", w: 0.8, ok: q.channel === "KAM - Self Generated Leads" }
+        { label: "Approver chosen", w: 0.2, ok: !!q.approver, exp: "any approver" },
+        { label: "Channel (Last Touch)", w: 0.8, ok: q.channel === "KAM - Self Generated Leads", exp: "KAM - Self Generated Leads" }
       ];
       var r = { items: items, bonus: [{ label: "Added a note for the approver", w: 0.1, ok: notesOk(q) }] };
       if (c.flags.dup) { r.factor = 0.5; r.factorLabel = "You created a lead that already exists. You should have requested it"; }
@@ -41,7 +44,7 @@
     };
   }
 
-  /* a few companies, picked at random: SEC (corporation) or DTI (sole proprietorship). Question 3 gets the certificate in the camera roll, question 4 only the name. */
+  /* a few companies, picked at random: SEC (corporation) or DTI (sole proprietorship). Question 3 gets the certificate in the camera roll, question 4 (always Hanna's Squishy Store) only the name. */
   var POOL = [
     { kind: "sec", name: "Golden Harbor Trading Corp.", no: "CS202605227", owner: "Marco Villanueva", email: "marco.villanueva@example.com", phone: "09181234567" },
     { kind: "sec", name: "Bluewave Cold Storage Inc.", no: "CS202604118", owner: "Lia Fernandez", email: "lia.fernandez@example.com", phone: "09175551212" },
@@ -57,27 +60,28 @@
     sec("BLUEWAVE COLD STORAGE AND LOGISTICS INC.", "CS202309912"); sec("BLUE WAVE COLD STORAGE CORP.", "CS202111204");
     dti("MANG TONYO HARDWARE SUPPLY", "7003399", "TONY REYES"); dti("HANNA'S SQUISHY SHOP", "7004400", "HANNA JO");
   })();
-  var pick2 = POOL.slice().sort(function(){ return Math.random() - 0.5; }), A = pick2[0], B = pick2[1];
+  var B = POOL[POOL.length - 1];   /* Hanna's Squishy Store is always the referral lead (question 4) */
+  var A = POOL.slice(0, -1).sort(function(){ return Math.random() - 0.5; })[0];
   var certOf = function(c){ return c.kind === "sec" ? ["sec", c.no, c.name.toUpperCase()] : ["dti", c.no, c.name.toUpperCase(), c.owner.toUpperCase()]; };
 
   /* create lead: weights for the fields. A wrong or fake registration number still goes through; it just loses points (fake: -0.25 more) */
   function create(c, ch, ref, w){
+    var sec = c.kind === "sec";
     return function(ev, d){
       if (ev === "lead-create-blocked") return dupMsg(ev);
       if (ev !== "lead-created") return false;
-      var sec = c.kind === "sec";
-      var items = [{ label: "Channel: " + ch, w: w.ch, ok: d.ch === ch }];
+      var items = [{ label: "Channel", w: w.ch, ok: d.ch === ch, exp: ch }];
       if (ref) items.push(
-        { label: "Referral Channel: Drip", w: w.rc, ok: d.rc === "Drip" },
-        { label: "Referrer: Mia Santos", w: w.ref, ok: d.ref === "Mia Santos" },
-        { label: "FC Referrer: you", w: w.fc, ok: /^1368/.test(d.fc || "") });
+        { label: "Referral Channel", w: w.rc, ok: d.rc === "Drip", exp: "Drip" },
+        { label: "Referrer", w: w.ref, ok: d.ref === "Mia Santos", exp: "Mia Santos" },
+        { label: "FC Referrer", w: w.fc, ok: /^1368/.test(d.fc || ""), exp: "you" });
       items.push(
-        { label: "Company name: " + c.name, w: w.name, ok: norm(d.name) === norm(c.name) },
-        { label: "Company type: " + (sec ? "Corporation" : "Sole Proprietorship"), w: w.type, ok: d.type === (sec ? "Corporation" : "Sole Proprietorship") },
-        { label: (sec ? "SEC Registration No." : "DTI Business Name No.") + ": " + c.no, w: w.reg, ok: norm(d.reg) === norm(c.no) },
-        { label: "Contact name: " + c.owner, w: w.cn, ok: norm(d.fn + d.ln) === norm(c.owner) },
-        { label: "Contact email", w: w.em, ok: norm(d.em) === norm(c.email) },
-        { label: "Contact phone", w: w.ph, ok: norm(d.ph) === norm(c.phone) });
+        { label: "Company name", w: w.name, ok: norm(d.name) === norm(c.name), exp: c.name },
+        { label: "Company type", w: w.type, ok: d.type === (sec ? "Corporation" : "Sole Proprietorship"), exp: sec ? "Corporation" : "Sole Proprietorship" },
+        { label: sec ? "SEC Registration No." : "DTI Business Name No.", w: w.reg, ok: norm(d.reg) === norm(c.no), exp: c.no },
+        { label: "Contact name", w: w.cn, ok: norm(d.fn + d.ln) === norm(c.owner), exp: c.owner },
+        { label: "Contact email", w: w.em, ok: norm(d.em) === norm(c.email), exp: c.email },
+        { label: "Contact phone", w: w.ph, ok: phoneN(d.ph) === phoneN(c.phone) && phoneN(d.ph) !== "", exp: c.phone });
       var r = { items: items };
       if (norm(d.reg) !== norm(c.no) && isFake(d.reg)) r.extra = [{ label: "You typed a registration number that doesn't exist (fake number)", loss: 0.25 }];
       return r;
@@ -85,49 +89,42 @@
   }
 
   window.ACQUI_EXAM = {
-    askName: true,
+    askName: true, scale: 10,
     title: "Lead reassignment and creation in Acqui Service",
     taskId: "d5-reassign-practice",
     nextHref: "acqui-reassign-lecture.html", nextLabel: "Review the lecture",
     intro: "You will get 5 situations. Read the messages on the right, then do what you would really do in Acqui Service. Use the three tabs at the top: Acqui Service, the SEC website and the DTI website.",
-    scoring: "Every question is worth 1 point. You get points for each part you do right: the channel, the referrer, the registration number, the contact details... A note for your approver earns a small bonus. A fake registration number is a deduction. A hint costs 0.5 point. You can use Finish test any time. Questions you did not answer get 0.",
+    scoring: "Every question is worth 10 points, 50 in total. You get points for each part you do right: the channel, the referrer, the registration number, the contact details... Adding a note for the approver earns +1 bonus (the total is capped at 50). A fake registration number is a deduction. A hint costs 5 points. You can use Finish test any time. Questions you did not answer get 0.",
     tasks: [
-      { type: "act", html: true,
-        text: "Ben is a friend of yours. Do the right thing for <b>Riverside Lumber Trading</b>.",
-        chat: { thread: "ben", who: { name: "Ben Aquino", sub: "Owner, Riverside Lumber Trading" }, msgs: [
-          { from: "sys", text: "You know Ben personally, so this is a self-generated lead. You checked Acqui Service: his business is already there." },
-          { from: "them", text: "Hi {ME}! It's Ben. Thanks again for lunch last week 🙂" },
-          { from: "them", text: "Like I said, we need a business loan for Riverside Lumber Trading. Can you handle it for us?" } ] },
+      { type: "act", html: true, choice: true, proceed: false, leadId: "184422",
+        text: "Decide what to do about <b>Riverside Lumber Trading</b>",
+        chat: { thread: "s1", who: { name: "Your situation", sub: "Self-generated lead", av: "!" }, msgs: [
+          { from: "sys", text: "You know a business owner personally: Ben Aquino, owner of Riverside Lumber Trading. They need a business loan and asked if you can handle it." } ] },
         hint: "Search the lead and check its status. Leads in Risk Review, Onboarded, Unserviceable or Utilized cannot be requested.",
-        setup: function(){ L("184422").status = "Onboarded"; clearPending("184422"); },
-        reset: function(){ L("184422").status = "Onboarded"; clearPending("184422"); },
-        alt: { label: "I won't request this lead", check: function(c){ return (c.flags.visited || {})["184422"] ? true : "Look up the lead first before you decide."; } },
+        setup: function(){ onboarded(); }, reset: function(){ onboarded(); },
         grade: function(ev, d){ if (dupMsg(ev)) return dupMsg(ev); return ev === "request-sent" && d.id === "184422" ? { fatal: "Riverside Lumber Trading is already Onboarded. Leads in Risk Review, Onboarded, Unserviceable or Utilized cannot be requested. Always check the status first." } : false; },
         undo: function(){ unrequest(this._ev); } },
 
-      { type: "act", html: true,
-        text: "Gina's family has been your friend for years. Make <b>Greenfield Foods Corp.</b> yours.",
-        chat: { thread: "gina", who: { name: "Gina Flores", sub: "Owner, Greenfield Foods Corp." }, msgs: [
-          { from: "sys", text: "Gina's family has been your friend for years, so this is a self-generated lead. You checked Acqui Service: the business is already there and nobody is working on it." },
-          { from: "them", text: "Hi {ME}! Dad told me to message you directly 😊" },
-          { from: "them", text: "We'd like to work with you on a loan for Greenfield Foods Corp." } ] },
+      { type: "act", html: true, choice: true, proceed: true, leadId: "263118",
+        text: "Decide what to do about <b>Greenfield Foods Corp.</b>",
+        chat: { thread: "s2", who: { name: "Your situation", sub: "Self-generated lead", av: "!" }, msgs: [
+          { from: "sys", text: "You know a business owner personally: Gina Flores, owner of Greenfield Foods Corp. Your families have been friends for years. They want to work with you on a loan." } ] },
         hint: "Search the lead, check the status, then use Request this lead. How did you get it? That's the Channel (Last Touch).",
         setup: function(){ clearPending("263118"); }, reset: function(){ clearPending("263118"); },
         grade: request("263118", "Greenfield Foods Corp.", false),
         undo: function(){ unrequest(this._ev); } },
 
-      { type: "act", html: true,
-        text: "<b>" + A.name + "</b> isn't in Acqui Service yet. Enroll the company as a new lead.",
-        chat: { thread: "owner3", who: { name: A.owner, sub: "Owner, " + A.name }, msgs: [
-          { from: "sys", text: "You met " + A.owner.split(" ")[0] + " at a business forum, so this is a self-generated lead. You took a photo of the " + (A.kind === "sec" ? "SEC" : "DTI") + " certificate. It's in your camera roll." },
-          { from: "them", text: "Great meeting you, {ME}! You can reach me at " + A.email + " or " + A.phone + "." },
-          { from: "me", text: "Thanks! Saving the certificate so I have it.", att: { name: "IMG_0412.jpg", sub: "Camera roll · tap to open", cert: certOf(A) } } ] },
+      { type: "act", html: true, choice: true, proceed: true, leadId: "",
+        text: "Decide what to do about <b>" + A.name + "</b>",
+        chat: { thread: "s3", who: { name: "Your situation", sub: "Self-generated lead", av: "!" }, msgs: [
+          { from: "sys", text: "You met a business owner at a forum and you know them personally: " + A.owner + ", owner of " + A.name + ". Email: " + A.email + ". Phone: " + A.phone + ". You took a photo of their " + (A.kind === "sec" ? "SEC" : "DTI") + " certificate. It's in your camera roll." },
+          { from: "me", text: "", att: { name: "IMG_0412.jpg", sub: "Camera roll · tap to open", cert: certOf(A) } } ] },
         hint: "Read the registration number in the photo (tap it in the chat). Pick the Company Type that matches the certificate.",
         reset: function(){ removeByName(A.name); },
         grade: create(A, "KAM Self Generated", false, { ch: 0.1, name: 0.1, type: 0.15, reg: 0.35, cn: 0.1, em: 0.1, ph: 0.1 }),
         undo: function(){ removeLead(this._ev); } },
 
-      { type: "act", html: true, noHint: true,
+      { type: "act", html: true, noHint: true, choice: true, proceed: true, leadId: "",
         text: "Take care of Mia's referral.",
         chat: { thread: "mia", who: { name: "Mia Santos", sub: "Your referrer · she refers a lot" }, msgs: [
           { from: "them", text: "Hi {ME}! Busy week, I've got a few friends who need financing 🙌" },
@@ -138,7 +135,7 @@
         grade: create(B, "Referral", true, { ch: 0.1, rc: 0.1, ref: 0.1, fc: 0.05, name: 0.1, type: 0.1, reg: 0.25, cn: 0.08, em: 0.06, ph: 0.06 }),
         undo: function(){ removeLead(this._ev); } },
 
-      { type: "act", html: true, noHint: true,
+      { type: "act", html: true, noHint: true, choice: true, proceed: true, leadId: "341907",
         text: "Take care of Mia's next referral.",
         chat: { thread: "mia", who: { name: "Mia Santos", sub: "Your referrer · she refers a lot" }, msgs: [
           { from: "me", text: "Got it Mia, I'll take care of " + B.owner.split(" ")[0] + "!" },

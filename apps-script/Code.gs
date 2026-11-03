@@ -28,7 +28,7 @@ const BATCHES = {                 // batch number (start date, MMDDYY) -> onboar
 // Who may open the Grades page (admins are allowed in automatically). Optional extra passcode: leave "" for none.
 const ADMIN_EMAILS = [
   "salesoperations@firstcircle.com", "nice.junsay@firstcircle.com", "hanna.jo@firstcircle.com",
-  "reyster.barron@firstcircle.com", "charles.allen@firstcircle.com", "alan.smyth@firstcircle.com"
+  "reyster.barron@firstcircle.com", "charles.allen@firstcircle.com", "alan.smyth@firstcircle.com", "michael.limandibhratha@firstcircle.com"
 ];
 const ADMIN_PASSCODE = "";
 
@@ -41,6 +41,9 @@ const GRADES_HEADER = ["Timestamp", "Email", "Name", "Batch", "Exam ID", "Attemp
 const PROGRESS_HEADER = ["Timestamp", "Email", "Name", "Batch", "Item ID"];
 // Exams that also get their own tab (in addition to the Grades row). Exam ID -> tab name.
 const EXAM_TABS = { "d1-exam-responsible-selling": "D1-1", "d4-exam-connect-sim": "D4-1" };
+// Site settings (e.g. the trainer name that narrates the Acqui Service tour). One row per setting; admins change them on the Settings page.
+const SETTINGS_SHEET = "Settings";
+const SETTINGS_HEADER = ["Key", "Value", "Updated", "By"];
 const EXAM_TAB_HEADER = ["Timestamp", "Email", "Name", "Batch", "Attempt", "Score", "Max", "Percent", "Passed", "Details"];
 // Exams whose tab needs a different header (default is EXAM_TAB_HEADER). The Connect sim also records the step-by-step breakdown and trainer notes.
 const EXAM_TAB_HEADERS = { "d4-exam-connect-sim": ["Timestamp", "Email", "Name", "Batch", "Attempt", "Score", "Max", "Percent", "Passed", "Details", "Breakdown", "Notes"] };
@@ -101,6 +104,22 @@ function doPost(e) {
       if (ADMIN_EMAILS.indexOf(user.email) === -1) throw new Error("not-admin");
       if (ADMIN_PASSCODE && p.passcode !== ADMIN_PASSCODE) throw new Error("passcode-required");
       return json_({ ok: true, grades: readRows_(GRADES_SHEET), progress: readRows_(PROGRESS_SHEET) });
+    }
+    if (req.action === "getSettings") {       // any allowed person (the tour reads the trainer name)
+      const out = {};
+      readRows_(SETTINGS_SHEET).forEach(function (r) { if (r.Key) out[r.Key] = r.Value; });
+      return json_({ ok: true, settings: out });
+    }
+    if (req.action === "setSetting") {
+      if (ADMIN_EMAILS.indexOf(user.email) === -1) throw new Error("not-admin");
+      const key = String(p.key || "").slice(0, 60), val = String(p.value == null ? "" : p.value).slice(0, 200);
+      if (!key) throw new Error("no-key");
+      const sh = sheet_(SETTINGS_SHEET, SETTINGS_HEADER), vals = sh.getDataRange().getValues();
+      for (let i = 1; i < vals.length; i++) {
+        if (vals[i][0] === key) { sh.getRange(i + 1, 2, 1, 3).setValues([[val, new Date(), user.email]]); return json_({ ok: true }); }
+      }
+      appendByHeader_(sh, { "Key": key, "Value": val, "Updated": new Date(), "By": user.email });
+      return json_({ ok: true });
     }
     return json_({ ok: false, error: "unknown-action" });
   } catch (err) {

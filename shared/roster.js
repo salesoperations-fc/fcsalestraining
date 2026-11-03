@@ -14,7 +14,8 @@ window.LMS_ROSTER = {
     "hanna.jo@firstcircle.com",
     "reyster.barron@firstcircle.com",
     "charles.allen@firstcircle.com",
-    "alan.smyth@firstcircle.com"
+    "alan.smyth@firstcircle.com",
+    "michael.limandibhratha@firstcircle.com"
   ],
   // Onboardees grouped by batch. Batch number = start date as MMDDYY (e.g. 101926 = Oct 19, 2026).
   batches: {

@@ -225,6 +225,11 @@ window.LMS_CONFIG = {
     /** Signed-in person's own grades (rows of the Grades tab for their email). */
     myGrades(){ return send("myGrades", {}, { retry:true }); },
 
+    /** Site settings kept in the Sheet's Settings tab (e.g. "trainer"). setting() reads the cached copy; loadSettings() refreshes it. */
+    setting(key, fallback){ const v = (read("settings", {}) || {})[key]; return v ? v : fallback; },
+    loadSettings(){ return send("getSettings", {}, { retry:true }).then(res => { if (res && res.ok) write("settings", res.settings || {}); return res && res.ok ? res.settings : null; }); },
+    setSetting(key, value){ return send("setSetting", { key, value }).then(res => { if (res && res.ok) write("settings", { ...(read("settings", {}) || {}), [key]: value }); return res; }); },
+
     adminData(passcode){ return send("adminData", { passcode }, { retry:true }); },
 
     signOut(){
@@ -248,6 +253,7 @@ window.LMS_CONFIG = {
     b.textContent = "Preview mode: nothing here is recorded. You still see your score at the end.";
     document.body.prepend(b);
   });
+  LMS.settingsDone = currentUser() ? LMS.loadSettings() : Promise.resolve(null);   // trainer name etc. (cached for next time)
   LMS.syncDone = sync();    // resolves (true if anything changed) whenever the Sheet answers, however long it takes
   LMS.ready = Promise.race([LMS.syncDone, new Promise(r => setTimeout(() => r(false), 8000))]);   // pages that must wait on the Sheet wait at most 8s
 })();

@@ -98,9 +98,10 @@ var ICONS={
  star:'<svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.8-4.4 4.3 1 6.1L12 16.9 6.6 19.8l1-6.1L3.2 9.4l6.1-.8z"/></svg>',
  card:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg>',
  user:'<svg viewBox="0 0 24 24"><circle cx="10" cy="8" r="4"/><path d="M3 20c0-4 3-6 7-6m3 4 2 2 4-4"/></svg>',
- layers:'<svg viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg>'
+ layers:'<svg viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg>',
+ me:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>'
 };
-var NAV=[["home","Home","#/home"],["star","Leads","#/leads"],["card","Originations","#/originations"],["user","Referrers","#/referrers"],["layers","Open BCLs","#/open-bcls"]];
+var NAV=[["home","Home","#/home"],["star","Leads","#/leads"],["card","Originations","#/originations"],["user","Referrers","#/referrers"],["layers","Open BCLs","#/open-bcls"],["me","My Profile","#/profile"]];
 function toast(m){var t=$("#toast");t.textContent=m;t.style.display="block";clearTimeout(toast.h);toast.h=setTimeout(function(){t.style.display="none"},2600)}
 
 /* shared state */
@@ -499,6 +500,7 @@ function refBlock(box,st,note){
 
 /* Create Lead modal */
 function openCreate(){
+  if(window.ACQUI_GATE&&!ACQUI_GATE())return;
   var st={},md=$("#md"),dirty=false;
   md.innerHTML='<h3>Create Lead <button id="mx">×</button></h3>'+
    '<div class="ctitle" style="color:var(--mut)">Lead source</div><label>Channel <i>*</i></label><select id="c_ch"><option value="">Select a channel</option><option>Referral</option><option>KAM Self Generated</option><option>Support Generated Leads</option></select><div id="r_ref"></div>'+
@@ -510,6 +512,7 @@ function openCreate(){
    '<div class="foot" id="c_foot"><button class="btn" id="c_cancel">Cancel</button><button class="btn dark" id="c_go">Create Lead</button></div>';
   $("#ov").style.display="flex";
   md.addEventListener("input",function(){dirty=true});
+  $("#c_ph").addEventListener("input",function(){var d=this.value.replace(/\D/g,"");if(d!==this.value)this.value=d});   /* phone: numbers only (pasted spaces and dashes are dropped) */
   var close=function(){
     if(!dirty){closeModal();return}
     $("#c_foot").innerHTML='<div style="width:100%;text-align:right"><div class="sub" style="margin:0 0 6px">You have unsaved changes. Discard them and close?</div><button class="btn" id="c_keep">Keep editing</button> <button class="btn" id="c_dis" style="background:#8a0f2f;color:#fff;border-color:#8a0f2f">Discard</button></div>';
@@ -549,12 +552,13 @@ function openCreate(){
 
 /* Request this lead modal */
 function openRequest(id){
+  if(window.ACQUI_GATE&&!ACQUI_GATE())return;
   var st={ref:null,fc:null};
   var md=$("#md");
   md.innerHTML='<h3>Request this lead <button id="mx">×</button></h3><div class="idot">This sends a reassignment request for approval. If approved, the lead will be assigned to you.</div>'+
    '<label>Approver <i>*</i></label><select id="r_app"><option value="">Select an approver</option>'+TEAM_LEADS.map(function(a){return '<option>'+a+'</option>'}).join("")+'</select>'+
    '<label>Channel (Last Touch) <i>*</i></label><select id="r_ch"><option value="">Select a channel</option>'+CHANNELS.map(function(c){return '<option>'+c+'</option>'}).join("")+'</select>'+
-   '<div id="r_ref"></div><label>Notes</label><textarea id="r_n" placeholder="Add a note for your approver. Example: Referred by (name), a close friend of the owner. They already talked and the owner agreed to be referred. No activity or progress on this lead so far."></textarea>'+
+   '<div id="r_ref"></div><label>Notes</label><textarea id="r_n" placeholder="Add a note for the approver"></textarea>'+
    '<div class="foot"><button class="btn dark" id="r_go">Send Request</button></div>';
   $("#ov").style.display="flex";
   $("#mx").onclick=closeModal;
@@ -575,6 +579,40 @@ function closeModal(){$("#ov").style.display="none";$("#md").classList.remove("w
 $("#ov").onclick=function(e){if(e.target.id==="ov")closeModal()};
 
 
+/* ===== My Profile (preview of the real page: nothing is saved, the real Acqui Service has to be filled in) ===== */
+function profileInfo(){
+  var u=null,email="hanna.test@example.com",name=ME,start="—";
+  try{if(window.LMS&&LMS.user&&LMS.user()){u=LMS.user();email=String(u.email||email).toLowerCase();
+    var part=email.split("@")[0],nm=part.split(/[._]+/).filter(Boolean).map(function(w){return w.charAt(0).toUpperCase()+w.slice(1)}).join(" ");if(nm)name=nm;
+    var b=LMS.batchOf?LMS.batchOf(email):"";
+    if(/^\d{6}$/.test(b)&&b!=="000000"&&b!=="000001"){var mo=+b.slice(0,2)-1,dd=+b.slice(2,4),yy=2000+(+b.slice(4,6));if(mo>=0&&mo<12)start=MONTHS[mo].slice(0,3)+" "+dd+", "+yy}}}catch(e){}
+  return {name:name,email:email,start:start};
+}
+function pageProfile(){
+  var p=profileInfo();
+  var row=function(k,v){return '<div class="prow"><span>'+k+'</span><b>'+esc(v)+'</b></div>'};
+  return '<div class="crumb">My Profile</div><h1 style="font-size:24px">'+esc(p.name)+'</h1>'+
+   '<div class="pchips"><span class="chip">User ID —</span><svg class="pcopy" id="pcopy" viewBox="0 0 24 24" width="14" height="14"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8"/></svg><span>·</span><span>—</span></div>'+
+   '<div class="pcall"><b>Fill in your home address and mobile number in the real Acqui Service.</b> This page is only a preview. Nothing you type here is saved or sent anywhere.</div>'+
+   '<div class="card"><div class="ptitle">ACCOUNT MANAGER</div>'+row("Name",p.name)+row("Email",p.email)+row("Start date",p.start)+row("Team","—")+row("Team lead","—")+'</div>'+
+   '<div class="card"><div class="ptitle">HOME ADDRESS</div><div class="pnote">Used to match you with leads near you. Enter the full address, including the city and province.</div>'+
+   '<label>Home address</label><div class="prowin"><input type="text" id="pa" placeholder="House no., street, barangay, city, province"><button class="btn" id="pasave" disabled>Save</button></div><div id="paloc"></div></div>'+
+   '<div class="card"><div class="ptitle">MOBILE NUMBER</div><div class="pnote">Used to set you up in Connect when your lead assignments change. Enter a PH mobile number.</div>'+
+   '<label>Mobile number</label><div class="prowin"><span class="pcc">+63</span><input type="text" id="pm" placeholder="9XX XXX XXXX" maxlength="10"><button class="btn" id="pmsave" disabled>Save</button></div></div>'+
+   '<div class="card"><div class="ptitle">AUTOMATED TASKS</div><div class="ptog"><div class="pnote" style="margin:0;max-width:640px">With 5 or more new BCLs in the last 31 days you can turn off the call tasks created for you every night. Your reminders and the tasks from originations, onboarding and cheques keep coming either way.</div>'+
+   '<button class="tgl" id="ptg" title="Off"><i></i></button></div></div>';
+}
+function afterProfile(root){
+  var a=$("#pa",root),m=$("#pm",root),sa=$("#pasave",root),sm=$("#pmsave",root);
+  $("#pcopy",root).onclick=function(){toast("Copied (practice only)")};
+  a.oninput=function(){sa.disabled=!a.value.trim();$("#paloc",root).innerHTML=""};
+  sa.onclick=function(){toast("Practice only. Not saved. Do this in the real Acqui Service.");sa.disabled=true;
+    $("#paloc",root).innerHTML='<div class="ploc">Located at 14.5547, 121.0244. <a class="pmap" id="pmap">View on map</a></div>';$("#pmap",root).onclick=function(){toast("The map is not part of this preview")}};
+  m.oninput=function(){var d=m.value.replace(/\D/g,"");if(d!==m.value)m.value=d;sm.disabled=d.length<10};
+  sm.onclick=function(){toast("Practice only. Not saved. Do this in the real Acqui Service.");sm.disabled=true};
+  $("#ptg",root).onclick=function(){this.classList.toggle("on");this.title=this.classList.contains("on")?"On":"Off"};
+}
+
 /* ===== router ===== */
 function render(){
   var h=location.hash||"#/home",m=$("#main"),r=h.split("/");
@@ -584,6 +622,7 @@ function render(){
   if(route==="leads"){m.innerHTML=pageLeads();afterLeads(m)}
   else if(route==="originations"){m.innerHTML=pageOrig();afterOrig(m)}
   else if(route==="referrers"){m.innerHTML=pageRef();afterRef(m)}
+  else if(route==="profile"){m.innerHTML=pageProfile();afterProfile(m)}
   else if(route==="open-bcls"){m.innerHTML=pageBcl();afterBcl(m)}
   else if(route==="lead"){m.innerHTML=pageLead(r[2]);afterLead(m,r[2])}
   else if(route==="referrer"){var rn=decodeURIComponent(r[2]||"");m.innerHTML=pageReferrer(rn);afterReferrer(m)}
@@ -681,13 +720,7 @@ render();
       $("#dcr").onclick=setCode;
     }
     $("#dcode").textContent=code;wireCap();
-    var dq=$("#dq");
-    dq.oninput=function(){
-      var q=dq.value.trim().toLowerCase(),box=$("#dsug");
-      var m=q.length>=2?REGISTRY.filter(function(r){return r.kind==="DTI"&&r.name.toLowerCase().indexOf(q)>=0}).slice(0,6):[];
-      box.innerHTML=m.length?m.map(function(r){return '<div class="dsi">'+r.name.charAt(0)+r.name.slice(1).toLowerCase()+'</div>'}).join(""):"";
-      box.querySelectorAll(".dsi").forEach(function(d,i){d.onclick=function(){dq.value=m[i].name;box.innerHTML=""}});
-    };
+    var dq=$("#dq");   /* no suggestions: the exact business name has to be typed */
     $("#dsearch").onclick=function(){
       var v=dq.value.trim().toUpperCase();$("#dsug").innerHTML="";
       if(!v){toast("Type the business name");return}
