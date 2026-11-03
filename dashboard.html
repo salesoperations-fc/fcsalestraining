@@ -162,7 +162,8 @@ function catchBtn(sel){
 
 function dropdown(sel, P){
   const brief = sel.brief ? `<p class="brief"><small>What to expect</small>${esc(sel.brief)}</p>` : "";
-  if (sel.status === "locked") return `<div class="drop"><div class="lockmsg">${LOCK} Complete day ${sel.day-1} to unlock this day.</div>${brief}</div>`;
+  const adminOpen = sel.status === "locked" && LMS.isAdmin();   // admins can open every day; trainees see it locked
+  if (sel.status === "locked" && !adminOpen) return `<div class="drop"><div class="lockmsg">${LOCK} Complete day ${sel.day-1} to unlock this day.</div>${brief}</div>`;
   if (sel.empty) return `<div class="drop">${brief}<p class="empty" style="margin-top:${brief?8:0}px">Content coming soon.</p>${catchBtn(sel)}</div>`;
   const taskLi = t => {
     const isDone = P[t.id] && P[t.id].status === "done";
