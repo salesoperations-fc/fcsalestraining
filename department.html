@@ -83,6 +83,12 @@
   .lb{position:fixed;inset:0;background:rgba(6,47,57,.92);display:none;z-index:50;overflow:auto;padding:20px;cursor:zoom-out}
   .lb img{display:block;width:min(1800px,160vw);max-width:none;margin:0 auto;background:#fff;border-radius:8px}
   @media(max-width:760px){.days{grid-template-columns:1fr 1fr}.jrow{grid-template-columns:1fr}}
+  .hc{display:flex;gap:14px;flex-wrap:wrap;margin:0 0 18px}
+  .hc div{border:1px solid var(--line);border-radius:14px;padding:12px 18px;background:#fff;min-width:130px}
+  .hc div.main{background:var(--deep);color:#fff;border-color:var(--deep)}
+  .hc strong{display:block;font-size:28px;line-height:1.1}
+  .hc span{font-size:12.5px;color:var(--ink-2)}
+  .hc .main span{color:#cfe3e6}
   .none{display:none;color:var(--ink-2);padding:20px 0}
   .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:34px}
   .tile{border:1px dashed #CFD9DB;background:var(--mist);border-radius:16px;padding:30px 28px;min-height:170px}
@@ -168,6 +174,14 @@ function filter(q) {
 
 const tile = t => `<div class="jt" data-q="${esc((t.term + " " + (t.abbr || "") + " " + t.def).toLowerCase())}">
   ${t.abbr ? `<div class="ab">${esc(t.abbr)}</div><b>${esc(t.term)}</b>` : `<div class="ab nm">${esc(t.term)}</div>`}<p>${esc(t.def)}</p>${t.size ? `<span class="sz">${esc(t.size)}</span>` : ""}</div>`;
+function headcount() {
+  const members = D.teams.reduce((n, t) => n + (t.columns ? t.columns.reduce((a, c) => a + c.members.length, 0) : t.members.length), 0);
+  const leaders = D.teams.filter(t => t.leader).length, topGun = D.topGun.length;
+  return `<div class="hc"><div class="main"><strong>${members + leaders + topGun}</strong><span>AM headcount (selling people)</span></div>
+    <div><strong>${members}</strong><span>Acquisition Managers</span></div>
+    <div><strong>${leaders}</strong><span>Team leaders</span></div>
+    <div><strong>${topGun}</strong><span>Top Gun AMs</span></div></div>`;
+}
 const jargon = () => D2.map(g => `<div class="jg"><h2>${esc(g.group)}</h2>${
   g.rows ? g.rows.map(r => `<div class="jrow" style="--n:${r.length}">${r.map(tile).join("")}</div>`).join("")
          : `<div class="jrow auto">${g.terms.map(tile).join("")}</div>`}</div>`).join("");
@@ -201,6 +215,7 @@ if (LMS.requireSignIn()) {
   document.getElementById("app").innerHTML = `<h1>Our Department</h1>
     <div class="ptabs"><button data-p="team" aria-selected="true">Team directory</button><button data-p="jargon" aria-selected="false">Internal jargon</button><button data-p="work" aria-selected="false">Work schedule and seat plan</button></div>
     <div class="panel" id="pn-team">
+      ${headcount()}
       <p class="lead">Who's who in Acquisition. Browse the org chart, or switch to List to search a name, team (like EXBT 3) or role.</p>
       <div class="bar"><input id="q" type="search" placeholder="Search name, team or role" autocomplete="off"><span class="count" id="count"></span><div class="tabs"><button data-v="chart" aria-pressed="true">Org chart</button><button data-v="list" aria-pressed="false">List</button></div></div>
       <div id="dir">${build()}</div><div class="chart" id="chart"><div class="ctl"><button id="fs">Full screen</button><button id="zo" title="Zoom out">−</button><button id="zi" title="Zoom in">+</button></div>${chart()}</div>
