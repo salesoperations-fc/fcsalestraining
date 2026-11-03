@@ -242,8 +242,9 @@ function render(){
   const sub = completeCount === days.length ? "You've completed the 2-week path. Congratulations!"
     : current ? `Day ${current} of ${days.length}` : "Your lessons are on the way.";
 
-  const card = d => `<button class="card ${d.status}" data-day="${d.day}" aria-expanded="${d.day===selected}" aria-label="Day ${d.day}${d.title?": "+esc(d.title):""}, ${STATUS_TEXT[d.status]}">
-      <span class="st">${STATUS_ICON[d.status]}</span><span class="chev">${CHEVRON}</span><span class="day">Day ${d.day}</span>${d.title?`<span class="tt">${esc(d.title)}</span>`:""}</button>`;
+  const isAdm = LMS.isAdmin(), look = d => (isAdm && d.status === "locked") ? "current" : d.status;   // admins: locked days look open (blue, no padlock)
+  const card = d => `<button class="card ${look(d)}" data-day="${d.day}" aria-expanded="${d.day===selected}" aria-label="Day ${d.day}${d.title?": "+esc(d.title):""}, ${STATUS_TEXT[look(d)]}">
+      <span class="st">${look(d)==="current" && d.status==="locked" ? "" : STATUS_ICON[d.status]}</span><span class="chev">${CHEVRON}</span><span class="day">Day ${d.day}</span>${d.title?`<span class="tt">${esc(d.title)}</span>`:""}</button>`;
 
   const weeks = Object.entries(window.LMS_WEEKS).map(([w,label]) => {
     const wd = days.filter(d => String(d.week)===w);
@@ -258,7 +259,7 @@ function render(){
   document.getElementById("app").innerHTML = `
     <div class="hello"><div><h1>${greet}, ${esc(LMS.firstName(u.name))}</h1><p>${sub}</p></div>
       <div class="overall">Progress<b>${completeCount} of ${days.length} days</b></div></div>
-    <div class="segs" aria-hidden="true">${days.map(d=>`<i class="${d.status}"></i>`).join("")}</div>
+    <div class="segs" aria-hidden="true">${days.map(d=>`<i class="${look(d)}"></i>`).join("")}</div>
     <div class="lower"><div>${weeks}</div>
       <aside><div class="panel"><h2>Upcoming sessions</h2>${sessionsHtml()}</div>
       <div class="panel"><h2>Graded exams</h2>${gradedHtml(days, P)}</div></aside></div>`;
