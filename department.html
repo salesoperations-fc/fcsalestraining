@@ -8,14 +8,90 @@
 <link rel="stylesheet" href="shared/theme.css">
 <script src="shared/lms.js"></script>
 <script src="shared/shell.js"></script>
+<script src="department/directory.js"></script>
+<script src="department/jargon.js"></script>
+<script src="department/schedule.js"></script>
 <style>
-  .soon{display:inline-block;margin-top:10px;padding:4px 12px;border-radius:20px;background:var(--marigold-soft);color:#8A5A00;font-size:13px;font-weight:700}
-  .lead{margin:14px 0 26px;color:var(--ink-2);font-size:15px;max-width:620px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
-  .tile{border:1px dashed #CFD9DB;background:var(--mist);border-radius:14px;padding:20px}
-  .tile h3{font-size:16px;margin:8px 0 4px}
-  .tile p{margin:0;font-size:14px;color:var(--ink-2)}
+  .lead{margin:6px 0 18px;color:var(--ink-2);font-size:15px;max-width:640px}
+  .bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:22px}
+  .bar input{flex:1;min-width:220px;max-width:380px;padding:10px 14px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:14px}
+  .bar input:focus{outline:2px solid var(--teal);border-color:var(--teal)}
+  .count{font-size:13px;color:var(--ink-3)}
+  .sec{margin:0 0 28px}
+  .sec h2{font-size:17px;margin:0 0 4px;color:var(--deep)}
+  .sec .sub{font-size:13px;color:var(--ink-3);margin:0 0 10px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+  .p{border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 14px}
+  .p b{display:block;font-size:14px;color:var(--ink)}
+  .p span{display:block;font-size:12.5px;color:var(--ink-2)}
+  .p em{display:block;font-style:normal;font-size:12px;color:var(--teal-dark);margin-top:2px}
+  .p.lead-card{background:var(--teal-soft);border-color:#BFE4E1}
+  .p.exec{background:var(--marigold-soft);border-color:#F3DFAE}
+  .col h3{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3);margin:14px 0 8px}
+  .tabs{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-left:auto}
+  .tabs button{border:0;background:#fff;padding:9px 16px;font-weight:600;font-size:14px;color:var(--ink-2)}
+  .tabs button[aria-pressed="true"]{background:var(--deep);color:#fff}
+  .chart{display:none;background:linear-gradient(160deg,#0A3D49,#0E6B6B);border-radius:16px;padding:24px;overflow:auto;color:#fff}
+  .chart{max-height:52vh;padding:14px}
+  .chart .ctl{position:sticky;left:0;display:flex;gap:6px;margin-bottom:10px}
+  .chart .ctl button{background:#fff;color:var(--deep);border:0;border-radius:8px;padding:6px 12px;font-weight:700;font-size:13px}
+  .oc{zoom:var(--z,.6)}
+  .chart:fullscreen{max-height:none;border-radius:0;padding:20px;width:100vw;height:100vh}
+  .oc{display:flex;flex-direction:column;gap:22px;min-width:max-content}
+  .oc-top{display:flex;gap:10px;align-items:flex-start}
+  .oc-grp{display:flex;flex-direction:column;gap:8px}
+  .oc-grp>.lab{background:#A9B7B7;color:#fff;border-radius:6px;text-align:center;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 10px}
+  .oc-row{display:flex;gap:8px}
+  .oc-cols{display:flex;gap:10px;align-items:flex-start}
+  .oc-col{display:flex;flex-direction:column;gap:6px;width:138px}
+  .oc-col.wide{width:auto}
+  .oc-col .nm{background:#A9B7B7;color:#fff;border-radius:6px;text-align:center;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 6px}
+  .oc-sub{display:flex;gap:6px}
+  .n{background:#13A9A3;border:1px solid #5CD0CA;border-radius:10px;padding:6px 8px;text-align:center;line-height:1.25}
+  .n b{display:block;font-size:12px}
+  .n span{display:block;font-size:10px;opacity:.8}
+  .n.tl{background:#D96A7B;border-color:#EE93A0}
+  .n.ex{background:#FFF4DC;color:#0B3B45;border-color:#F3DFAE}
+  .n.ho{background:#F26B3A;border-color:#FF9A6E}
+  .n.yl{background:#F5B83D;color:#0B3B45;border-color:#FFD87A}
+  .p.yl{background:var(--marigold-soft);border-color:#F3DFAE}
+  .n.sdr{background:#8FD3E0;color:#0B3B45;border-color:#BCE6EE}
+  .oc .n{width:138px}
+  .oc-col.wide>.n{width:auto}
+  .ptabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin:4px 0 22px;flex-wrap:wrap}
+  .ptabs button{border:0;background:none;padding:10px 16px;font-weight:700;font-size:15px;color:var(--ink-2);border-bottom:3px solid transparent;margin-bottom:-1px}
+  .ptabs button[aria-selected="true"]{color:var(--deep);border-bottom-color:var(--teal)}
+  .p.sdr{background:#E3F4F8;border-color:#BCE6EE}
+  .jg{margin-bottom:26px}
+  .jg h2{font-size:17px;color:var(--deep);margin:0 0 10px}
+  .jrow{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:12px;margin-bottom:12px}
+  .jrow.auto{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+  .jt{border:1px solid var(--line);border-radius:16px;padding:18px 20px;background:#fff;display:flex;flex-direction:column;gap:4px}
+  .jt .ab{font-size:22px;font-weight:800;color:var(--teal-dark);line-height:1.2}
+  .jt .ab.nm{color:var(--deep);font-size:18px}
+  .jt b{font-size:13px;color:var(--ink-3);font-weight:600}
+  .jt p{margin:6px 0 0;font-size:14px;color:var(--ink-2)}
+  .jt .sz{align-self:flex-start;margin-top:8px;padding:2px 10px;border-radius:20px;background:var(--marigold-soft);color:#8A5A00;font-size:12.5px;font-weight:700}
+  .days{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:18px}
+  .days button{display:flex;flex-direction:column;justify-content:flex-start;align-items:flex-start;border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px 12px;text-align:left;font:inherit;color:var(--ink)}
+  .days button[aria-pressed="true"]{background:var(--deep);color:#fff;border-color:var(--deep)}
+  .days b{display:block;font-size:14px;margin-bottom:6px}
+  .days span{display:block;font-size:12px;line-height:1.4;opacity:.85}
+  .seat{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+  .seat img{display:block;width:100%;height:auto;cursor:zoom-in}
+  .seat .cap{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;font-size:13px;color:var(--ink-2);gap:10px;flex-wrap:wrap}
+  .lb{position:fixed;inset:0;background:rgba(6,47,57,.92);display:none;z-index:50;overflow:auto;padding:20px;cursor:zoom-out}
+  .lb img{display:block;width:min(1800px,160vw);max-width:none;margin:0 auto;background:#fff;border-radius:8px}
+  @media(max-width:760px){.days{grid-template-columns:1fr 1fr}.jrow{grid-template-columns:1fr}}
+  .none{display:none;color:var(--ink-2);padding:20px 0}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:34px}
+  .tile{border:1px dashed #CFD9DB;background:var(--mist);border-radius:16px;padding:30px 28px;min-height:170px}
+  .tile h3{font-size:19px;margin:12px 0 6px}
+  .tile p{margin:0 0 14px;font-size:15px;color:var(--ink-2)}
   .tile svg{color:var(--ink-3)}
+  .soon{display:inline-block;padding:3px 12px;border-radius:20px;background:var(--marigold-soft);color:#8A5A00;font-size:12.5px;font-weight:700}
+  .soonrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:34px;padding-top:18px;border-top:1px solid var(--line);font-size:13.5px;color:var(--ink-2)}
+  .soonrow span{background:var(--marigold-soft);color:#8A5A00;border-radius:20px;padding:3px 12px;font-weight:700;font-size:12.5px}
 </style>
 </head>
 <body>
@@ -25,15 +101,134 @@
   <main class="main"><div class="wrap" id="app"></div></main>
 </div>
 <script>
+const D = window.DEPT_DIRECTORY;
+const card = (p, cls) => `<div class="p ${cls || p[3] || ""}" data-q="${esc((p[0] + " " + (p[1] || "Acquisition Manager") + " " + (p[2] || "")).toLowerCase())}">
+  <b>${esc(p[0])}</b><span>${esc(p[1] || "Acquisition Manager")}</span>${p[2] ? `<em>${esc(p[2])}</em>` : ""}</div>`;
+const grid = (list, cls) => `<div class="grid">${list.map(p => card(p, cls)).join("")}</div>`;
+const sec = (title, sub, body) => `<section class="sec"><h2>${esc(title)}</h2>${sub ? `<p class="sub">${esc(sub)}</p>` : ""}${body}</section>`;
+
+function build() {
+  let h = sec("Leadership", "", grid(D.leadership, "exec"));
+  h += sec("Sales Operations", "", `<div class="grid">${D.salesOps.map((x, i) => card(x, i == 0 ? "lead-card" : "")).join("")}</div>`);
+  h += sec("SOS-BDM", "", grid(D.sosBdm));
+  h += sec("Partnerships", "", grid(D.partners));
+  h += sec("Top Gun", "Top Gun AMs and their SDR",
+    `<div class="grid">${D.topGun.map(t => card(t.am, "lead-card") + card(t.sdr)).join("")}</div>`);
+  D.teams.forEach(t => {
+    const sub = t.leader ? "" : "Team leader to be announced";
+    let body = t.leader ? `<div class="grid">${card(t.leader, "lead-card")}</div>` : "";
+    if (t.columns) body += t.columns.map(c => `<div class="col"><h3>${esc(c.name)}</h3>${grid(c.members, /^Specialized/.test(c.name) ? "yl" : "")}</div>`).join("");
+    else body += `<div class="col">${grid(t.members)}</div>`;
+    h += sec(t.name, sub, body);
+  });
+  return h;
+}
+
+
+const nd = (x, c) => x ? `<div class="n ${c || x[3] || ""}"><b>${esc(x[0])}</b><span>${esc(x[1] || "Acquisition Manager")}${x[2] ? " · " + esc(x[2]) : ""}</span></div>` : "";
+function chart() {
+  const top = `<div class="oc-grp" style="align-items:flex-start"><div class="lab">Leadership</div><div class="oc-row">${D.leadership.map((x, i) => nd(x, i < 2 ? "ex" : "ho")).join("")}</div></div>
+  <div class="oc-top">
+    <div class="oc-grp"><div class="lab">Sales Operations</div><div class="oc-row">${D.salesOps.map((x, i) => nd(x, i == 0 ? "tl" : "")).join("")}</div></div>
+    <div class="oc-grp"><div class="lab">SOS-BDM</div><div class="oc-row">${D.sosBdm.map(x => nd(x)).join("")}</div></div>
+    <div class="oc-grp"><div class="lab">Partnerships</div><div class="oc-row">${D.partners.map(x => nd(x)).join("")}</div></div>
+  </div>`;
+  const cols = [`<div class="oc-col"><div class="nm">Top Gun</div>${D.topGun.map(t => nd(t.am) + nd(t.sdr, "sdr")).join("")}</div>`];
+  D.teams.forEach(t => {
+    if (t.columns) cols.push(`<div class="oc-col wide">${nd(t.leader, "tl")}<div class="oc-sub">${
+      t.columns.map(c => `<div class="oc-col"><div class="nm">${esc(c.name)}</div>${c.members.map(m => nd(m, /^Specialized/.test(c.name) ? "yl" : "")).join("")}</div>`).join("")}</div></div>`);
+    else cols.push(`<div class="oc-col"><div class="nm">${esc(t.name)}</div>${t.leader ? nd(t.leader, "tl") : nd(["TBA", "Team Leader"], "tl")}${t.members.map(m => nd(m)).join("")}</div>`);
+  });
+  return `<div class="oc">${top}<div class="oc-cols">${cols.join("")}</div></div>`;
+}
+function view(v) {
+  document.getElementById("dir").style.display = v == "list" ? "" : "none";
+  document.getElementById("chart").style.display = v == "chart" ? "block" : "none";
+  document.getElementById("q").style.display = document.getElementById("count").style.display = v == "list" ? "" : "none";
+  document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v == v));
+}
+
+function filter(q) {
+  q = q.trim().toLowerCase();
+  let shown = 0;
+  document.querySelectorAll(".p").forEach(el => {
+    const ok = !q || el.dataset.q.includes(q) || el.closest(".sec").querySelector("h2").textContent.toLowerCase().includes(q);
+    el.style.display = ok ? "" : "none";
+    if (ok) shown++;
+  });
+  document.querySelectorAll(".col").forEach(el => {
+    el.style.display = el.querySelector(".p:not([style*='none'])") ? "" : "none";
+  });
+  document.querySelectorAll(".sec").forEach(el => {
+    el.style.display = el.querySelector(".p:not([style*='none'])") ? "" : "none";
+  });
+  document.getElementById("none").style.display = shown ? "none" : "block";
+  document.getElementById("count").textContent = q ? shown + " found" : "";
+}
+
+const tile = t => `<div class="jt" data-q="${esc((t.term + " " + (t.abbr || "") + " " + t.def).toLowerCase())}">
+  ${t.abbr ? `<div class="ab">${esc(t.abbr)}</div><b>${esc(t.term)}</b>` : `<div class="ab nm">${esc(t.term)}</div>`}<p>${esc(t.def)}</p>${t.size ? `<span class="sz">${esc(t.size)}</span>` : ""}</div>`;
+const jargon = () => D2.map(g => `<div class="jg"><h2>${esc(g.group)}</h2>${
+  g.rows ? g.rows.map(r => `<div class="jrow" style="--n:${r.length}">${r.map(tile).join("")}</div>`).join("")
+         : `<div class="jrow auto">${g.terms.map(tile).join("")}</div>`}</div>`).join("");
+const D2 = window.DEPT_JARGON, SCH = window.DEPT_SCHEDULE;
+
+function schedule() {
+  const jsDay = new Date().getDay(), start = jsDay >= 1 && jsDay <= 5 ? jsDay - 1 : 0;
+  return `<p class="lead">Acquisition teams in the office each weekday, with the seat plan for that day. Pick a day.</p>
+    <div class="days">${SCH.map((d, i) => `<button data-i="${i}" aria-pressed="${i == start}"><b>${d.day}</b>${d.teams.map(t => `<span>${esc(t)}</span>`).join("")}</button>`).join("")}</div>
+    <div class="seat"><img id="seatimg" alt="" src="department/seatplan/${SCH[start].key}.png"><div class="cap"><span id="seatcap">${SCH[start].day} seat plan</span><span>Click the picture to zoom</span></div></div>
+    <div class="lb" id="lb"><img id="lbimg" alt=""></div>`;
+}
+function pickDay(i) {
+  document.querySelectorAll(".days button").forEach(b => b.setAttribute("aria-pressed", b.dataset.i == i));
+  document.getElementById("seatimg").src = "department/seatplan/" + SCH[i].key + ".png";
+  document.getElementById("seatcap").textContent = SCH[i].day + " seat plan";
+}
+function filterJargon(q) {
+  q = q.trim().toLowerCase();
+  document.querySelectorAll(".jt").forEach(el => el.style.display = !q || el.dataset.q.includes(q) ? "" : "none");
+  document.querySelectorAll(".jrow").forEach(el => el.style.display = el.querySelector(".jt:not([style*='none'])") ? "" : "none");
+  document.querySelectorAll(".jg").forEach(el => el.style.display = el.querySelector(".jt:not([style*='none'])") ? "" : "none");
+}
+function panel(id) {
+  document.querySelectorAll(".panel").forEach(e => e.style.display = e.id == "pn-" + id ? "" : "none");
+  document.querySelectorAll(".ptabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.p == id));
+}
+
 if (LMS.requireSignIn()) {
   renderSide("department");
-  document.getElementById("app").innerHTML = `<h1>Our Department</h1><span class="soon">Coming soon</span>
-    <p class="lead">Everything about how our team works, in one place. We're still putting it together.</p>
-    <div class="grid">
-      <div class="tile">${ico("lesson",22)}<h3>Internal jargon</h3><p>A plain-English glossary of the terms and acronyms you'll hear every day.</p></div>
-      <div class="tile">${ico("session",22)}<h3>Team directory</h3><p>Who's who in the department, what they do, and who to ask for what.</p></div>
-      <div class="tile">${ico("cal",22)}<h3>Ways of working</h3><p>Team rituals, meeting rhythms and how we hand work over.</p></div>
-    </div>`;
+  document.getElementById("app").innerHTML = `<h1>Our Department</h1>
+    <div class="ptabs"><button data-p="team" aria-selected="true">Team directory</button><button data-p="jargon" aria-selected="false">Internal jargon</button><button data-p="work" aria-selected="false">Work schedule and seat plan</button></div>
+    <div class="panel" id="pn-team">
+      <p class="lead">Who's who in Acquisition. Browse the org chart, or switch to List to search a name, team (like EXBT 3) or role.</p>
+      <div class="bar"><input id="q" type="search" placeholder="Search name, team or role" autocomplete="off"><span class="count" id="count"></span><div class="tabs"><button data-v="chart" aria-pressed="true">Org chart</button><button data-v="list" aria-pressed="false">List</button></div></div>
+      <div id="dir">${build()}</div><div class="chart" id="chart"><div class="ctl"><button id="fs">Full screen</button><button id="zo" title="Zoom out">−</button><button id="zi" title="Zoom in">+</button></div>${chart()}</div>
+      <p class="none" id="none">No one found. Try a different spelling.</p>
+    </div>
+    <div class="panel" id="pn-jargon" style="display:none">
+      <p class="lead">Terms and acronyms you'll hear every day.</p>
+      <div class="bar"><input id="jq" type="search" placeholder="Search a term" autocomplete="off"></div>
+      ${jargon()}
+    </div>
+    <div class="panel" id="pn-work" style="display:none">${schedule()}</div>`;
+  document.querySelectorAll(".ptabs button").forEach(b => b.onclick = () => panel(b.dataset.p));
+  document.getElementById("jq").addEventListener("input", e => filterJargon(e.target.value));
+  document.querySelectorAll(".days button").forEach(b => b.onclick = () => pickDay(b.dataset.i));
+  const lb = document.getElementById("lb");
+  document.getElementById("seatimg").onclick = e => { document.getElementById("lbimg").src = e.target.src; lb.style.display = "block"; };
+  lb.onclick = () => lb.style.display = "none";
+  const ch = document.getElementById("chart"), fs = document.getElementById("fs");
+  fs.onclick = () => document.fullscreenElement ? document.exitFullscreen() : ch.requestFullscreen && ch.requestFullscreen();
+  let z = .6;
+  const setZ = v => { z = Math.min(1.4, Math.max(.3, v)); ch.style.setProperty("--z", z); };
+  document.getElementById("zo").onclick = () => setZ(z - .1);
+  document.getElementById("zi").onclick = () => setZ(z + .1);
+  document.addEventListener("fullscreenchange", () => { const on = !!document.fullscreenElement; fs.textContent = on ? "Exit full screen (Esc)" : "Full screen"; setZ(on ? .8 : .6); });
+  setZ(.6);
+  document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => view(b.dataset.v));
+  view("chart");
+  document.getElementById("q").addEventListener("input", e => filter(e.target.value));
 }
 </script>
 </body>
