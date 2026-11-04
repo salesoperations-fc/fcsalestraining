@@ -22,6 +22,9 @@ const BATCHES = {                 // batch number (start date, MMDDYY) -> onboar
   ],
   "000001": [                     // test batch: can retake exams
     "hanna.test@firstcircle.com"
+  ],
+  "EXISTING": [                   // existing AMs: simulations and practice only; can retake
+    "acquisitiongroup@firstcircle.com"
   ]
 };
 
@@ -34,7 +37,7 @@ const ADMIN_EMAILS = [
 const ADMIN_PASSCODE = "";
 
 // Batches that may retake exams. Everyone else gets one attempt per exam (enforced here, not just in the browser).
-const RETAKE_BATCHES = ["000001"];
+const RETAKE_BATCHES = ["000001", "EXISTING"];
 
 const GRADES_SHEET = "Grades";      // one row per scored attempt
 const PROGRESS_SHEET = "Progress";  // one row per completed task/lesson

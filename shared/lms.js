@@ -29,7 +29,7 @@ window.LMS_CONFIG = {
   // Catch-up: onboardees in these batches get a "Mark day done" button on the listed days
   // (for people who did those days before this site existed). Delete a line to turn it off.
   // Batches allowed to retake exams. Everyone else gets one attempt per exam.
-  multiAttempt: ["000001"],
+  multiAttempt: ["000001", "EXISTING"],
   catchUp: {},                        // e.g. { "101926": [1, 2, 3] }
   adminEmails: [],                    // who can open admin.html, e.g. ["tm.name@firstcircle.com"]
 
@@ -198,6 +198,9 @@ window.LMS_CONFIG = {
       adminGate();
       return true;
     },
+
+    /** Existing AMs (batch "EXISTING"): they get the simulations-and-practice dashboard instead of the 10-day path. */
+    isExisting(){ const u = currentUser(); return !!u && batchOf(u.email) === "EXISTING"; },
 
     isAdmin(){ const u = currentUser(); return !!u && (C.demo || [...lc(C.adminEmails), ...lc(roster().admins)].includes(u.email.toLowerCase())); },
 

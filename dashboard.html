@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="shared/theme.css">
 <script src="shared/lms.js"></script>
 <script src="modules.js"></script>
+<script src="existing/sections.js"></script>
 <script src="shared/shell.js"></script>
 <style>
   .hello{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:16px}
@@ -107,6 +108,30 @@
   @media (max-width:1100px){ .lower{grid-template-columns:1fr} }
   @media (max-width:860px){ .rail{grid-template-columns:repeat(2,minmax(0,1fr))} .two{grid-template-columns:1fr;gap:18px} .two.keep{grid-template-columns:1fr 1fr;gap:18px} }
   @media (max-width:520px){ .two.keep{grid-template-columns:1fr} }
+
+  /* Existing AMs: everything on one screen. Tiles; hovering shows a card with a thumbnail (Netflix style). */
+  .ex-sections{display:grid;grid-template-columns:3fr 2fr;gap:18px;align-items:start}
+  @media(max-width:1000px){.ex-sections{grid-template-columns:1fr}}
+  .ex-sec{border:1px solid var(--line);border-radius:14px;padding:16px 18px;background:#fff}
+  .ex-sec h2{font-size:17px;margin:0}
+  .ex-sec .subt{font-size:13px;color:var(--ink-2);margin:2px 0 4px}
+  .ex-sec h3{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);margin:14px 0 8px}
+  .ex-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+  .ex-tile{display:flex;flex-direction:column;gap:4px;min-height:74px;padding:10px 12px;border-radius:10px;background:var(--mist);border:1px solid var(--line);text-decoration:none;color:var(--ink);position:relative}
+  .ex-tile:hover,.ex-tile:focus-visible{border-color:#B9CDD1;background:#fff}
+  .ex-tile .k{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3)}
+  .ex-tile .t{font-size:13px;font-weight:600;line-height:1.3;padding-right:18px}
+  .ex-tile.done{background:var(--teal-soft);border-color:#BFE4E1}
+  .ex-tile .ck{position:absolute;top:9px;right:9px;color:var(--teal-dark);display:flex}
+  #exPop{position:fixed;z-index:500;width:310px;background:#fff;border-radius:14px;box-shadow:0 14px 44px rgba(10,25,28,.35);overflow:hidden;display:none;text-decoration:none;color:var(--ink);animation:exPop .16s ease-out}
+  @keyframes exPop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+  #exPop img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:var(--mist)}
+  #exPop .b{padding:12px 14px 14px}
+  #exPop .k{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3)}
+  #exPop .t{font-size:15px;font-weight:700;margin:2px 0 4px}
+  #exPop .d{font-size:13px;color:var(--ink-2);line-height:1.4}
+  #exPop .go{display:inline-block;margin-top:10px;font-size:13px;font-weight:700;color:#fff;background:var(--teal-dark,#0E6F6A);border-radius:8px;padding:6px 14px}
+  #exPop .ok{display:inline-flex;gap:5px;align-items:center;margin-top:10px;margin-right:10px;font-size:13px;font-weight:600;color:var(--teal-dark)}
 </style>
 </head>
 <body>
@@ -234,7 +259,43 @@ function gradedHtml(days, P){
   }).join("")).join("")}</ul>`;
 }
 
+/* ---------- Existing AMs: one-screen view of lectures, simulations and practice exams (existing/sections.js) ---------- */
+const EX_KIND = { lecture:"Lecture", practice:"Practice exam", exam:"Simulation exam" };
+function renderExisting(){
+  const u = LMS.user(), P = LMS.progress(), done = id => P[id] && P[id].status === "done";
+  const all = window.LMS_EXISTING.flatMap(s => s.groups.flatMap(g => g.items)), nDone = all.filter(i => done(i.id)).length;
+  const h = new Date().getHours(), greet = h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+  const tile = i => `<a class="ex-tile ${done(i.id)?"done":""}" href="${esc(i.href)}" data-ex="${esc(i.id)}"><span class="k">${EX_KIND[i.kind]}</span><span class="t">${esc(i.label)}</span>${done(i.id)?`<span class="ck">${CHECK_ICON}</span>`:""}</a>`;
+  const sec = s => `<section class="ex-sec"><h2>${esc(s.title)}</h2><p class="subt">${esc(s.sub||"")}</p>${s.groups.map(g => `<h3>${esc(g.label)}</h3><div class="ex-grid">${g.items.map(tile).join("")}</div>`).join("")}</section>`;
+  document.getElementById("app").innerHTML = `
+    <div class="hello"><div><h1>${greet}, ${esc(LMS.firstName(u.name))}</h1><p>Pick anything, in any order. Hover a tile to preview it.</p></div>
+      <div class="overall">Done<b>${nDone} of ${all.length}</b></div></div>
+    <div class="ex-sections">${window.LMS_EXISTING.map(sec).join("")}</div><a id="exPop"></a>`;
+  const pop = document.getElementById("exPop"); let timer = null;
+  const byId = id => all.find(i => i.id === id);
+  const hide = () => { clearTimeout(timer); pop.style.display = "none"; };
+  const show = tileEl => {
+    const i = byId(tileEl.dataset.ex); if (!i) return;
+    pop.href = i.href;
+    pop.innerHTML = `<img src="existing/thumbs/${esc(i.thumb)}.jpg" alt=""><div class="b"><div class="k">${EX_KIND[i.kind]}</div><div class="t">${esc(i.label)}</div><div class="d">${esc(i.desc||"")}</div>${done(i.id)?`<span class="ok">${CHECK_ICON} Done</span><span class="go">${i.kind==="exam"?"Retake":"Open again"}</span>`:`<span class="go">${i.kind==="exam"?"Start":"Open"}</span>`}</div>`;
+    pop.style.display = "block";
+    const r = tileEl.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight;
+    pop.style.left = Math.max(12, Math.min(innerWidth - pw - 12, r.left + r.width/2 - pw/2)) + "px";
+    pop.style.top = Math.max(12, Math.min(innerHeight - ph - 12, r.top + r.height/2 - ph/2)) + "px";
+  };
+  const canHover = matchMedia("(hover:hover)").matches;
+  if (canHover) {
+    document.querySelectorAll(".ex-tile").forEach(t => {
+      t.addEventListener("mouseenter", () => { clearTimeout(timer); timer = setTimeout(() => show(t), 220); });
+      t.addEventListener("mouseleave", e => { if (!pop.contains(e.relatedTarget)) hide(); });
+      t.addEventListener("focus", () => show(t)); t.addEventListener("blur", hide);
+    });
+    pop.addEventListener("mouseleave", hide);
+  }
+}
+
 function render(){
+  if (LMS.isExisting()) return renderExisting();
   const u = LMS.user(), { days, current, P } = compute();
   const completeCount = days.filter(d => d.status === "complete").length;
 
@@ -242,9 +303,9 @@ function render(){
   const sub = completeCount === days.length ? "You've completed the 2-week path. Congratulations!"
     : current ? `Day ${current} of ${days.length}` : "Your lessons are on the way.";
 
-  const isAdm = LMS.isAdmin(), look = d => (isAdm && d.status === "locked") ? "current" : d.status;   // admins: locked days look open (blue, no padlock)
+  const isAdm = LMS.isAdmin(), look = d => d.status;   // admins: locked days stay gray but show a check instead of the padlock (they can still open them)
   const card = d => `<button class="card ${look(d)}" data-day="${d.day}" aria-expanded="${d.day===selected}" aria-label="Day ${d.day}${d.title?": "+esc(d.title):""}, ${STATUS_TEXT[look(d)]}">
-      <span class="st">${look(d)==="current" && d.status==="locked" ? "" : STATUS_ICON[d.status]}</span><span class="chev">${CHEVRON}</span><span class="day">Day ${d.day}</span>${d.title?`<span class="tt">${esc(d.title)}</span>`:""}</button>`;
+      <span class="st">${isAdm && d.status==="locked" ? CHECK_ICON : STATUS_ICON[d.status]}</span><span class="chev">${CHEVRON}</span><span class="day">Day ${d.day}</span>${d.title?`<span class="tt">${esc(d.title)}</span>`:""}</button>`;
 
   const weeks = Object.entries(window.LMS_WEEKS).map(([w,label]) => {
     const wd = days.filter(d => String(d.week)===w);

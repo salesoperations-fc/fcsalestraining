@@ -28,6 +28,9 @@ window.LMS_ROSTER = {
     ],
     "000001": [   // test batch: can retake exams
       "hanna.test@firstcircle.com"
+    ],
+    "EXISTING": [   // existing AMs: no 10-day path, just the simulations and practice exams (existing/sections.js); can retake
+      "acquisitiongroup@firstcircle.com"
     ]
   }
 };
