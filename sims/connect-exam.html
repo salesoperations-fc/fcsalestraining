@@ -1538,7 +1538,7 @@ $("#screen").addEventListener("click", e=>{
       const f=S.flow; f.agree=$("#ddAgree").checked;
       if(!f.agree){ f.errs={agree:"Check the box to confirm you agree to the loan agreement."}; render(); break; }
       const d=S.drawdowns.find(x=>x.id===f.id); d.signed=true; S.flow=null; logAction("drawdown",`Signed loan contract for ${d.ref}`); toast("Loan contract signed");
-      if(TASKS[EX.taskIdx] && TASKS[EX.taskIdx].id==="drawdown" && d.repay==="Post-dated checks" && !d.pickup) clientSays("Okay, signed! The PDCs are now ready. Where can I upload the checks?", 1800);
+      if(TASKS[EX.taskIdx] && TASKS[EX.taskIdx].id==="drawdown" && d.repay==="Post-dated checks" && !d.pickup) { clientSays("Okay, signed! I have the post-dated cheques ready. I'm sending you the photos now, please upload them in Connect.", 1800); sendCheques(2800); }
       break;
     }
     case "flow-close": S.flow=null; render(); break;
@@ -1685,10 +1685,12 @@ $("#screen").addEventListener("change", e=>{
   const files=[...e.target.files];
   files.forEach(file=>{
     if(d.files.length>=n){ return; }
+    if(d.files.some(x=>x.name===file.name)){ S.flow.errs={files:`"${file.name}" is already uploaded. Each check needs its own file.`}; return; }
     const rec={name:file.name, ok:false}; d.files.push(rec);
     setTimeout(()=>{ rec.ok=true; if(S.flow && S.flow.type==="upload" && S.flow.step===0) render(); }, 1200+Math.random()*800);
   });
-  if(files.length && d.files.length>=n && files.length> 0) S.flow.errs={};
+  if(files.length && d.files.length>=n) S.flow.errs={};
+  e.target.value="";
   logAction("drawdown",`Uploaded ${files.length} check file(s)`);
   render();
 });
@@ -1726,6 +1728,14 @@ function showTask(i){
     $("#chatBody").appendChild(card); $("#chatBody").scrollTop=1e6;
   }, 400+t.messages.length*900);
 }
+/* Maria "sends" one cheque photo per repayment (the same fake cheque, saved as Month 1, Month 2 ...). The AM downloads them and uploads from their own computer. */
+function chequeNames(){ const n=calcLoan(DD_TARGET.amount,DD_TARGET.term,DD_TARGET.freq).n, w=DD_TARGET.freq==="Bi-weekly"?"Cheque":"Month"; return Array.from({length:n},(_,i)=>`${w} ${i+1}.jpg`); }
+function sendCheques(delay){ const names=chequeNames();
+  setTimeout(()=>{ if(EX.finished||EX.chequesSent) return; EX.chequesSent=true; logAction("drawdown",`Maria sent ${names.length} cheque photo(s)`);
+    addMsg(`📎 <b>${names.length} cheque photo${names.length>1?"s":""}</b> from Maria (${names[0]}${names.length>1?" to "+names[names.length-1]:""})<br><button class="btn primary sm" data-dlcheques style="margin-top:6px">⤓ Download all ${names.length}</button><div class="hint-sm">Your browser may ask to allow multiple downloads. Then upload the files from your Downloads folder in Connect.</div>`); }, delay); }
+$("#chatBody").addEventListener("click", e=>{ if(!e.target.closest("[data-dlcheques]")) return;
+  chequeNames().forEach((nm,i)=>setTimeout(()=>{ const a=document.createElement("a"); a.href="connect-cheque.jpg"; a.download=nm; document.body.appendChild(a); a.click(); a.remove(); }, i*350));
+  logAction("drawdown","Downloaded the cheque photos"); });
 function closeTask(i, status){
   const t=TASKS[i]; EX.status[t.id]=status;
   const card=$("#card-"+t.id);
