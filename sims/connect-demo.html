@@ -1074,16 +1074,24 @@ function signFlowBody(d){
 }
 
 const PICKUP_DATES = ["Sep 30, 2026 (Wed)","Oct 1, 2026 (Thu)"];
+function chequePopup(c){   // the client's fake cheque photos: shown as a popup when the upload step opens (so it is noticed)
+  return `<div style="position:fixed;inset:0;z-index:60;background:rgba(11,59,69,.5);display:grid;place-items:center;padding:20px"><div style="background:#fff;border-radius:14px;width:380px;max-width:100%;padding:22px;box-shadow:0 14px 44px rgba(0,0,0,.35);text-align:center">
+    <img src="connect-cheque.jpg" alt="Sample cheque photo" style="width:100%;border-radius:8px;border:1px solid var(--line);margin-bottom:14px">
+    <h3 style="margin:0 0 6px">Your client sent ${c.n} cheque photo${c.n>1?"s":""}</h3>
+    <p style="margin:0 0 16px;font-size:13px;color:var(--ink-2)">Download ${c.n>1?"them":"it"} first (they're fake, for this practice), then add ${c.n>1?"them":"it"} on the upload page.</p>
+    <button class="btn primary" data-act="dd-dlchecks">⤓ Download the ${c.n} cheque photo${c.n>1?"s":""}</button>
+    <div style="margin-top:10px"><button class="mini-link" data-act="dd-closepop">Close</button></div></div></div>`;
+}
 function uploadBody(f, d){
   const c=calcLoan(d.amount,d.term,d.freq), e=f.errs||{};
   if(f.step===0){
     const ok=d.files.filter(x=>x.ok).length;
     const rows=c.dates.map((dt,i)=>{ const fl=d.files[i]; return `<tr><td>${i+1}</td><td>${dt}</td><td>${peso(c.each)}</td><td>${fl?(fl.ok?'<span class="chk-ok">✓</span>':'<span class="spin"></span>'):"–"}</td></tr>`; }).join("");
-    return `<h3>Upload checks</h3><p class="sub">Make sure your post-dated checks are made payable to "FIRST CIRCLE GROWTH FINANCE CORP." Upload one photo per check.</p>
+    return `${f.chqClosed?"":chequePopup(c)}<h3>Upload checks</h3><p class="sub">Make sure your post-dated checks are made payable to "FIRST CIRCLE GROWTH FINANCE CORP." Upload one photo per check.</p>
       <div class="up-grid"><div><div class="block-title">Checks required for ${d.ref} (${ok} of ${c.n} verified)</div>
         <table class="tbl"><thead><tr><th>No.</th><th>Check date</th><th>Repayment amount</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>
         <div class="acct"><div class="block-title">Upload check photos</div>
-          <div class="hint-sm" style="margin:0 0 8px">Your client sent ${c.n} cheque photo${c.n>1?"s":""}. <button class="mini-link" data-act="dd-dlchecks" style="margin:0">⤓ Download the ${c.n} cheque photo${c.n>1?"s":""}</button>, then add them below from your Downloads folder.</div>
+          <div class="hint-sm" style="margin:0 0 8px">Your client sent ${c.n} cheque photo${c.n>1?"s":""}. <button class="mini-link" data-act="dd-showpop" style="margin:0">⤓ Show the cheque photos</button> to download them again, then add them below from your Downloads folder.</div>
           <label class="drop">+ Add files<input type="file" id="ddFiles" accept="image/*,.pdf" multiple hidden></label>
           <p class="hint-sm">Accepted formats are PNG, JPG, or PDF, with a maximum file size of 15MB.</p>
           ${d.files.length?`<div class="block-title" style="margin-top:14px">Files uploaded (${d.files.length})</div>${d.files.map((x,i)=>`<div class="file-row">📄<div>${esc(x.name)}<small>${x.ok?"Verified":"Verifying…"}</small></div><button class="rm" data-act="dd-rmfile" data-i="${i}" aria-label="Remove">×</button></div>`).join("")}`:""}
@@ -1516,7 +1524,9 @@ $("#screen").addEventListener("click", e=>{
     case "dd-upload": S.flow={type:"upload", id:S.ddView, step:0, errs:{}, pk:{addr:"", date:"", slot:"1 PM – 5 PM", poc:fullName(S.user), mob:fmtMobile(S.user.mobile).replace("+63 ","")}}; S.ddOpen=null; render(); break;
     case "dd-dlchecks": { const d=S.drawdowns.find(x=>x.id===S.flow.id), c=calcLoan(d.amount,d.term,d.freq), w=d.freq==="Bi-weekly"?"Cheque":"Month";
       for(let i=0;i<c.n;i++) setTimeout(()=>{ const a=document.createElement("a"); a.href="connect-cheque.jpg"; a.download=`${w} ${i+1}.jpg`; document.body.appendChild(a); a.click(); a.remove(); }, i*350);
-      logAction("drawdown","Downloaded the cheque photos"); toast(`Downloading ${c.n} cheque photo${c.n>1?"s":""}`); break; }
+      logAction("drawdown","Downloaded the cheque photos"); S.flow.chqClosed=true; toast(`Downloading ${c.n} cheque photo${c.n>1?"s":""}`); break; }
+    case "dd-closepop": S.flow.chqClosed=true; render(); break;
+    case "dd-showpop": S.flow.chqClosed=false; render(); break;
     case "dd-rmfile": { const d=S.drawdowns.find(x=>x.id===S.flow.id); const fl=d.files.splice(+act.dataset.i,1)[0]; logAction("drawdown",`Removed check file ${fl.name}`); render(); break; }
     case "pk-slot": S.flow.pk.slot=act.dataset.v; break;
     case "up-back": S.flow.step--; S.flow.errs={}; render(); break;
@@ -1828,13 +1838,12 @@ const FUNCS = [
       { t:"Set the amount, term and repayment frequency, then <b>Next</b>.", sub:"Watch the box on the right: what the client receives, the fee, the interest and each repayment.", showVals:true, sel:'[data-act="dd-next"]', allow:'[data-act="dd-freq"]', fill:inFlow, done:()=>fstep("dd")>=2||S.drawdowns.length>0,
         verify:()=>{ const d=D(), e=[]; if(parseAmt(d.amountStr)!==300000) e.push("Loan amount should be <b>300,000</b>"); if(d.term!==3) e.push("Term should be <b>3 months</b>"); if(d.freq!=="Monthly") e.push("Repayment frequency should be <b>Monthly</b>"); return e; } },
       { t:"Review the loan details, then click <b>Confirm loan details</b>.", sel:'[data-act="dd-next"]', done:()=>fstep("dd")>=3||S.drawdowns.length>0 },
-      { t:"Pick the repayment method and the disbursement account, then <b>Submit drawdown request</b>.", sub:"These can't be changed after the contract is signed.", showVals:true, sel:'[data-act="dd-next"]', allow:'[data-act="dd-opt"]', fill:inFlow, done:()=>S.drawdowns.length>0,
+      { t:"Pick the repayment method and the disbursement account, then <b>Submit drawdown request</b>.", sub:"These can't be changed after the contract is signed. After you submit, First Circle runs a credit check (about 30 minutes) before the client can sign the contract and upload the checks (next demo).", showVals:true, sel:'[data-act="dd-next"]', allow:'[data-act="dd-opt"]', fill:inFlow, done:()=>S.drawdowns.length>0,
         verify:()=>{ const d=D(), e=[]; if(d.repay!=="Post-dated checks") e.push("Repayment method should be <b>Post-dated checks</b>"); if(d.disb!=="bdo") e.push("Disbursement account should be <b>SOS Inc. ***4821 (BDO)</b>"); return e; },
         watch:n=>{ if(!n.matches('[data-act="dd-opt"]')) return null; const g=n.dataset.g, v=n.dataset.v;
           if(g==="repay"&&v!=="Post-dated checks") return "Direct debit is a real option, but this demo continues with checks. Choose <b>Post-dated checks</b> so you can practice the check upload next.";
           if(g==="disb"&&v!=="bdo") return "For this demo choose <b>SOS Inc. ***4821 (BDO)</b>. Disbursing to the Payments Account would release the funds instantly, with no bank wait.";
-          return null; } },
-      { t:"Request sent! First Circle now runs a <b>credit check, about 30 minutes</b>. Only after that can the client sign the contract and upload the checks (next demo). Click <b>Return to Credit</b>.", sel:'[data-act="succ-go"]', done:()=>S.drawdowns.length>0 && !S.success && S.page==="credit" }
+          return null; } }
     ],
     check:()=>{ const d=S.drawdowns.filter(x=>!x.cancelled)[0]; return [
       chk("Amount",peso(300000),d?peso(d.amount):"No drawdown",!!d&&d.amount===300000),
@@ -1854,7 +1863,7 @@ const FUNCS = [
       { t:"The review is done. Click <b>Sign contract</b>.", sel:'[data-act="dd-sign"]', done:()=>fty("sign")||S.drawdowns.some(d=>d.signed) },
       { t:"<b>Scroll down</b> to read the contract, tick the agreement box, then click <b>Sign contract</b> at the bottom.", loose:true, sel:'[data-act="dd-sign-yes"]', allow:'[data-act="dd-sign-yes"]', fill:inFlow, done:()=>S.drawdowns.some(d=>d.signed) },
       { t:"Click <b>Upload checks</b>.", sel:'[data-act="dd-upload"]', done:()=>fty("upload")||S.drawdowns.some(d=>d.pickup) },
-      { t:()=>`Add the check files: <b>one per repayment</b>. This loan has <b>${ddN()}</b>, so you need ${ddN()} files (a 12-month loan needs 12). Click <b>Download the cheque photos</b> (your client's files, saved as Month 1, Month 2 ...), then <b>+ Add files</b> and select them all from your Downloads folder. Wait until each shows verified, then click <b>Next</b>.`, sub:"Nothing is verified for real. We only test the flow.", loose:true, sel:'[data-act="dd-dlchecks"],.drop,[data-act="up-next"]:not([disabled])', allow:'[data-act="dd-dlchecks"],[data-act="up-next"],[data-act="dd-rmfile"]', done:()=>fstep("upload")>=1||S.drawdowns.some(d=>d.pickup) },
+      { t:()=>`Add the check files: <b>one per repayment</b>. This loan has <b>${ddN()}</b>, so you need ${ddN()} files (a 12-month loan needs 12). A popup shows your client's cheque photos: click <b>Download the cheque photos</b> (saved as Month 1, Month 2 ... in your Downloads folder), then <b>+ Add files</b> and select them all. Wait until each shows verified, then click <b>Next</b>.`, sub:"Nothing is verified for real. We only test the flow.", loose:true, sel:'[data-act="dd-dlchecks"],.drop,[data-act="up-next"]:not([disabled])', allow:'[data-act="dd-dlchecks"],[data-act="dd-closepop"],[data-act="dd-showpop"],[data-act="up-next"],[data-act="dd-rmfile"]', done:()=>fstep("upload")>=1||S.drawdowns.some(d=>d.pickup) },
       { t:"Pick the pickup address, date and time slot, then <b>Next</b> and <b>Confirm</b>.", sub:"Pickup must be within 2 business days. Funds are released after the checks are received.", sel:'[data-act="up-next"],[data-act="up-confirm"]', allow:'[data-act="pk-slot"],[data-act="up-next"],[data-act="up-confirm"],[data-act="up-back"]', fill:inFlow, done:()=>S.drawdowns.some(d=>d.pickup) }
     ],
     check:()=>{ const d=S.drawdowns[0], n=ddN(); return [

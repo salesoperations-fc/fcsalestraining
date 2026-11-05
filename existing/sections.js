@@ -6,7 +6,7 @@
    - desc: one line on the hover card. */
 window.LMS_EXISTING = [
   { title: "FC Connect", sub: "Guided demos, then the simulation exam", groups: [
-    { label: "Lectures: guided demos", items: [
+    { label: "Navigating Connect Platform", items: [
       { id: "d3-demo-login",        kind: "lecture", label: "Log in to FC Connect (AM)",                   href: "sims/connect-demo.html?fn=login",        thumb: "login",        desc: "A guided run of the Connect login as the Account Manager, then try it yourself." },
       { id: "d3-demo-authrep",      kind: "lecture", label: "Add the authorized representative",           href: "sims/connect-demo.html?fn=authrep",      thumb: "authrep",      desc: "Add the client's authorized representative through Team Access." },
       { id: "d3-demo-settings",     kind: "lecture", label: "Change the representative's name and number", href: "sims/connect-demo.html?fn=settings",     thumb: "settings",     desc: "Update the representative's name and number in Settings." },
@@ -20,15 +20,17 @@ window.LMS_EXISTING = [
       { id: "d4-exam-connect-sim", kind: "exam", label: "Connect Simulation Exam", href: "sims/connect-exam.html", thumb: "connect-exam", desc: "A live-call style simulation in FC Connect. 30 minutes, scored step by step, with trainer notes." }
     ]}
   ]},
-  { title: "Acqui Service", sub: "Intro, lead reassignment and lead creation", groups: [
+  { title: "Acqui Service", sub: "Intro, lead reassignment, lead creation and referrer registration", groups: [
     { label: "Introduction to Acqui Service", items: [
       { id: "d5-acqui-tour",     kind: "lecture",  label: "Tour of Acqui Service",                    href: "sims/acqui-tour.html",           thumb: "tour",     desc: "Your trainer walks you through Acqui Service, section by section." },
-      { id: "d5-acqui-practice", kind: "practice", label: "Practice: find your way around",           href: "sims/acqui-tour-exam.html",      thumb: "practice", desc: "15 short situations to check you can find things in Acqui Service. Not graded." }
+      { id: "d5-acqui-practice", kind: "practice", label: "Exploring Acqui Service",           href: "sims/acqui-tour-exam.html",      thumb: "practice", desc: "15 short situations to check you can find things in Acqui Service. Not graded." }
     ]},
     { label: "Getting leads", items: [
       { id: "d5-reassign-lecture",  kind: "lecture",  label: "Lead reassignment",                          href: "sims/acqui-reassign-lecture.html", thumb: "reassign-lecture",  desc: "How to request a lead (reassignment), and when it should be refused." },
       { id: "d5-create-lecture",    kind: "lecture",  label: "Lead creation",                              href: "sims/acqui-create-lecture.html",   thumb: "create-lecture",    desc: "Create a new lead: self-generated or referral, with DTI and SEC lookups." },
-      { id: "d5-reassign-practice", kind: "practice", label: "Practice: reassignment and lead creation",   href: "sims/acqui-reassign-exam.html",    thumb: "reassign-practice", desc: "5 situations in the Acqui Service sim: lead requests and new leads. Not graded." }
+      { id: "d5-referrer-demo",      kind: "lecture",  label: "Registering a referrer in Slack",          href: "sims/slack-referrer-demo.html",     thumb: "referrer-demo",     desc: "Register a new regular referrer with /regularnew in Slack: the form, the ID and the proof of bank account." },
+      { id: "d5-referrer-practice",  kind: "practice", label: "Registering a Referrer in Slack",          href: "sims/slack-referrer-practice.html", thumb: "referrer-practice", desc: "Do it yourself in a Slack look-alike: the command, the form and the right documents. Scored out of 100, not graded." },
+      { id: "d5-reassign-practice", kind: "practice", label: "Getting Leads in Acqui Service",   href: "sims/acqui-reassign-exam.html",    thumb: "reassign-practice", desc: "5 situations in the Acqui Service sim: lead requests and new leads. Not graded." }
     ]}
   ]}
 ];

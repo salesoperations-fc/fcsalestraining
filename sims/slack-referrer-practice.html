@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registering a referrer in Slack: Practice</title>
+<link rel="stylesheet" href="slack/slack.css">
+<script src="../shared/lms.js"></script>
+<script>
+  /* Practice: older files that cannot be accepted are already in Downloads; Lorna's real documents appear after she downloads them from the situation panel. */
+  window.SLK_CONFIG = { me: (function(){ try { var u = LMS.user(); return (u && u.name) || "Hanna Test"; } catch (e) { return "Hanna Test"; } })(), files: ["id-blurry", "id-cropped", "proof-noname", "proof-noacct"].sort(function(){ return Math.random() - 0.5; }) };
+</script>
+</head>
+<body>
+<script src="slack/slack.js"></script>
+<script src="slack/practice.js"></script>
+</body>
+</html>

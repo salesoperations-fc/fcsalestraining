@@ -11,7 +11,7 @@ window.DEPT_DIRECTORY = {
   // Partnerships team (no team leader)
   partners: [
     ["Gabriel Cruz", "Partnerships Manager"],
-    ["Mike Rg Rebadulla", "Partnerships Analyst", "Reports to Gabriel Cruz", "sdr"]
+    ["Mike Rg Rebadulla", "Partnerships Analyst", "", "sdr"]
   ],
   // Sales Ops BDMs (not under Michael)
   sosBdm: [

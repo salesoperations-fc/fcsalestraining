@@ -72,14 +72,23 @@
     { r:"originations", target:"[data-eye]", click:true, circle:true, dim:"none", say:"You can open each origination too.", hint:"Click the eye icon on the first row." },
     { r:"originations", modal:"orig", target:"#md", dim:"strong", say:"These are the details of that origination: the amount, the interest rate, the date and more." },
     { r:"originations", modal:"orig", target:"#mx", click:true, circle:true, dim:"none", say:"Let's close it.", hint:"Click the X." },
-    { r:"originations", target:'#side .nv[data-r="referrers"]', click:true, dim:"none", say:"Last tab: Referrers.", hint:"Click the person icon (Referrers) in the menu." },
+    { r:"originations", target:'#side .nv[data-r="referrers"]', click:true, dim:"none", say:"Next tab: Referrers.", hint:"Click the person icon (Referrers) in the menu." },
     { r:"referrers", target:"#rtbl", dim:"strong", say:"This is Referrers. Here you see the referrers attributed to you, their type (RPP, Customer or Drip) and how many leads each one gave you." },
     { r:"referrers", target:'[data-ref="Bea Salonga"]', click:true, circle:true, dim:"none", say:"Want to know which leads a referrer gave you?", hint:"Click the name Bea Salonga." },
     { r:"referrer", hash:REF, target:"#rdetail", dim:"strong", say:"Here are all the leads this referrer gave you, with their status. That's useful when your referrer asks about their leads." },
-    { r:"referrer", hash:REF, end:true, dim:"light", say:"That's it! Now you know the sections of Acqui Service and where to find things. Go ahead and click around, you can't break anything here. See you in the next lesson! - {T}" }
+    { r:"referrer", hash:REF, target:'#side .nv[data-r="profile"]', click:true, dim:"none", say:"Last tab: My Profile.", hint:"Click the person icon at the bottom of the menu (My Profile)." },
+    { r:"profile", target:".pcall", dim:"strong", say:"This is My Profile. It's a preview here. Important: you fill in your home address and your mobile number in the real Acqui Service, not in this practice site. Nothing you type here is saved." },
+    { r:"profile", target:"#pc-acct", dim:"strong", say:"Account Manager: your name, email, start date, team and team lead. This is how Acqui Service knows who you are." },
+    { r:"profile", target:"#pc-addr", dim:"strong", say:"Home address: Acqui Service uses it to match you with leads near you. Enter the full address, including the city and province." },
+    { r:"profile", target:"#pc-mob", dim:"strong", say:"Mobile number: used to set you up in Connect when your lead assignments change. Enter a PH mobile number." },
+    { r:"profile", target:"#pc-auto", dim:"strong", say:"Automated tasks: with 5 or more new BCLs in the last 31 days, you can turn off the call tasks that are created for you every night. Your reminders and other tasks keep coming either way." },
+    { r:"profile", end:true, dim:"light", say:"That's it! Now you know the sections of Acqui Service and where to find things. Go ahead and click around, you can't break anything here. See you in the next lesson! - {T}" }
   ];
   /* a lecture file can set window.ACQUI_STEPS (its own steps) and window.ACQUI_TOUR_META before this file loads */
   var STEPS = window.ACQUI_STEPS || DEFAULT_STEPS;
+  /* the navigation tour shows "Section 2 / 6" instead of a long step count; lectures keep "step / total" */
+  var SECTIONS = { home: 1, leads: 2, lead: 2, "open-bcls": 3, originations: 4, referrers: 5, referrer: 5, profile: 6 };
+  function counter(i){ return STEPS === DEFAULT_STEPS ? "Section " + (SECTIONS[STEPS[i].r] || 1) + " / 6" : (i + 1) + " / " + STEPS.length; }
   var META = window.ACQUI_TOUR_META || { taskId: "d5-acqui-tour", nextHref: "acqui-tour-exam.html", nextLabel: "Practice check" };
   var i = 0, applyTimer = null, placeTimer = null, pendingModal = null, started = false, pollBusy = false;
 
@@ -116,9 +125,9 @@
     var prev = '<button class="btn" id="tb">Back</button>';
     var nav;
     var inter = s.click || s.until;
-    if (inter) nav = '<small>' + (i + 1) + ' / ' + STEPS.length + '</small><span style="display:flex;gap:8px">' + prev + '<button class="btn" id="tskip">Skip this step</button></span>';
-    else if (last) nav = '<small>' + (i + 1) + ' / ' + STEPS.length + '</small><span style="display:flex;gap:8px">' + prev + '<button class="btn" id="trs">Restart</button>' + (window.ACQUI_STANDALONE ? '' : '<a class="btn" href="../dashboard.html" style="text-decoration:none">Back to Day 5</a><a class="btn dark" href="' + META.nextHref + '" style="text-decoration:none">' + META.nextLabel + '</a>') + '</span>';
-    else nav = '<small>' + (i + 1) + ' / ' + STEPS.length + '</small><span style="display:flex;gap:8px">' + (i ? prev : '') + '<button class="btn dark" id="tn">Next</button></span>';
+    if (inter) nav = '<small>' + counter(i) + '</small><span style="display:flex;gap:8px">' + prev + '<button class="btn" id="tskip">Skip this step</button></span>';
+    else if (last) nav = '<small>' + counter(i) + '</small><span style="display:flex;gap:8px">' + prev + '<button class="btn" id="trs">Restart</button>' + (window.ACQUI_STANDALONE ? '' : '<a class="btn" href="../dashboard.html" style="text-decoration:none">Back to Day 5</a><a class="btn dark" href="' + META.nextHref + '" style="text-decoration:none">' + META.nextLabel + '</a>') + '</span>';
+    else nav = '<small>' + counter(i) + '</small><span style="display:flex;gap:8px">' + (i ? prev : '') + '<button class="btn dark" id="tn">Next</button></span>';
     card.innerHTML = (s.good ? '<div class="good">✓ Good job!</div>' : '') +
       '<div class="who"><div class="av">' + trainer().charAt(0).toUpperCase() + '</div><div><b>' + trainer().replace(/</g, "&lt;") + '</b><small>Your trainer</small></div></div>' +
       '<div class="txt">' + say.replace(/^Good job! /, "").replace(/</g, "&lt;") + '</div>' + (inter ? '<div class="try">Your turn: ' + s.hint + '</div><div id="tmsg" style="color:#b3243a;font-weight:600;font-size:14px;margin:-4px 0 10px"></div>' : '') + '<div class="nav">' + nav + '</div>';

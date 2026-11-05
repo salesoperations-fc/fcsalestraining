@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registering a referrer in Slack: Guided demo</title>
+<link rel="stylesheet" href="slack/slack.css">
+<script src="../shared/lms.js"></script>
+<script>
+  /* Guided demo: Maria's ID and bank statement are the only files in Downloads. */
+  window.SLK_CONFIG = { me: (function(){ try { var u = LMS.user(); return (u && u.name) || "Hanna Test"; } catch (e) { return "Hanna Test"; } })(), files: ["sample-id", "sample-proof"] };
+</script>
+</head>
+<body>
+<script src="slack/slack.js"></script>
+<script src="slack/guide.js"></script>
+</body>
+</html>

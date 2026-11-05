@@ -30,6 +30,7 @@ window.LMS_CONFIG = {
   // (for people who did those days before this site existed). Delete a line to turn it off.
   // Batches allowed to retake exams. Everyone else gets one attempt per exam.
   multiAttempt: ["000001", "000002"],
+  noReview: ["000002"],               // batches that can retake but cannot reopen their last answers/result
   catchUp: {},                        // e.g. { "101926": [1, 2, 3] }
   adminEmails: [],                    // who can open admin.html, e.g. ["tm.name@firstcircle.com"]
 
@@ -198,6 +199,9 @@ window.LMS_CONFIG = {
       adminGate();
       return true;
     },
+
+    /** May the signed-in person reopen an earlier attempt's result? (false for batches listed in noReview) */
+    canReview(){ const u = currentUser(); return !u || !(C.noReview || []).includes(batchOf(u.email)); },
 
     /** Existing AMs (batch "000002"): they get the simulations-and-practice dashboard instead of the 10-day path. */
     isExisting(){ const u = currentUser(); return !!u && batchOf(u.email) === "000002"; },

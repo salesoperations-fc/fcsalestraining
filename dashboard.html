@@ -55,6 +55,8 @@
   .tasks input:checked::after{content:"";width:10px;height:6px;border:2px solid #fff;border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
   .tasks input:disabled{cursor:not-allowed;background:var(--mist)}
   .tasks label.off{cursor:not-allowed;color:var(--ink-2)}
+  .tasks .kind{flex:none;width:86px;text-align:center;border:1px solid var(--line);border-radius:999px;padding:1px 0;font-size:11.5px;font-weight:600;background:#fff;color:var(--ink-2);margin-top:0}
+  .tasks li.soonsub{margin-left:26px;padding:8px 0;font-size:14px;color:var(--ink-2);display:flex;align-items:center}
   .tasks .open{margin-left:auto;font-size:13px;font-weight:600;white-space:nowrap;text-decoration:none}
   .mats{list-style:none;margin:0;padding:0}
   .mats li{padding:9px 0;border-bottom:1px solid var(--line);font-size:14px;display:flex;justify-content:space-between;gap:10px}
@@ -192,11 +194,14 @@ function dropdown(sel, P){
   if (sel.empty) return `<div class="drop">${brief}<p class="empty" style="margin-top:${brief?8:0}px">Content coming soon.</p>${catchBtn(sel)}</div>`;
   const taskLi = t => {
     const isDone = P[t.id] && P[t.id].status === "done";
-    return `<li><label><input type="checkbox" data-task="${t.id}" ${isDone?"checked":""}><span>${esc(t.label)}</span>
+    return `<li><label><input type="checkbox" data-task="${t.id}" ${isDone?"checked":""}>${t.openLabel ? `<span class="kind">${esc(t.openLabel)}</span>` : ""}<span>${esc(t.label)}</span>
       ${t.href ? `<a class="open" href="${esc(t.href)}" ${/^https?:/.test(t.href)?'target="_blank" rel="noopener"':""} data-open="${t.id}">Open</a>` : ""}</label></li>`;
   };
   const tasks = sel.tasks.map(taskLi).join("");
-  const grouped = sel.tasks.some(t => t.group) ? [...new Set(sel.tasks.map(t => t.group || ""))].map(g => { const ts = sel.tasks.filter(t => (t.group||"") === g); const n = ts.filter(t => P[t.id] && P[t.id].status === "done").length; return `<div style="margin-bottom:20px"><h3>${esc(g || sel.tasksTitle || "Tasks")} · ${n} of ${ts.length}</h3><ul class="tasks">${ts.map(taskLi).join("")}</ul></div>`; }).join("") : "";
+  // groupSoon: { "Group name": ["text"] } adds an indented "Soon" bullet at the end of that group. groupColumns: true puts the groups side by side.
+  const groupNames = [...new Set(sel.tasks.map(t => t.group || ""))];   // groupFull: ["Group name"] makes that group span both columns
+  const groupBlocks = sel.tasks.some(t => t.group) ? [...new Set(sel.tasks.map(t => t.group || ""))].map(g => { const ts = sel.tasks.filter(t => (t.group||"") === g); const n = ts.filter(t => P[t.id] && P[t.id].status === "done").length; const gs = (sel.groupSoon || {})[g] || []; return `<div style="margin-bottom:20px"><h3>${esc(g || sel.tasksTitle || "Tasks")} · ${n} of ${ts.length}</h3><ul class="tasks">${ts.map(taskLi).join("")}${gs.map(x => `<li class="soonsub"><span>${esc(x)}</span><span class="pillsoon">Soon</span></li>`).join("")}</ul></div>`; }) : [];
+  const grouped = groupBlocks.length ? (sel.groupColumns ? `<div class="two keep">${groupBlocks.map((g, i) => `<div${(sel.groupFull || []).includes(groupNames[i]) ? ' style="grid-column:1/-1"' : ""}>${g}</div>`).join("")}</div>` : groupBlocks.join("")) : "";
   const mats = (sel.materials||[]).length ? `<ul class="mats">${sel.materials.map(m => m.href
       ? `<li><a ${m.dl?'class="dl"':m.link?'class="lk"':""} href="${esc(m.href)}" ${m.download?`download="${esc(m.download)}"`:""} target="${(m.dl||/^https?:/.test(m.href))?"_blank":"_self"}" rel="noopener">${esc(m.label)}</a></li>`
       : `<li><span>${esc(m.label)}</span><span class="soon">Link coming soon</span></li>`).join("")}</ul>` : "";
@@ -220,7 +225,8 @@ function dropdown(sel, P){
   const matsBlock = mats ? `<div><h3>${esc(sel.materialsTitle||"Materials")}</h3>${mats}</div>` : "";
   let body = "";
   if (tasks || mats) {
-    if (sel.materialsBelow) body = `<div class="two keep">${tasks ? `<div>${taskList}</div>` : "<div></div>"}${soonGrp ? `<div>${soonGrp}</div>` : "<div></div>"}</div>${mats ? `<div style="margin-top:6px">${matsBlock}</div>` : ""}`;
+    if (sel.materialsBelow && sel.groupColumns) body = `${tasks ? taskList : ""}${mats ? `<div style="margin-top:6px">${matsBlock}</div>` : ""}`;
+    else if (sel.materialsBelow) body = `<div class="two keep">${tasks ? `<div>${taskList}</div>` : "<div></div>"}${soonGrp ? `<div>${soonGrp}</div>` : "<div></div>"}</div>${mats ? `<div style="margin-top:6px">${matsBlock}</div>` : ""}`;
     else body = `<div class="two">${tasks ? `<div>${taskList}${soonGrp}</div>` : "<div></div>"}${matsBlock}</div>`;
   }
   return `<div class="drop">${body}${examHtml}${sel.status==="complete"?`<div class="daydone">${ico("check",16)} Day ${sel.day} complete</div>`:""}${catchBtn(sel)}</div>`;
@@ -260,7 +266,7 @@ function gradedHtml(days, P){
 }
 
 /* ---------- Existing AMs: one-screen view of lectures, simulations and practice exams (existing/sections.js) ---------- */
-const EX_KIND = { lecture:"Lecture", practice:"Practice exam", exam:"Simulation exam" };
+const EX_KIND = { lecture:"Guided demo", practice:"Practice exam", exam:"Simulation exam" };
 function renderExisting(){
   const u = LMS.user(), P = LMS.progress(), done = id => P[id] && P[id].status === "done";
   const all = window.LMS_EXISTING.flatMap(s => s.groups.flatMap(g => g.items)), nDone = all.filter(i => done(i.id)).length;

@@ -594,12 +594,12 @@ function pageProfile(){
   return '<div class="crumb">My Profile</div><h1 style="font-size:24px">'+esc(p.name)+'</h1>'+
    '<div class="pchips"><span class="chip">User ID —</span><svg class="pcopy" id="pcopy" viewBox="0 0 24 24" width="14" height="14"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8"/></svg><span>·</span><span>—</span></div>'+
    '<div class="pcall"><b>Fill in your home address and mobile number in the real Acqui Service.</b> This page is only a preview. Nothing you type here is saved or sent anywhere.</div>'+
-   '<div class="card"><div class="ptitle">ACCOUNT MANAGER</div>'+row("Name",p.name)+row("Email",p.email)+row("Start date",p.start)+row("Team","—")+row("Team lead","—")+'</div>'+
-   '<div class="card"><div class="ptitle">HOME ADDRESS</div><div class="pnote">Used to match you with leads near you. Enter the full address, including the city and province.</div>'+
+   '<div class="card" id="pc-acct"><div class="ptitle">ACCOUNT MANAGER</div>'+row("Name",p.name)+row("Email",p.email)+row("Start date",p.start)+row("Team","—")+row("Team lead","—")+'</div>'+
+   '<div class="card" id="pc-addr"><div class="ptitle">HOME ADDRESS</div><div class="pnote">Used to match you with leads near you. Enter the full address, including the city and province.</div>'+
    '<label>Home address</label><div class="prowin"><input type="text" id="pa" placeholder="House no., street, barangay, city, province"><button class="btn" id="pasave" disabled>Save</button></div><div id="paloc"></div></div>'+
-   '<div class="card"><div class="ptitle">MOBILE NUMBER</div><div class="pnote">Used to set you up in Connect when your lead assignments change. Enter a PH mobile number.</div>'+
+   '<div class="card" id="pc-mob"><div class="ptitle">MOBILE NUMBER</div><div class="pnote">Used to set you up in Connect when your lead assignments change. Enter a PH mobile number.</div>'+
    '<label>Mobile number</label><div class="prowin"><span class="pcc">+63</span><input type="text" id="pm" placeholder="9XX XXX XXXX" maxlength="10"><button class="btn" id="pmsave" disabled>Save</button></div></div>'+
-   '<div class="card"><div class="ptitle">AUTOMATED TASKS</div><div class="ptog"><div class="pnote" style="margin:0;max-width:640px">With 5 or more new BCLs in the last 31 days you can turn off the call tasks created for you every night. Your reminders and the tasks from originations, onboarding and cheques keep coming either way.</div>'+
+   '<div class="card" id="pc-auto"><div class="ptitle">AUTOMATED TASKS</div><div class="ptog"><div class="pnote" style="margin:0;max-width:640px">With 5 or more new BCLs in the last 31 days you can turn off the call tasks created for you every night. Your reminders and the tasks from originations, onboarding and cheques keep coming either way.</div>'+
    '<button class="tgl" id="ptg" title="Off"><i></i></button></div></div>';
 }
 function afterProfile(root){

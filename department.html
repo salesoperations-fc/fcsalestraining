@@ -37,12 +37,13 @@
   .chart .ctl button{background:#fff;color:var(--deep);border:0;border-radius:8px;padding:6px 12px;font-weight:700;font-size:13px}
   .oc{zoom:var(--z,.6)}
   .chart:fullscreen{max-height:none;border-radius:0;padding:20px;width:100vw;height:100vh}
-  .oc{display:flex;flex-direction:column;gap:22px;min-width:max-content}
-  .oc-top{display:flex;gap:10px;align-items:flex-start}
-  .oc-grp{display:flex;flex-direction:column;gap:8px}
+  .oc{display:flex;flex-direction:column;align-items:center;gap:22px;min-width:max-content;margin:0 auto}
+  .oc-top{display:flex;gap:18px;align-items:flex-start;justify-content:center}
+  .oc-grp{display:flex;flex-direction:column;align-items:center;gap:8px}
+  .oc-grp>.lab{align-self:stretch}
   .oc-grp>.lab{background:#A9B7B7;color:#fff;border-radius:6px;text-align:center;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 10px}
-  .oc-row{display:flex;gap:8px}
-  .oc-cols{display:flex;gap:10px;align-items:flex-start}
+  .oc-row{display:flex;gap:8px;justify-content:center}
+  .oc-cols{display:flex;gap:10px;align-items:flex-start;justify-content:center}
   .oc-col{display:flex;flex-direction:column;gap:6px;width:138px}
   .oc-col.wide{width:auto}
   .oc-col .nm{background:#A9B7B7;color:#fff;border-radius:6px;text-align:center;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 6px}
@@ -133,7 +134,7 @@ function build() {
 
 const nd = (x, c) => x ? `<div class="n ${c || x[3] || ""}"><b>${esc(x[0])}</b><span>${esc(x[1] || "Acquisition Manager")}${x[2] ? " · " + esc(x[2]) : ""}</span></div>` : "";
 function chart() {
-  const top = `<div class="oc-grp" style="align-items:flex-start"><div class="lab">Leadership</div><div class="oc-row">${D.leadership.map((x, i) => nd(x, i < 2 ? "ex" : "ho")).join("")}</div></div>
+  const top = `<div class="oc-grp"><div class="lab">Leadership</div><div class="oc-row">${D.leadership.map((x, i) => nd(x, i < 2 ? "ex" : "ho")).join("")}</div></div>
   <div class="oc-top">
     <div class="oc-grp"><div class="lab">Sales Operations</div><div class="oc-row">${D.salesOps.map((x, i) => nd(x, i == 0 ? "tl" : "")).join("")}</div></div>
     <div class="oc-grp"><div class="lab">SOS-BDM</div><div class="oc-row">${D.sosBdm.map(x => nd(x)).join("")}</div></div>
