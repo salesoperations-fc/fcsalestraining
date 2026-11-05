@@ -73,7 +73,18 @@ if (alreadyIn) {
 } else if (C.demo || C.emailLogin || !C.googleClientId) {
   // Google sign-in isn't connected yet: the button leads to the email step.
   $("gbtn").innerHTML = `<button class="gbtn" id="gfake" type="button">${GOOGLE_G}Sign in with Google</button>`;
-  $("gfake").onclick = () => { $("demo").hidden = false; $("demoEmail").focus(); };
+  // Fake: the Google button "loads" for a moment, then fails, and the email step appears (until real Google sign-in is connected).
+  $("gfake").onclick = () => {
+    const b = $("gfake"); if (b.disabled) return;
+    const label = b.innerHTML; b.disabled = true; b.style.opacity = ".8";
+    b.innerHTML = '<span class="spin" style="width:16px;height:16px;border-width:2px"></span>Connecting to Google…';
+    $("err").classList.remove("show");
+    setTimeout(() => {
+      b.disabled = false; b.style.opacity = ""; b.innerHTML = label;
+      showError("Google sign-in couldn't be completed. Please sign in with your First Circle email below.");
+      $("demo").hidden = false; $("demoEmail").focus();
+    }, 2200);
+  };
   $("demoForm").onsubmit = e => {
     e.preventDefault(); $("err").classList.remove("show");
     try { LMS.signInDemo($("demoEmail").value.trim()); done(); } catch(err){ fail(); }

@@ -1,4 +1,4 @@
-/* Dashboard for EXISTING AMs (batch "EXISTING" in shared/roster.js): no 10-day path, just the lectures, simulations and practice exams.
+/* Dashboard for EXISTING AMs (batch "000002" in shared/roster.js): no 10-day path, just the lectures, simulations and practice exams.
    Everything sits on one screen (dashboard.html draws it with renderExisting()). Hovering a tile shows a Netflix-style card with the thumbnail.
    - id: the same ids the Day 3/4/5 pages use, so a sim ticks / scores exactly as it does for new hires.
    - kind: "lecture" | "practice" | "exam" (badge on the tile). done = Progress tab has the id (exams: a saved score).
