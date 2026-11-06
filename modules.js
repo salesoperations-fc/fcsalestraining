@@ -1,5 +1,5 @@
 /* =========================================================
-   AM Onboarding Hub — 2-Week Learning Path (course outline)
+   Acquisition Learning Hub — 2-Week Learning Path (course outline)
    Edit days/day-NN.js to change a day. Edit this file only for weeks, sessions, or to explain fields.
 
    Content is being rewritten, so every day is empty for now

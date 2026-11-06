@@ -1,5 +1,5 @@
 /**
- * AM Onboarding Hub — backend (Google Apps Script)
+ * Acquisition Learning Hub — backend (Google Apps Script)
  *
  * Verifies the Google sign-in token, then records progress and grades in the
  * Google Sheet this script is attached to.

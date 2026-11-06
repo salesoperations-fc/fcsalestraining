@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Product Knowledge Exam | AM Onboarding Hub</title>
+<title>Product Knowledge Exam | Acquisition Learning Hub</title>
 <link rel="stylesheet" href="../shared/theme.css">
 <script src="../shared/lms.js"></script>
 <script src="product-knowledge-1-questions.js"></script>
@@ -75,7 +75,7 @@ if (!LMS.requireSignIn()) throw 0;
 
 const EX = window.LMS_PK1, PREVIEW = LMS.preview(), LET = ["A","B","C","D","E","F","G","H","I","J","K","L","M"];
 if (PREVIEW) $("back").href = "../exams.html", $("back").textContent = "← Back to Exams";
-document.title = EX.title + " | AM Onboarding Hub";
+document.title = EX.title + " | Acquisition Learning Hub";
 
 const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const digitsOf = s => String(s || "").replace(/[^0-9]/g, "");

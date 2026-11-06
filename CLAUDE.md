@@ -1,7 +1,8 @@
-# AM Onboarding Hub: project notes for Claude
+# Acquisition Learning Hub: project notes for Claude
+Nickname: "Acqui Learning". Live at https://sos-firstcircle.github.io/acquilearning/
 
 A learning site for new First Circle Account Managers (AMs): sign in, work through a 10-day path, take exams, get graded.
-Static site on GitHub Pages (`salesoperations-fc/fcsalestraining`), no build step. Plain HTML/CSS/JS plus a Google Apps Script backend that writes to a Google Sheet.
+Static site on GitHub Pages (`sos-firstcircle/acquilearning`), no build step. Plain HTML/CSS/JS plus a Google Apps Script backend that writes to a Google Sheet.
 
 ## Working with the owner
 - Owner: Sales Operations (salesoperations@firstcircle.com). Mixes English and Filipino; keep replies short and plain.

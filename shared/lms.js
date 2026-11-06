@@ -1,5 +1,5 @@
 /* =========================================================
-   First Circle AM Onboarding Hub — lms.js
+   First Circle Acquisition Learning Hub — lms.js
    Loaded by every page. Handles who's signed in and saving progress.
 
    RIGHT NOW: demo mode. Progress is saved in this browser only,
@@ -15,7 +15,7 @@
 try { document.write('<script src="' + document.currentScript.src.replace(/lms\.js(\?.*)?$/, "roster.js") + '"><\/script>'); } catch(e){}
 
 window.LMS_CONFIG = {
-  appName: "AM Onboarding Hub",
+  appName: "Acquisition Learning Hub",
   company: "First Circle",
   programDays: 10,
 

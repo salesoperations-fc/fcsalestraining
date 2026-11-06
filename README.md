@@ -1,4 +1,4 @@
-# AM Onboarding Hub (First Circle)
+# Acquisition Learning Hub (First Circle)
 
 Training site for new Account Managers. Hosted on GitHub Pages.
 

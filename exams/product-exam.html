@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Product Exam | AM Onboarding Hub</title>
+<title>Product Exam | Acquisition Learning Hub</title>
 <link rel="stylesheet" href="../shared/theme.css">
 <script src="../shared/lms.js"></script>
 <script src="questions.js"></script>
@@ -54,7 +54,7 @@ const key = new URLSearchParams(location.search).get("e") || "1", EX = (window.L
 const PREVIEW = LMS.preview();
 if (PREVIEW) $("back").href = "../exams.html", $("back").textContent = "← Back to Exams";
 if (!EX) { $("card").innerHTML = "<h1>Exam not found</h1><p class='meta'>Check the link and try again.</p>"; throw 0; }
-document.title = EX.title + " | AM Onboarding Hub";
+document.title = EX.title + " | Acquisition Learning Hub";
 if (!EX.questions.length) { $("card").innerHTML = `<h1>${esc(EX.title)}</h1><p class="meta">No questions yet. This exam isn't ready.</p>`; throw 0; }
 
 const N = EX.questions.length, LET = ["A","B","C","D","E","F"];

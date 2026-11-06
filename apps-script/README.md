@@ -1,6 +1,6 @@
 # Backend setup (Google Sheet + Apps Script)
 
-1. Create a new Google Sheet (e.g. "AM Onboarding Hub — Grades").
+1. Create a new Google Sheet (e.g. "Acquisition Learning Hub — Grades").
 2. In the Sheet: **Extensions → Apps Script**. Paste the contents of `Code.gs`.
 3. Leave `AUTH_MODE = "email"` for now (no Google Cloud needed). Later, set `CLIENT_ID` and change it to `"google"`.
 4. **Deploy → New deployment → Web app**. Execute as: **Me**. Who has access: **Anyone**.
