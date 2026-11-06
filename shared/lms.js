@@ -201,6 +201,9 @@ window.LMS_CONFIG = {
     },
 
     /** May the signed-in person reopen an earlier attempt's result? (false for batches listed in noReview) */
+    /** Last attempt's graded rows, kept in this browser only so "Review your answers" can show them again. */
+    saveReview(id, g){ try { write("review." + ((currentUser()||{}).email||"") + "." + id, g); } catch(e){} },
+    getReview(id){ return read("review." + ((currentUser()||{}).email||"") + "." + id, null); },
     canReview(){ const u = currentUser(); return !u || !(C.noReview || []).includes(batchOf(u.email)); },
 
     /** Existing AMs (batch "000002"): they get the simulations-and-practice dashboard instead of the 10-day path. */

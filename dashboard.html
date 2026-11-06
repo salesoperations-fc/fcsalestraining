@@ -49,6 +49,7 @@
   .tasks{list-style:none;margin:0;padding:0}
   .tasks li{border-bottom:1px solid var(--line)}
   .tasks li:last-child{border-bottom:0}
+  .tasks input:disabled{cursor:default;opacity:1}
   .tasks label{display:flex;gap:12px;align-items:flex-start;padding:10px 0;cursor:pointer;font-size:14px;line-height:1.45}
   .tasks input{appearance:none;width:20px;height:20px;border:1.5px solid #9FB1B5;border-radius:6px;flex:none;margin:1px 0 0;display:grid;place-items:center;cursor:pointer;background:#fff}
   .tasks input:checked{background:var(--teal);border-color:var(--teal)}
@@ -194,7 +195,7 @@ function dropdown(sel, P){
   if (sel.empty) return `<div class="drop">${brief}<p class="empty" style="margin-top:${brief?8:0}px">Content coming soon.</p>${catchBtn(sel)}</div>`;
   const taskLi = t => {
     const isDone = P[t.id] && P[t.id].status === "done";
-    return `<li><label><input type="checkbox" data-task="${t.id}" ${isDone?"checked":""}>${t.openLabel ? `<span class="kind">${esc(t.openLabel)}</span>` : ""}<span>${esc(t.label)}</span>
+    return `<li><label><input type="checkbox" data-task="${t.id}" ${isDone?"checked":""} ${t.href?'disabled title="Opens the link to tick this"':""}>${t.openLabel ? `<span class="kind">${esc(t.openLabel)}</span>` : ""}<span>${esc(t.label)}</span>
       ${t.href ? `<a class="open" href="${esc(t.href)}" ${/^https?:/.test(t.href)?'target="_blank" rel="noopener"':""} data-open="${t.id}">Open</a>` : ""}</label></li>`;
   };
   const tasks = sel.tasks.map(taskLi).join("");
@@ -209,7 +210,7 @@ function dropdown(sel, P){
     if (e.soon) return `<div class="exam" style="display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:12px;padding:14px 16px;background:var(--marigold-soft)"><div><b>${esc(e.label)}</b><br><span class="small muted">Questions coming soon.</span></div><span class="pillsoon">Soon</span></div>`;
     const rec = P[e.id], sub = rec && rec.status === "done";
     const scoreTxt = rec && rec.max ? `Score: ${rec.score}/${rec.max}` : (e.kind==="trainer" ? "Scored live by your trainer." : "");
-    if (sub) return `<div class="exam ok" style="display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:12px;padding:14px 16px;background:var(--green-soft)"><div><b>${ico("check",14)} ${esc(e.label)} done</b><br><span class="small muted">${scoreTxt}</span></div>${(e.kind==="lms"||e.kind==="sim")&&e.href?`<div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn sm" href="${esc(e.href)}">${e.kind==="sim"?"Review your result":"Review your answers"}</a>${LMS.canRetake()?`<a class="btn sm primary" href="${esc(e.href)}${e.kind==="lms"?"?retake=1":""}">Retake</a>`:""}</div>`:""}</div>`;
+    if (sub) return `<div class="exam ok" style="display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:12px;padding:14px 16px;background:var(--green-soft)"><div><b>${ico("check",14)} ${esc(e.label)} done</b><br><span class="small muted">${scoreTxt}</span></div>${(e.kind==="lms"||e.kind==="sim")&&e.href?`<div style="display:flex;gap:8px;flex-wrap:wrap">${e.kind==="lms"&&!LMS.canReview()?"":`<a class="btn sm" href="${esc(e.href)}${e.kind==="lms"?(e.href.includes("?")?"&":"?")+"review=1":""}">${e.kind==="sim"?"Review your result":"Review your answers"}</a>`}${LMS.canRetake()?`<a class="btn sm primary" href="${esc(e.href)}${e.kind==="lms"?(e.href.includes("?")?"&":"?")+"retake=1":""}">Retake</a>`:""}</div>`:""}</div>`;
     else {
       const open = e.href ? `<a class="btn sm" href="${esc(e.href)}" target="${/^https?:/.test(e.href)?"_blank":"_self"}" rel="noopener">${e.kind==="sim"?"Start simulation":e.kind==="lms"?"Start exam":"Open exam"}</a>` : "";
       return `<div class="exam" style="display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:12px;padding:14px 16px;background:var(--marigold-soft)"><div><b>${esc(e.label)}</b><br><span class="small muted">${e.kind==="lms"?(e.passing < 100 ? `Pass mark ${e.passing}%.` : "Agree to every statement to submit."):e.kind==="sim"?`Your score is recorded when you finish. Pass mark ${e.passing}%.`:`Graded. Pass mark ${e.passing}%.`}</span></div>
@@ -333,13 +334,20 @@ function render(){
 }
 
 document.addEventListener("click", e => {
+  const dl = e.target.closest("a[download]");
+  if (dl) { e.preventDefault(); fetch(dl.href).then(r => { if (!r.ok) throw 0; return r.blob(); }).then(b => { const u = URL.createObjectURL(new Blob([b], { type:"application/octet-stream" })), l = document.createElement("a"); l.href = u; l.download = dl.getAttribute("download"); document.body.appendChild(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); }).catch(() => { location.href = dl.href; }); return; }
   const d = e.target.closest("[data-day]"); if (d){ const n = +d.dataset.day; selected = selected === n ? null : n; render(); return; }
   const m = e.target.closest("[data-markday]");
   if (m){ const day = window.LMS_DAYS.find(x => x.day === +m.dataset.markday);
     day.tasks.forEach(t => LMS.complete(t.id)); day.exams.forEach(e => { if (!e.soon) LMS.complete(e.id); }); LMS.complete("catchup-d" + day.day);
     advance(); return; }
   const s = e.target.closest("[data-submit]"); if (s){ LMS.complete(s.dataset.submit); advance(); return; }
-  const o = e.target.closest("[data-open]"); if (o) LMS.start(o.dataset.open);
+  const o = e.target.closest("[data-open]");
+  if (o) {   // opening the link/demo is what ticks a task (the checkbox itself is locked)
+    const id = o.dataset.open, p = LMS.complete(id), blank = o.target === "_blank";
+    if (blank) { Promise.resolve(p).finally(() => advance()); advance(); }
+    else if (!e.ctrlKey && !e.metaKey && !e.shiftKey && e.button === 0) { e.preventDefault(); const go = () => { location.href = o.href; }; Promise.race([Promise.resolve(p), new Promise(r => setTimeout(r, 1500))]).then(go, go); }
+  }
 });
 document.addEventListener("change", e => {
   const t = e.target.closest("[data-task]"); if (!t) return;

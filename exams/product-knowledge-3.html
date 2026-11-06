@@ -24,6 +24,7 @@
   .opt .k{flex:none;width:26px;height:26px;border-radius:50%;border:1.5px solid #9FB1B5;display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--ink-2)}
   .opt[aria-checked="true"]{border-color:var(--teal);background:var(--teal-soft)}
   .opt[aria-checked="true"] .k{background:var(--teal);border-color:var(--teal);color:#fff}
+  .nav a.btn{color:var(--ink);padding:9px 16px;border-radius:8px;font-size:14px;display:inline-flex}
   .nav{display:flex;justify-content:space-between;gap:10px;margin-top:24px;flex-wrap:wrap}
   .big{font-size:46px;font-weight:700;color:var(--teal-dark);line-height:1}
   .verdict{display:inline-block;margin-left:12px;padding:3px 12px;border-radius:20px;font-size:13px;font-weight:700;vertical-align:middle}
@@ -188,19 +189,20 @@ async function submit(){
   const g = grade();
   const breakdown = g.rows.map(r => `Q${r.n} (S${r.sec}) ${r.ok === null ? "not scored" : r.ok ? "correct" : fmt(r.pts) + "/" + fmt(r.max) + " (answered: " + r.mine + "; correct: " + r.right + ")"}`).join("\n");
   try { await LMS.saveResult(EX.id, { score: g.score, max: g.max, passed: g.passed, details: g.notes, breakdown, notes: g.notes }); } catch (e) {}
+  if (!PREVIEW) LMS.saveReview(EX.id, g);
   results(g);
 }
 
-function results(g){
+function results(g, reviewing){
   $("card").classList.add("narrow");
-  $("card").innerHTML = `<h1>${esc(EX.title)}</h1>
+  $("card").innerHTML = `<h1>${esc(EX.title)}${reviewing ? ' <span class="chip" style="vertical-align:middle">Your answers</span>' : ""}</h1>
     <div style="margin-top:14px"><span class="big">${fmt(g.score)}/${fmt(g.max)}</span><span class="verdict ${g.passed ? "pass" : "fail"}">${g.passed ? "PASS" : "NOT YET"}</span></div>
     <p class="meta">${g.pct}% · pass mark ${EX.passing}%${PREVIEW ? " · <b>preview, not recorded</b>" : ""}</p>
     <div class="note"><b>Score and notes</b><br>${esc(g.notes)}</div>
     <table class="res"><thead><tr><th></th><th>Question</th><th>Your answer</th><th>Correct answer</th></tr></thead><tbody>
       ${g.rows.map(r => `<tr><td class="${r.ok === null ? "gray" : r.ok ? "ok" : r.pts > 0 ? "warn" : "no"}">${r.ok === null ? "–" : r.ok ? "✓" : r.pts > 0 ? "◐" : "✗"}<span class="why" style="color:inherit">${r.ok === null ? "" : fmt(r.pts) + "/" + fmt(r.max)}</span></td><td>${r.n}. ${esc(r.q)}${r.why ? `<span class="why">${esc(r.why)}</span>` : ""}</td><td>${esc(r.mine)}</td><td>${r.ok === null ? '<span class="gray">Not scored</span>' : esc(r.right)}</td></tr>`).join("")}
     </tbody></table>
-    <div class="nav" style="justify-content:flex-start">${PREVIEW || LMS.canRetake() ? '<button class="btn" id="again">Try again</button>' : ""}<a class="btn" href="${PREVIEW ? "../exams.html" : "../dashboard.html?day=5"}">${PREVIEW ? "Back to Exams" : "Back to dashboard"}</a></div>`;
+    <div class="nav" style="justify-content:flex-start">${!reviewing && (PREVIEW || LMS.canRetake()) ? '<button class="btn" id="again">Try again</button>' : ""}<a class="btn" href="${PREVIEW ? "../exams.html" : "../dashboard.html?day=5"}">${PREVIEW ? "Back to Exams" : "Back to dashboard"}</a></div>`;
   const ag = $("again"); if (ag) ag.onclick = () => intro();
 }
 
@@ -210,7 +212,14 @@ function alreadyTaken(){
   return rec && rec.status === "done" && !LMS.canRetake() && !PREVIEW ? rec : null;
 }
 function showTaken(rec){ intro(`You already took this exam: <b>${rec.score}/${rec.max}</b>. Ask Salesops if you need another attempt.`); }
-if (PREVIEW || LMS.canRetake()) intro();
+function showReview(){
+  const g = LMS.getReview(EX.id), rec = LMS.progress()[EX.id];
+  if (g) return results(g, true);
+  const dash = $("back").getAttribute("href");
+  $("card").innerHTML = `<h1>${esc(EX.title)}</h1><p class="meta">${rec && rec.max ? `Your score: <b>${rec.score}/${rec.max}</b>. ` : ""}The question-by-question answers aren't saved on this browser (they only stay on the device you took the exam on).</p><div class="nav" style="justify-content:flex-start"><a class="btn" href="${dash}">Back to dashboard</a></div>`;
+}
+if (/[?&]review=1/.test(location.search) && !PREVIEW && LMS.canReview()) LMS.ready.then(showReview).catch(showReview);
+else if (PREVIEW || LMS.canRetake()) intro();
 else {
   $("card").innerHTML = `<h1>${esc(EX.title)}</h1><p class="meta">Checking your progress…</p>`;
   LMS.ready.then(() => { if (started) return; const rec = alreadyTaken(); rec ? showTaken(rec) : intro(); });
