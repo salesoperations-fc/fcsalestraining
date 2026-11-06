@@ -17,9 +17,9 @@ LMS_DAY_DEFS[5] = {
     { id: "d5-referrer-demo",       group: "Related: Registering a Referrer in Slack", openLabel: "Demo", label: "How to register a referrer",   href: "sims/slack-referrer-demo.html" },
     { id: "d5-referrer-practice",   group: "Related: Registering a Referrer in Slack", openLabel: "Practice", label: "Register a referrer yourself",    href: "sims/slack-referrer-practice.html" }
   ],
-  // Product Exam 3 has no questions yet (soon: true = shown but does not block the day). Remove soon when exams/questions.js is filled in.
+  // Questions and answer keys: exams/product-knowledge-3-questions.js
   exams: [
-    { id: "exam-product-3", label: "Product Exam 3", href: "exams/product-exam.html?e=3", kind: "lms", passing: 80, soon: true }
+    { id: "exam-product-knowledge-3", label: "Product Knowledge Examination 3", href: "exams/product-knowledge-3.html", kind: "lms", passing: 80 }
   ],
   // The Notion link is the "Document Guidelines" bookmark from downloads/Bookmarks.html.
   materials: [
